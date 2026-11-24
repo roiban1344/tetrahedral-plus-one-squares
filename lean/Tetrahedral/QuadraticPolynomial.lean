@@ -133,7 +133,8 @@ theorem phase_roots {C J : Type*} (u : Rˣ) (P : ℕ) (hP : 0<P)
 theorem lift_roots {C : Type*} (u : Rˣ) (P : ℕ) (t : ℕ) (U : R)
     (hw : (↑(u^P):R)=1+2^(t+1)*U) (y : R) (centre : C → ℤ)
     (hz : ∀ c, f (y*(↑(u^(centre c)):R))=0)
-    (hk : ∀ c (a : ℤ), (2:ℤ)^t ∣ a*L (y*(↑(u^(centre c)):R))
+    (hlinear : ∀ c z, (2:ℤ) ∣ L (y*(↑(u^(centre c)):R)) z)
+    (hk : ∀ c (a : ℤ), (2:ℤ)^(t+1) ∣ a*L (y*(↑(u^(centre c)):R))
       ((y*(↑(u^(centre c)):R))*U) → 2 ∣ a)
     (i : ℤ) (hi : f (y*(↑(u^i):R))=0)
     (hphase : ∃ c, i%P=centre c%P) : ∃ c, i=centre c := by
@@ -144,8 +145,8 @@ theorem lift_roots {C : Type*} (u : Rˣ) (P : ℕ) (t : ℕ) (U : R)
   have he : i=centre c+P*a := by omega
   have hp : u^i=u^(centre c)*(u^P)^a := by
     rw [← zpow_natCast,← zpow_mul,← zpow_add,← he]
-  have ha0 := exponent_unique f (L (y*(↑(u^(centre c)):R))) Q
-    (y*(↑(u^(centre c)):R)) (u^P) t U hw (hz c) (hq _) (hk c) a
+  have ha0 := exponent_unique_even f (L (y*(↑(u^(centre c)):R))) Q
+    (y*(↑(u^(centre c)):R)) (u^P) t U hw (hz c) (hq _) (hlinear c) (hk c) a
     (by simpa only [hp,Units.val_mul,mul_assoc] using hi)
   exact ⟨c,by simpa only [ha0,mul_zero,add_zero] using he⟩
 
