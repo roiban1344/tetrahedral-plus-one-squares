@@ -1,4 +1,4 @@
-import Tetrahedral.Quartic.D11H
+import Tetrahedral.NormEleven.DyadicCertificates
 import Tetrahedral.NormEleven.Certificates
 
 namespace Tetrahedral.NormEleven.Branch11
@@ -12,12 +12,12 @@ theorem branch_complete (n r y : ℕ) (hr : n+3=11*r^2) (hy : n^2+2=66*y^2) : n=
   obtain ⟨j,hj⟩ := rel_unit_trace u hu1 hu2
   rcases hj with e|e
   · rw [hc,e,mul_comm] at hξ h0
-    rcases exponentsP j hξ with h|h <;> subst h
+    rcases Dyadic11.roots j hξ with h|h <;> subst h
     · have : (xi0*(↑(rhoU^(0:ℤ)):R)) 0=11 := by decide
       rw [this] at h0; omega
     · rw [y1_eq] at h0; have : (tau xi0) 0=11 := rfl
       rw [this] at h0; omega
   · rw [hc,e,neg_mul,mul_comm] at hξ
-    exact absurd hξ (exponentsP_neg j)
+    exact absurd hξ (Dyadic11.negative j)
 
 end Tetrahedral.NormEleven.Branch11

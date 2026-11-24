@@ -1,4 +1,4 @@
-import Tetrahedral.Quartic.D1H
+import Tetrahedral.NormEleven.DyadicCertificates
 import Tetrahedral.Quartic.D1Euler
 import Tetrahedral.NormEleven.Certificates
 
@@ -43,11 +43,11 @@ theorem branch_complete (n r y : ℕ) (hr : n+3=r^2) (hy : n^2+2=6*y^2) : n=22 :
         rw [hneg,tau_rho_zpow]; ring
   rcases hz with e|e
   · rw [e] at hzh hz0
-    rcases exponentsP m hzh with h|h <;> subst h
+    rcases Dyadic1.roots m hzh with h|h <;> subst h
     · have : (xi0*(↑(rhoU^(0:ℤ)):R)) 0=1 := by decide
       rw [this] at hz0; omega
     · rw [y1_eq] at hz0; have : y1 0=25 := rfl
       rw [this] at hz0; omega
-  · rw [e] at hzh; exact absurd hzh (exponentsP_neg m)
+  · rw [e] at hzh; exact absurd hzh (Dyadic1.negative m)
 
 end Tetrahedral.NormEleven.Branch1
