@@ -1,4 +1,4 @@
-import Tetrahedral.Quartic.D2H
+import Tetrahedral.NormEleven.D2Dyadic
 import Tetrahedral.Quartic.D2Euler
 import Tetrahedral.NormEleven.Certificates
 
@@ -51,27 +51,20 @@ theorem branch_complete (n r y : ℕ) (hr : n+3=2*r^2) (hy : n^2+2=3*y^2) : n=5 
       rcases hj with e|e <;> rw [hc,e]
       · right; right; left; ring
       · right; right; right; ring
-  have hr2 : ∀ q : ℕ, q^2≠2 := by
-    intro q hq
-    have : q ≤ 1 := by nlinarith
-    interval_cases q <;> simp at hq
+  have hrZ : (n:ℤ)+3=2*(r:ℤ)^2 := by exact_mod_cast hr
   rcases hz with e|e|e|e <;> rw [e] at hzf hz0
-  · rcases block1P m hzf with h|h|h <;> subst h
+  · rcases Dyadic2.roots m (by simpa only [one_mul] using hzf) with h|h|h <;> subst h
+    · rw [c3_eq] at hz0; have : c3 0=2 := rfl
+      rw [this] at hz0; omega
     · rw [c1_eq] at hz0; have : c1 0=13778 := rfl
       rw [this] at hz0; right; omega
     · rw [c2_eq] at hz0; have : c2 0=8 := rfl
       rw [this] at hz0; left; omega
-    · rw [c3_eq] at hz0; have : c3 0=2 := rfl
-      rw [this] at hz0; omega
-  · rcases block2P m hzf with h <;> subst h
-    rw [c4_eq] at hz0; have : c4 0= -16 := rfl
-    rw [this] at hz0; omega
-  · rcases block3P m hzf with h <;> subst h
-    rw [c5_eq] at hz0; have : c5 0=4 := rfl
-    rw [this] at hz0
-    exfalso; exact hr2 r (by omega)
-  · rcases block4P m hzf with h <;> subst h
-    rw [c6_eq] at hz0; have : c6 0= -2 := rfl
-    rw [this] at hz0; omega
+  · exact (Dyadic2.exclude 0 r m (by simpa [Dyadic2.bad,neg_mul] using hzf)
+      (by simpa [Dyadic2.bad,neg_mul] using hz0.trans hrZ)).elim
+  · exact (Dyadic2.exclude 1 r m (by simpa [Dyadic2.bad] using hzf)
+      (by simpa [Dyadic2.bad] using hz0.trans hrZ)).elim
+  · exact (Dyadic2.exclude 2 r m (by simpa [Dyadic2.bad,neg_mul] using hzf)
+      (by simpa [Dyadic2.bad,neg_mul] using hz0.trans hrZ)).elim
 
 end Tetrahedral.NormEleven.Branch2
