@@ -52,14 +52,13 @@ theorem primitive : (2:ℤ) ∣ step 2-1 := by decide +kernel
 theorem root : ∀ c : Fin 2, f (point c)=0 := by decide +kernel
 
 theorem derivative_at (c : Fin 2) : 16 ∣ Lf (point c) (first c)-8 := by
-  exact derivative (point c) step 1 (by decide) norm_step.1 norm_step.2
-    (orbit_coefficient (centre c)) (by rw [root c]; exact dvd_zero _) primitive
+  have hv := orbit_congruences (centre c)
+  exact derivative (point c) step 1 (by decide) norm_step.1 norm_step.2 hv.2 hv.1 primitive
 
 
 /-- The scalar bit is a consequence of the norm and the orbit, not a certificate. -/
 theorem scalar_bit (c : Fin 2) : 8 ∣ Lf (point c) (tangent c) :=
   scalar (point c) step 1 (by decide) norm_step.1 norm_step.2
-    (root c)
 
 theorem unique (c : Fin 2) (i : ℤ)
     (hi : f ((xi0*(↑(rhoU^(centre c)):R))*(↑((rhoU^2)^i):R))=0) : i=0 := by
@@ -143,7 +142,7 @@ theorem derivative_at (c : Fin 1) : (64:ℤ) ∣ Lf (point c) (first c)-32 := by
   simp only [zpow_zero,Units.val_one,mul_one] at hp
   have hpoint : point c=xi0*(↑(rhoU^(-1:ℤ)):R) := by rw [point,he]
   rw [←hpoint] at hp
-  have hd := derivative_odd (point c) step norm_step.1 norm_step.2 (root c)
+  have hd := derivative_odd (point c) step norm_step.1 norm_step.2
     hp.1 hp.2.1 hp.2.2.1 hp.2.2.2
   have hu := primitive.1
   change (64:ℤ) ∣ Lf (point c) (point c*step)-32
@@ -153,7 +152,7 @@ theorem derivative_at (c : Fin 1) : (64:ℤ) ∣ Lf (point c) (first c)-32 := by
 /-- The scalar bit is a consequence of the norm and the orbit, not a certificate. -/
 theorem scalar_bit (c : Fin 1) : 32 ∣ Lf (point c) (tangent c) :=
   scalar (point c) step 1 (by decide) norm_step.1 norm_step.2
-    (root c) (by simpa only [point] using orbit_phase (centre c))
+    (orbit_congruences (centre c)).1 (by simpa only [point] using orbit_phase (centre c))
 
 theorem unique (c : Fin 1) (i : ℤ)
     (hi : f ((xi0*(↑(rhoU^(centre c)):R))*(↑((rhoU^4)^i):R))=0) : i=0 := by
@@ -253,7 +252,7 @@ theorem orbit_residues (i : ℤ) :
 theorem derivative_at (c : Fin 2) : (128:ℤ) ∣ Lf (point c) (first c)-64 := by
   have hp := orbit_residues (centre c)
   have hu := primitive
-  have hd := derivative_near (point c) step norm_step.1 norm_step.2 (root c)
+  have hd := derivative_near (point c) step norm_step.1 norm_step.2
     hp.1 hp.2.1 hp.2.2.1 hp.2.2.2 (by omega)
   change (128:ℤ) ∣ Lf (point c) (point c*step)-64
   omega
@@ -262,7 +261,7 @@ theorem derivative_at (c : Fin 2) : (128:ℤ) ∣ Lf (point c) (first c)-64 := b
 /-- The scalar bit is a consequence of the norm and the orbit, not a certificate. -/
 theorem scalar_bit (c : Fin 2) : 32 ∣ Lf (point c) (tangent c) :=
   scalar (point c) step 2 (by decide) norm_step.1 norm_step.2
-    (root c) (by simpa only [point,zpow_mul,zpow_ofNat] using orbit_phase (4*centre c))
+    (by simpa only [point,zpow_mul,zpow_ofNat] using (orbit_congruences (4*centre c)).1) (by simpa only [point,zpow_mul,zpow_ofNat] using orbit_phase (4*centre c))
 
 theorem unique (c : Fin 2) (i : ℤ)
     (hi : f ((xi0*(↑((rhoU^4)^(centre c)):R))*(↑((rhoU^8)^i):R))=0) : i=0 := by
@@ -316,14 +315,13 @@ theorem primitive : (2:ℤ) ∣ step 2-1 := by decide +kernel
 theorem root : ∀ c : Fin 2, f (point c)=0 := by decide +kernel
 
 theorem derivative_at (c : Fin 2) : 16 ∣ Lf (point c) (first c)-8 := by
-  exact derivative (point c) step 1 (by decide) norm_step.1 norm_step.2
-    (orbit_coefficient (centre c)) (by rw [root c]; exact dvd_zero _) primitive
+  have hv := orbit_congruences (centre c)
+  exact derivative (point c) step 1 (by decide) norm_step.1 norm_step.2 hv.2 hv.1 primitive
 
 
 /-- The scalar bit is a consequence of the norm and the orbit, not a certificate. -/
 theorem scalar_bit (c : Fin 2) : 8 ∣ Lf (point c) (tangent c) :=
   scalar (point c) step 1 (by decide) norm_step.1 norm_step.2
-    (root c)
 
 theorem unique (c : Fin 2) (i : ℤ)
     (hi : f ((xi0*(↑(rhoU^(centre c)):R))*(↑((rhoU^2)^i):R))=0) : i=0 := by
@@ -377,14 +375,13 @@ theorem primitive : (2:ℤ) ∣ step 2-1 := by decide +kernel
 theorem root : ∀ c : Fin 1, f (point c)=0 := by decide +kernel
 
 theorem derivative_at (c : Fin 1) : 16 ∣ Lf (point c) (first c)-8 := by
-  exact derivative (point c) step 1 (by decide) norm_step.1 norm_step.2
-    (orbit_coefficient (centre c)) (by rw [root c]; exact dvd_zero _) primitive
+  have hv := orbit_congruences (centre c)
+  exact derivative (point c) step 1 (by decide) norm_step.1 norm_step.2 hv.2 hv.1 primitive
 
 
 /-- The scalar bit is a consequence of the norm and the orbit, not a certificate. -/
 theorem scalar_bit (c : Fin 1) : 8 ∣ Lf (point c) (tangent c) :=
   scalar (point c) step 1 (by decide) norm_step.1 norm_step.2
-    (root c)
 
 theorem unique (c : Fin 1) (i : ℤ)
     (hi : f ((xi0*(↑(rhoU^(centre c)):R))*(↑((rhoU^2)^i):R))=0) : i=0 := by
@@ -468,7 +465,7 @@ theorem derivative_at (c : Fin 1) : (64:ℤ) ∣ Lf (point c) (first c)-32 := by
   simp only [zpow_zero,Units.val_one,mul_one] at hp
   have hpoint : point c=xi0*(↑(rhoU^(1:ℤ)):R) := by rw [point,he]
   rw [←hpoint] at hp
-  have hd := derivative_odd (point c) step norm_step.1 norm_step.2 (root c)
+  have hd := derivative_odd (point c) step norm_step.1 norm_step.2
     hp.1 hp.2.1 hp.2.2.1 hp.2.2.2
   have hu := primitive
   change (64:ℤ) ∣ Lf (point c) (point c*step)-32
@@ -478,7 +475,7 @@ theorem derivative_at (c : Fin 1) : (64:ℤ) ∣ Lf (point c) (first c)-32 := by
 /-- The scalar bit is a consequence of the norm and the orbit, not a certificate. -/
 theorem scalar_bit (c : Fin 1) : 32 ∣ Lf (point c) (tangent c) :=
   scalar (point c) step 1 (by decide) norm_step.1 norm_step.2
-    (root c) (by simpa only [point] using orbit_phase (centre c))
+    (orbit_congruences (centre c)).1 (by simpa only [point] using orbit_phase (centre c))
 
 theorem unique (c : Fin 1) (i : ℤ)
     (hi : f ((xi0*(↑(rhoU^(centre c)):R))*(↑((rhoU^4)^i):R))=0) : i=0 := by

@@ -23,7 +23,7 @@ open Quartic1 R
 theorem trace_norm (U : R) (q : ℤ) (hq : q≠0)
     (hH : relH (1+(4*q) • U)=1) (hK : relK (1+(4*q) • U)=0) :
     U 0= -2*q*relH U ∧ U 1= -2*q*relK U ∧
-      (2:ℤ) ∣ relH U ∧ (2:ℤ) ∣ relK U := by
+      (4:ℤ) ∣ relH U ∧ (2:ℤ) ∣ relK U := by
   have eH : relH (1+(4*q) • U)=1+8*q*U 0+16*q^2*relH U := by
     simp only [relH,add_apply,zsmul_apply,one_apply]; norm_num; ring
   have eK : relK (1+(4*q) • U)=8*q*U 1+16*q^2*relK U := by
@@ -58,6 +58,7 @@ theorem direction (U : R) (q : ℤ) (hq : q≠0)
     (∀ j, (2:ℤ) ∣ (U^2) j) ∧
     ((2:ℤ)=2 ∨ (4:ℤ) ∣ (U^2) 0+(U^2) 1) := by
   obtain ⟨hA,hB,hN0,hN1⟩ := trace_norm U q hq hH hK
+  have hN0 : (2:ℤ) ∣ relH U := (by decide : (2:ℤ) ∣ 4).trans hN0
   have hn := And.intro hN0 hN1
   obtain ⟨a,ha⟩ := hn.1
   obtain ⟨b,hb⟩ := hn.2
@@ -85,33 +86,28 @@ theorem base_mul (x : R) (H K : ℤ) :
   constructor <;> simp only [mul_apply0,mul_apply1] <;> norm_num <;> ring
 
 
-/-- At a root, the base-field norm contributes the extra scalar bit. -/
+/-- Width two is unconditional in y; width four uses its value modulo four. -/
 theorem scalar_base (y U : R) (q : ℤ) (hq : q≠0)
-    (hH : relH (1+(4*q) • U)=1) (hK : relK (1+(4*q) • U)=0)
-    (hy : f y=0) :
+    (hH : relH (1+(4*q) • U)=1) (hK : relK (1+(4*q) • U)=0) :
     (8:ℤ) ∣ Lf y (y*(⟨![relH U,relK U,0,0]⟩:R)) := by
   obtain ⟨hA,hB,hN0,hN1⟩ := trace_norm U q hq hH hK
-  have hy' : (y 0-3)^2-6*(y 1)^2+2=0 := hy
   change (8:ℤ) ∣
     2*(y 0-3)*(y*(⟨![relH U,relK U,0,0]⟩:R)) 0-
       2*6*y 1*(y*(⟨![relH U,relK U,0,0]⟩:R)) 1
-  rw [(base_mul y _ _).1,(base_mul y _ _).2,
-    RelativeDirection.at_root (y 0) (y 1) (relH U) (relK U) 6 hy']
-  have hp := NormDerivative.root_parity 6 (y 0-3) (y 1) hy'
+  rw [(base_mul y _ _).1,(base_mul y _ _).2]
   exact RelativeDirection.scalar_two (y 0) (y 1) (relH U) (relK U) 6
-    (by omega) (by decide) hN0 hN1
+    (by decide) hN0 hN1
 
-/-- Root parity, and at width four the preserved orbit character,
-supply the scalar bit for every relative unit direction. -/
+/-- The norm alone supplies the width-two scalar bit. Width four uses
+only a modular value and the preserved orbit character. -/
 theorem scalar (y U : R) (q : ℤ) (hq : q≠0)
-    (hH : relH (1+(4*q) • U)=1) (hK : relK (1+(4*q) • U)=0)
-    (hy : f y=0) :
+    (hH : relH (1+(4*q) • U)=1) (hK : relK (1+(4*q) • U)=0) :
     (8:ℤ) ∣ Lf y (y*U^2) := by
   obtain ⟨_,_,hN0,hN1⟩ := trace_norm U q hq hH hK
   let N : R := ⟨![relH U,relK U,0,0]⟩
   apply RelativeDirection.scalar_of_norm (Lf y) y U N (4*q) 2
     (direction_square U q hq hH hK)
-  · exact scalar_base y U q hq hH hK hy
+  · exact scalar_base y U q hq hH hK
   · change (8:ℤ) ∣
       2*(y 0-3)*((y*U)*N) 0-2*6*y 1*((y*U)*N) 1
     rw [(base_mul (y*U) _ _).1,(base_mul (y*U) _ _).2]
@@ -119,7 +115,25 @@ theorem scalar (y U : R) (q : ℤ) (hq : q≠0)
       RelativeDirection.product_differential (y 0-3) (6*y 1) 6
       ((y*U) 0) ((y*U) 1) (relH U) (relK U) 2
       ((direction U q hq hH hK).1 y).1
-      ((direction U q hq hH hK).1 y).2 hN0 hN1
+      ((direction U q hq hH hK).1 y).2 ((by decide : (2:ℤ) ∣ 4).trans hN0) hN1
+/-- The shifted value and the constant norm coefficient are complementary modulo four. -/
+theorem value_character (y : R) : (4:ℤ) ∣ f y+relH y-11 := by
+  have hp := IntegerParity.square_sub_self_even (y 0)
+  simp only [f,relH]; ring_nf; omega
+
+/-- Coefficient estimates use these orbit congruences before any exact root. -/
+theorem orbit_congruences (i : ℤ) :
+    (4:ℤ) ∣ f (xi0*(↑(rhoU^i):R)) ∧
+    (4:ℤ) ∣ relK (xi0*(↑(rhoU^i):R)) := by
+  obtain ⟨hH,hK⟩ := relN_rho_zpow i
+  have hv := value_character (xi0*(↑(rhoU^i):R))
+  rw [relH_mul,hH,hK] at hv
+  constructor
+  · norm_num [relH,xi0] at hv
+    exact hv
+  · rw [relK_mul,hH,hK]
+    norm_num [relK,xi0]
+
 /-- The nonconstant norm coefficient detects the relative-coordinate parity. -/
 theorem norm_parity (y : R) :
     (4:ℤ) ∣ relK y-2*(y 0*y 1-(y 2)^2) := by
@@ -137,7 +151,7 @@ theorem derivative (y U : R) (q : ℤ) (hq : q≠0)
   have hc := RelativeDirection.odd_of_product_square (y 0) (y 1) (y 2) ha hb (by omega)
   obtain ⟨hA,hB,hN0,hN1⟩ := trace_norm U q hq hH hK
   obtain ⟨a,haN⟩ := hN0; obtain ⟨b,hbN⟩ := hN1
-  have hu0 : U 0=4*(-q*a) := by rw [hA,haN]; ring
+  have hu0 : U 0=8*(-q*a) := by rw [hA,haN]; ring
   have hu1 : U 1=4*(-q*b) := by rw [hB,hbN]; ring
   have hF0 : (4:ℤ) ∣ (y*U) 0 := by
     simp only [mul_apply0]; rw [hu0,hu1]; ring_nf; omega
@@ -145,13 +159,6 @@ theorem derivative (y U : R) (q : ℤ) (hq : q≠0)
     simp only [mul_apply1]; rw [hu0,hu1]; ring_nf; omega
   exact RelativeDirection.derivative_two (y 0) (y 1) (y 2) (U 2)
     ((y*U) 0) ((y*U) 1) 6 (by decide) ha hb hc hprimitive hF0 hF1
-
-/-- Only the required congruence is passed to the local derivative proof. -/
-theorem orbit_coefficient (i : ℤ) :
-    (4:ℤ) ∣ relK (xi0*(↑(rhoU^i):R)) := by
-  obtain ⟨hH,hK⟩ := relN_rho_zpow i
-  rw [relK_mul,hH,hK]
-  norm_num [relK,xi0]
 
 
 
@@ -252,18 +259,17 @@ theorem orbit_phase (i : ℤ) :
   have hh := OrbitCongruence.invariant rhoU (fun x : R => x 0+(-1)*x 1) 4 hs xi0 i
   simpa only [show xi0 0+(-1)*xi0 1=1 by decide] using hh
 
-/-- At a root, the base-field norm contributes the extra scalar bit. -/
+/-- Width two is unconditional in y; width four uses its value modulo four. -/
 theorem scalar_base (y U : R) (q : ℤ) (hq : q≠0)
     (hH : relH (1+(4*q) • U)=1) (hK : relK (1+(4*q) • U)=0)
-    (hy : f y=0) (hphase : (4:ℤ) ∣ y 0+(-1)*y 1-1) :
+    (hy : (4:ℤ) ∣ f y) (hphase : (4:ℤ) ∣ y 0+(-1)*y 1-1) :
     (32:ℤ) ∣ Lf y (y*(⟨![relH U,relK U,0,0]⟩:R)) := by
   obtain ⟨hA,hB,hN0,hN1⟩ := trace_norm U q hq hH hK
-  have hy' : (y 0-3)^2-3*(y 1)^2+2=0 := hy
   change (32:ℤ) ∣
     2*(y 0-3)*(y*(⟨![relH U,relK U,0,0]⟩:R)) 0-
       2*3*y 1*(y*(⟨![relH U,relK U,0,0]⟩:R)) 1
-  rw [(base_mul y _ _).1,(base_mul y _ _).2,
-    RelativeDirection.at_root (y 0) (y 1) (relH U) (relK U) 3 hy']
+  rw [(base_mul y _ _).1,(base_mul y _ _).2]
+  apply RelativeDirection.base_differential (y 0) (y 1) (relH U) (relK U) 3 4 hy hN0
   have hchar : (16:ℤ) ∣ relH U-(-1)*relK U := by
     obtain ⟨a,ha⟩ := hN0; obtain ⟨b,hb⟩ := hN1
     have hu0 : U 0=4*(-2*q*a) := by rw [hA,ha]; ring
@@ -272,11 +278,11 @@ theorem scalar_base (y U : R) (q : ℤ) (hq : q≠0)
   exact RelativeDirection.scalar_four (y 0) (y 1) (relH U) (relK U) 3 (-1)
     (by decide) (by decide) hphase hN0 hchar
 
-/-- Root parity, and at width four the preserved orbit character,
-supply the scalar bit for every relative unit direction. -/
+/-- The norm alone supplies the width-two scalar bit. Width four uses
+only a modular value and the preserved orbit character. -/
 theorem scalar (y U : R) (q : ℤ) (hq : q≠0)
     (hH : relH (1+(4*q) • U)=1) (hK : relK (1+(4*q) • U)=0)
-    (hy : f y=0) (hphase : (4:ℤ) ∣ y 0+(-1)*y 1-1) :
+    (hy : (4:ℤ) ∣ f y) (hphase : (4:ℤ) ∣ y 0+(-1)*y 1-1) :
     (32:ℤ) ∣ Lf y (y*U^2) := by
   obtain ⟨_,_,hN0,hN1⟩ := trace_norm U q hq hH hK
   let N : R := ⟨![relH U,relK U,0,0]⟩
@@ -290,7 +296,25 @@ theorem scalar (y U : R) (q : ℤ) (hq : q≠0)
       RelativeDirection.product_differential (y 0-3) (3*y 1) 3
       ((y*U) 0) ((y*U) 1) (relH U) (relK U) 4
       ((direction U q hq hH hK).1 y).1
-      ((direction U q hq hH hK).1 y).2 hN0 hN1
+      ((direction U q hq hH hK).1 y).2 ((by decide : (4:ℤ) ∣ 4).trans hN0) hN1
+/-- The shifted value and the constant norm coefficient are complementary modulo four. -/
+theorem value_character (y : R) : (4:ℤ) ∣ f y+relH y-11 := by
+  have hp := IntegerParity.square_sub_self_even (y 0)
+  simp only [f,relH]; ring_nf; omega
+
+/-- Coefficient estimates use these orbit congruences before any exact root. -/
+theorem orbit_congruences (i : ℤ) :
+    (4:ℤ) ∣ f (xi0*(↑(rhoU^i):R)) ∧
+    (4:ℤ) ∣ relK (xi0*(↑(rhoU^i):R)) := by
+  obtain ⟨hH,hK⟩ := relN_rho_zpow i
+  have hv := value_character (xi0*(↑(rhoU^i):R))
+  rw [relH_mul,hH,hK] at hv
+  constructor
+  · norm_num [relH,xi0] at hv
+    exact hv
+  · rw [relK_mul,hH,hK]
+    norm_num [relK,xi0]
+
 /-- After the norm has removed the base part, the derivative is a
 pairing of the two relative coordinates. -/
 def pairing (y U : R) : ℤ :=
@@ -299,7 +323,7 @@ def pairing (y U : R) : ℤ :=
 
 theorem derivative_pairing (y U : R) (q : ℤ) (hq : q≠0)
     (hH : relH (1+(4*q) • U)=1) (hK : relK (1+(4*q) • U)=0)
-    (hy : f y=0) (hphase : (4:ℤ) ∣ y 0+(-1)*y 1-1) :
+    (hy : (4:ℤ) ∣ f y) (hphase : (4:ℤ) ∣ y 0+(-1)*y 1-1) :
     (64*q:ℤ) ∣ Lf y (y*U)-8*pairing y U := by
   obtain ⟨hA,hB,_,_⟩ := trace_norm U q hq hH hK
   have he : Lf y (y*U)-8*pairing y U=
@@ -362,11 +386,12 @@ theorem phase_third (V : Rˣ) (S : R) (hV : (V:R)=1+(4:ℤ) • S)
 /-- The phase determines the derivative as a linear form in the relative direction. -/
 theorem derivative_near (y U : R)
     (hH : relH (1+(8:ℤ) • U)=1) (hK : relK (1+(8:ℤ) • U)=0)
-    (hy : f y=0)
     (h0 : (16:ℤ) ∣ y 0-2) (h1 : (16:ℤ) ∣ y 1-1)
     (h2 : (8:ℤ) ∣ y 2-2) (h3 : (4:ℤ) ∣ y 3-3)
     (hp : (2:ℤ) ∣ U 3) :
     (128:ℤ) ∣ Lf y (y*U)-(16*(6*U 2+U 3)) := by
+  have hy : (4:ℤ) ∣ f y :=
+    RelativeDirection.value_congruence (y 0) (y 1) 2 1 3 4 (by omega) (by omega) (by decide)
   have ho := derivative_pairing y U 2 (by decide) hH hK hy (by omega)
   norm_num only [Int.reduceMul] at ho
   have hr : (128:ℤ) ∣ 8*pairing y U-(16*(6*U 2+U 3)) := by
@@ -384,11 +409,12 @@ theorem derivative_near (y U : R)
 /-- The phase determines the derivative as a linear form in the relative direction. -/
 theorem derivative_odd (y U : R)
     (hH : relH (1+(4:ℤ) • U)=1) (hK : relK (1+(4:ℤ) • U)=0)
-    (hy : f y=0)
     (h0 : (16:ℤ) ∣ y 0-8) (h1 : (16:ℤ) ∣ y 1-3)
     (h2 : (4:ℤ) ∣ y 2-2) (h3 : (4:ℤ) ∣ y 3-0)
  :
     (64:ℤ) ∣ Lf y (y*U)-(32*U 2) := by
+  have hy : (4:ℤ) ∣ f y :=
+    RelativeDirection.value_congruence (y 0) (y 1) 8 3 3 4 (by omega) (by omega) (by decide)
   have ho := derivative_pairing y U 1 (by decide) hH hK hy (by omega)
   norm_num only [Int.reduceMul] at ho
   have hr : (64:ℤ) ∣ 8*pairing y U-(32*U 2) := by
@@ -420,7 +446,7 @@ open Quartic3 R
 theorem trace_norm (U : R) (q : ℤ) (hq : q≠0)
     (hH : relH (1+(4*q) • U)=1) (hK : relK (1+(4*q) • U)=0) :
     U 0= -2*q*relH U ∧ U 1= -2*q*relK U ∧
-      (2:ℤ) ∣ relH U ∧ (2:ℤ) ∣ relK U := by
+      (4:ℤ) ∣ relH U ∧ (2:ℤ) ∣ relK U := by
   have eH : relH (1+(4*q) • U)=1+8*q*U 0+16*q^2*relH U := by
     simp only [relH,add_apply,zsmul_apply,one_apply]; norm_num; ring
   have eK : relK (1+(4*q) • U)=8*q*U 1+16*q^2*relK U := by
@@ -455,6 +481,7 @@ theorem direction (U : R) (q : ℤ) (hq : q≠0)
     (∀ j, (2:ℤ) ∣ (U^2) j) ∧
     ((2:ℤ)=2 ∨ (4:ℤ) ∣ (U^2) 0+(U^2) 1) := by
   obtain ⟨hA,hB,hN0,hN1⟩ := trace_norm U q hq hH hK
+  have hN0 : (2:ℤ) ∣ relH U := (by decide : (2:ℤ) ∣ 4).trans hN0
   have hn := And.intro hN0 hN1
   obtain ⟨a,ha⟩ := hn.1
   obtain ⟨b,hb⟩ := hn.2
@@ -482,33 +509,28 @@ theorem base_mul (x : R) (H K : ℤ) :
   constructor <;> simp only [mul_apply0,mul_apply1] <;> norm_num
 
 
-/-- At a root, the base-field norm contributes the extra scalar bit. -/
+/-- Width two is unconditional in y; width four uses its value modulo four. -/
 theorem scalar_base (y U : R) (q : ℤ) (hq : q≠0)
-    (hH : relH (1+(4*q) • U)=1) (hK : relK (1+(4*q) • U)=0)
-    (hy : f y=0) :
+    (hH : relH (1+(4*q) • U)=1) (hK : relK (1+(4*q) • U)=0) :
     (8:ℤ) ∣ Lf y (y*(⟨![relH U,relK U,0,0]⟩:R)) := by
   obtain ⟨hA,hB,hN0,hN1⟩ := trace_norm U q hq hH hK
-  have hy' : (y 0-3)^2-2*(y 1)^2+2=0 := hy
   change (8:ℤ) ∣
     2*(y 0-3)*(y*(⟨![relH U,relK U,0,0]⟩:R)) 0-
       2*2*y 1*(y*(⟨![relH U,relK U,0,0]⟩:R)) 1
-  rw [(base_mul y _ _).1,(base_mul y _ _).2,
-    RelativeDirection.at_root (y 0) (y 1) (relH U) (relK U) 2 hy']
-  have hp := NormDerivative.root_parity 2 (y 0-3) (y 1) hy'
+  rw [(base_mul y _ _).1,(base_mul y _ _).2]
   exact RelativeDirection.scalar_two (y 0) (y 1) (relH U) (relK U) 2
-    (by omega) (by decide) hN0 hN1
+    (by decide) hN0 hN1
 
-/-- Root parity, and at width four the preserved orbit character,
-supply the scalar bit for every relative unit direction. -/
+/-- The norm alone supplies the width-two scalar bit. Width four uses
+only a modular value and the preserved orbit character. -/
 theorem scalar (y U : R) (q : ℤ) (hq : q≠0)
-    (hH : relH (1+(4*q) • U)=1) (hK : relK (1+(4*q) • U)=0)
-    (hy : f y=0) :
+    (hH : relH (1+(4*q) • U)=1) (hK : relK (1+(4*q) • U)=0) :
     (8:ℤ) ∣ Lf y (y*U^2) := by
   obtain ⟨_,_,hN0,hN1⟩ := trace_norm U q hq hH hK
   let N : R := ⟨![relH U,relK U,0,0]⟩
   apply RelativeDirection.scalar_of_norm (Lf y) y U N (4*q) 2
     (direction_square U q hq hH hK)
-  · exact scalar_base y U q hq hH hK hy
+  · exact scalar_base y U q hq hH hK
   · change (8:ℤ) ∣
       2*(y 0-3)*((y*U)*N) 0-2*2*y 1*((y*U)*N) 1
     rw [(base_mul (y*U) _ _).1,(base_mul (y*U) _ _).2]
@@ -516,7 +538,25 @@ theorem scalar (y U : R) (q : ℤ) (hq : q≠0)
       RelativeDirection.product_differential (y 0-3) (2*y 1) 2
       ((y*U) 0) ((y*U) 1) (relH U) (relK U) 2
       ((direction U q hq hH hK).1 y).1
-      ((direction U q hq hH hK).1 y).2 hN0 hN1
+      ((direction U q hq hH hK).1 y).2 ((by decide : (2:ℤ) ∣ 4).trans hN0) hN1
+/-- The shifted value and the constant norm coefficient are complementary modulo four. -/
+theorem value_character (y : R) : (4:ℤ) ∣ f y+relH y-11 := by
+  have hp := IntegerParity.square_sub_self_even (y 0)
+  simp only [f,relH]; ring_nf; omega
+
+/-- Coefficient estimates use these orbit congruences before any exact root. -/
+theorem orbit_congruences (i : ℤ) :
+    (4:ℤ) ∣ f (xi0*(↑(rhoU^i):R)) ∧
+    (4:ℤ) ∣ relK (xi0*(↑(rhoU^i):R)) := by
+  obtain ⟨hH,hK⟩ := relN_rho_zpow i
+  have hv := value_character (xi0*(↑(rhoU^i):R))
+  rw [relH_mul,hH,hK] at hv
+  constructor
+  · norm_num [relH,xi0] at hv
+    exact hv
+  · rw [relK_mul,hH,hK]
+    norm_num [relK,xi0]
+
 /-- The nonconstant norm coefficient detects the relative-coordinate parity. -/
 theorem norm_parity (y : R) :
     (4:ℤ) ∣ relK y-2*(y 0*y 1-(y 2)^2) := by
@@ -534,7 +574,7 @@ theorem derivative (y U : R) (q : ℤ) (hq : q≠0)
   have hc := RelativeDirection.odd_of_product_square (y 0) (y 1) (y 2) ha hb (by omega)
   obtain ⟨hA,hB,hN0,hN1⟩ := trace_norm U q hq hH hK
   obtain ⟨a,haN⟩ := hN0; obtain ⟨b,hbN⟩ := hN1
-  have hu0 : U 0=4*(-q*a) := by rw [hA,haN]; ring
+  have hu0 : U 0=8*(-q*a) := by rw [hA,haN]; ring
   have hu1 : U 1=4*(-q*b) := by rw [hB,hbN]; ring
   have hF0 : (4:ℤ) ∣ (y*U) 0 := by
     simp only [mul_apply0]; rw [hu0,hu1]; ring_nf; omega
@@ -542,13 +582,6 @@ theorem derivative (y U : R) (q : ℤ) (hq : q≠0)
     simp only [mul_apply1]; rw [hu0,hu1]; ring_nf; omega
   exact RelativeDirection.derivative_two (y 0) (y 1) (y 2) (U 2)
     ((y*U) 0) ((y*U) 1) 2 (by decide) ha hb hc hprimitive hF0 hF1
-
-/-- Only the required congruence is passed to the local derivative proof. -/
-theorem orbit_coefficient (i : ℤ) :
-    (4:ℤ) ∣ relK (xi0*(↑(rhoU^i):R)) := by
-  obtain ⟨hH,hK⟩ := relN_rho_zpow i
-  rw [relK_mul,hH,hK]
-  norm_num [relK,xi0]
 
 
 
@@ -569,7 +602,7 @@ open Quartic11 R
 theorem trace_norm (U : R) (q : ℤ) (hq : q≠0)
     (hH : relH (1+(4*q) • U)=1) (hK : relK (1+(4*q) • U)=0) :
     U 0= -2*q*relH U ∧ U 1= -2*q*relK U ∧
-      (2:ℤ) ∣ relH U ∧ (2:ℤ) ∣ relK U := by
+      (4:ℤ) ∣ relH U ∧ (2:ℤ) ∣ relK U := by
   have eH : relH (1+(4*q) • U)=1+8*q*U 0+16*q^2*relH U := by
     simp only [relH,add_apply,zsmul_apply,one_apply]; norm_num; ring
   have eK : relK (1+(4*q) • U)=8*q*U 1+16*q^2*relK U := by
@@ -604,6 +637,7 @@ theorem direction (U : R) (q : ℤ) (hq : q≠0)
     (∀ j, (2:ℤ) ∣ (U^2) j) ∧
     ((2:ℤ)=2 ∨ (4:ℤ) ∣ (U^2) 0+(U^2) 1) := by
   obtain ⟨hA,hB,hN0,hN1⟩ := trace_norm U q hq hH hK
+  have hN0 : (2:ℤ) ∣ relH U := (by decide : (2:ℤ) ∣ 4).trans hN0
   have hn := And.intro hN0 hN1
   obtain ⟨a,ha⟩ := hn.1
   obtain ⟨b,hb⟩ := hn.2
@@ -631,33 +665,28 @@ theorem base_mul (x : R) (H K : ℤ) :
   constructor <;> simp only [mul_apply0,mul_apply1] <;> norm_num
 
 
-/-- At a root, the base-field norm contributes the extra scalar bit. -/
+/-- Width two is unconditional in y; width four uses its value modulo four. -/
 theorem scalar_base (y U : R) (q : ℤ) (hq : q≠0)
-    (hH : relH (1+(4*q) • U)=1) (hK : relK (1+(4*q) • U)=0)
-    (hy : f y=0) :
+    (hH : relH (1+(4*q) • U)=1) (hK : relK (1+(4*q) • U)=0) :
     (8:ℤ) ∣ Lf y (y*(⟨![relH U,relK U,0,0]⟩:R)) := by
   obtain ⟨hA,hB,hN0,hN1⟩ := trace_norm U q hq hH hK
-  have hy' : (y 0-3)^2-66*(y 1)^2+2=0 := hy
   change (8:ℤ) ∣
     2*(y 0-3)*(y*(⟨![relH U,relK U,0,0]⟩:R)) 0-
       2*66*y 1*(y*(⟨![relH U,relK U,0,0]⟩:R)) 1
-  rw [(base_mul y _ _).1,(base_mul y _ _).2,
-    RelativeDirection.at_root (y 0) (y 1) (relH U) (relK U) 66 hy']
-  have hp := NormDerivative.root_parity 66 (y 0-3) (y 1) hy'
+  rw [(base_mul y _ _).1,(base_mul y _ _).2]
   exact RelativeDirection.scalar_two (y 0) (y 1) (relH U) (relK U) 66
-    (by omega) (by decide) hN0 hN1
+    (by decide) hN0 hN1
 
-/-- Root parity, and at width four the preserved orbit character,
-supply the scalar bit for every relative unit direction. -/
+/-- The norm alone supplies the width-two scalar bit. Width four uses
+only a modular value and the preserved orbit character. -/
 theorem scalar (y U : R) (q : ℤ) (hq : q≠0)
-    (hH : relH (1+(4*q) • U)=1) (hK : relK (1+(4*q) • U)=0)
-    (hy : f y=0) :
+    (hH : relH (1+(4*q) • U)=1) (hK : relK (1+(4*q) • U)=0) :
     (8:ℤ) ∣ Lf y (y*U^2) := by
   obtain ⟨_,_,hN0,hN1⟩ := trace_norm U q hq hH hK
   let N : R := ⟨![relH U,relK U,0,0]⟩
   apply RelativeDirection.scalar_of_norm (Lf y) y U N (4*q) 2
     (direction_square U q hq hH hK)
-  · exact scalar_base y U q hq hH hK hy
+  · exact scalar_base y U q hq hH hK
   · change (8:ℤ) ∣
       2*(y 0-3)*((y*U)*N) 0-2*66*y 1*((y*U)*N) 1
     rw [(base_mul (y*U) _ _).1,(base_mul (y*U) _ _).2]
@@ -665,7 +694,25 @@ theorem scalar (y U : R) (q : ℤ) (hq : q≠0)
       RelativeDirection.product_differential (y 0-3) (66*y 1) 66
       ((y*U) 0) ((y*U) 1) (relH U) (relK U) 2
       ((direction U q hq hH hK).1 y).1
-      ((direction U q hq hH hK).1 y).2 hN0 hN1
+      ((direction U q hq hH hK).1 y).2 ((by decide : (2:ℤ) ∣ 4).trans hN0) hN1
+/-- The shifted value and the constant norm coefficient are complementary modulo four. -/
+theorem value_character (y : R) : (4:ℤ) ∣ f y+relH y-11 := by
+  have hp := IntegerParity.square_sub_self_even (y 0)
+  simp only [f,relH]; ring_nf; omega
+
+/-- Coefficient estimates use these orbit congruences before any exact root. -/
+theorem orbit_congruences (i : ℤ) :
+    (4:ℤ) ∣ f (xi0*(↑(rhoU^i):R)) ∧
+    (4:ℤ) ∣ relK (xi0*(↑(rhoU^i):R)) := by
+  obtain ⟨hH,hK⟩ := relN_rho_zpow i
+  have hv := value_character (xi0*(↑(rhoU^i):R))
+  rw [relH_mul,hH,hK] at hv
+  constructor
+  · norm_num [relH,xi0] at hv
+    exact hv
+  · rw [relK_mul,hH,hK]
+    norm_num [relK,xi0]
+
 /-- The nonconstant norm coefficient detects the relative-coordinate parity. -/
 theorem norm_parity (y : R) :
     (4:ℤ) ∣ relK y-2*(y 0*y 1-(y 2)^2) := by
@@ -683,7 +730,7 @@ theorem derivative (y U : R) (q : ℤ) (hq : q≠0)
   have hc := RelativeDirection.odd_of_product_square (y 0) (y 1) (y 2) ha hb (by omega)
   obtain ⟨hA,hB,hN0,hN1⟩ := trace_norm U q hq hH hK
   obtain ⟨a,haN⟩ := hN0; obtain ⟨b,hbN⟩ := hN1
-  have hu0 : U 0=4*(-q*a) := by rw [hA,haN]; ring
+  have hu0 : U 0=8*(-q*a) := by rw [hA,haN]; ring
   have hu1 : U 1=4*(-q*b) := by rw [hB,hbN]; ring
   have hF0 : (4:ℤ) ∣ (y*U) 0 := by
     simp only [mul_apply0]; rw [hu0,hu1]; ring_nf; omega
@@ -691,13 +738,6 @@ theorem derivative (y U : R) (q : ℤ) (hq : q≠0)
     simp only [mul_apply1]; rw [hu0,hu1]; ring_nf; omega
   exact RelativeDirection.derivative_two (y 0) (y 1) (y 2) (U 2)
     ((y*U) 0) ((y*U) 1) 66 (by decide) ha hb hc hprimitive hF0 hF1
-
-/-- Only the required congruence is passed to the local derivative proof. -/
-theorem orbit_coefficient (i : ℤ) :
-    (4:ℤ) ∣ relK (xi0*(↑(rhoU^i):R)) := by
-  obtain ⟨hH,hK⟩ := relN_rho_zpow i
-  rw [relK_mul,hH,hK]
-  norm_num [relK,xi0]
 
 
 
@@ -798,18 +838,17 @@ theorem orbit_phase (i : ℤ) :
   have hh := OrbitCongruence.invariant rhoU (fun x : R => x 0+(1)*x 1) 4 hs xi0 i
   simpa only [show xi0 0+(1)*xi0 1=1 by decide] using hh
 
-/-- At a root, the base-field norm contributes the extra scalar bit. -/
+/-- Width two is unconditional in y; width four uses its value modulo four. -/
 theorem scalar_base (y U : R) (q : ℤ) (hq : q≠0)
     (hH : relH (1+(4*q) • U)=1) (hK : relK (1+(4*q) • U)=0)
-    (hy : f y=0) (hphase : (4:ℤ) ∣ y 0+(1)*y 1-1) :
+    (hy : (4:ℤ) ∣ f y) (hphase : (4:ℤ) ∣ y 0+(1)*y 1-1) :
     (32:ℤ) ∣ Lf y (y*(⟨![relH U,relK U,0,0]⟩:R)) := by
   obtain ⟨hA,hB,hN0,hN1⟩ := trace_norm U q hq hH hK
-  have hy' : (y 0-3)^2-11*(y 1)^2+2=0 := hy
   change (32:ℤ) ∣
     2*(y 0-3)*(y*(⟨![relH U,relK U,0,0]⟩:R)) 0-
       2*11*y 1*(y*(⟨![relH U,relK U,0,0]⟩:R)) 1
-  rw [(base_mul y _ _).1,(base_mul y _ _).2,
-    RelativeDirection.at_root (y 0) (y 1) (relH U) (relK U) 11 hy']
+  rw [(base_mul y _ _).1,(base_mul y _ _).2]
+  apply RelativeDirection.base_differential (y 0) (y 1) (relH U) (relK U) 11 4 hy hN0
   have hchar : (16:ℤ) ∣ relH U-(1)*relK U := by
     obtain ⟨a,ha⟩ := hN0; obtain ⟨b,hb⟩ := hN1
     have hu0 : U 0=4*(-2*q*a) := by rw [hA,ha]; ring
@@ -818,11 +857,11 @@ theorem scalar_base (y U : R) (q : ℤ) (hq : q≠0)
   exact RelativeDirection.scalar_four (y 0) (y 1) (relH U) (relK U) 11 (1)
     (by decide) (by decide) hphase hN0 hchar
 
-/-- Root parity, and at width four the preserved orbit character,
-supply the scalar bit for every relative unit direction. -/
+/-- The norm alone supplies the width-two scalar bit. Width four uses
+only a modular value and the preserved orbit character. -/
 theorem scalar (y U : R) (q : ℤ) (hq : q≠0)
     (hH : relH (1+(4*q) • U)=1) (hK : relK (1+(4*q) • U)=0)
-    (hy : f y=0) (hphase : (4:ℤ) ∣ y 0+(1)*y 1-1) :
+    (hy : (4:ℤ) ∣ f y) (hphase : (4:ℤ) ∣ y 0+(1)*y 1-1) :
     (32:ℤ) ∣ Lf y (y*U^2) := by
   obtain ⟨_,_,hN0,hN1⟩ := trace_norm U q hq hH hK
   let N : R := ⟨![relH U,relK U,0,0]⟩
@@ -836,7 +875,25 @@ theorem scalar (y U : R) (q : ℤ) (hq : q≠0)
       RelativeDirection.product_differential (y 0-3) (11*y 1) 11
       ((y*U) 0) ((y*U) 1) (relH U) (relK U) 4
       ((direction U q hq hH hK).1 y).1
-      ((direction U q hq hH hK).1 y).2 hN0 hN1
+      ((direction U q hq hH hK).1 y).2 ((by decide : (4:ℤ) ∣ 4).trans hN0) hN1
+/-- The shifted value and the constant norm coefficient are complementary modulo four. -/
+theorem value_character (y : R) : (4:ℤ) ∣ f y+relH y-11 := by
+  have hp := IntegerParity.square_sub_self_even (y 0)
+  simp only [f,relH]; ring_nf; omega
+
+/-- Coefficient estimates use these orbit congruences before any exact root. -/
+theorem orbit_congruences (i : ℤ) :
+    (4:ℤ) ∣ f (xi0*(↑(rhoU^i):R)) ∧
+    (4:ℤ) ∣ relK (xi0*(↑(rhoU^i):R)) := by
+  obtain ⟨hH,hK⟩ := relN_rho_zpow i
+  have hv := value_character (xi0*(↑(rhoU^i):R))
+  rw [relH_mul,hH,hK] at hv
+  constructor
+  · norm_num [relH,xi0] at hv
+    exact hv
+  · rw [relK_mul,hH,hK]
+    norm_num [relK,xi0]
+
 /-- After the norm has removed the base part, the derivative is a
 pairing of the two relative coordinates. -/
 def pairing (y U : R) : ℤ :=
@@ -845,7 +902,7 @@ def pairing (y U : R) : ℤ :=
 
 theorem derivative_pairing (y U : R) (q : ℤ) (hq : q≠0)
     (hH : relH (1+(4*q) • U)=1) (hK : relK (1+(4*q) • U)=0)
-    (hy : f y=0) (hphase : (4:ℤ) ∣ y 0+(1)*y 1-1) :
+    (hy : (4:ℤ) ∣ f y) (hphase : (4:ℤ) ∣ y 0+(1)*y 1-1) :
     (64*q:ℤ) ∣ Lf y (y*U)-8*pairing y U := by
   obtain ⟨hA,hB,_,_⟩ := trace_norm U q hq hH hK
   have he : Lf y (y*U)-8*pairing y U=
@@ -883,11 +940,12 @@ theorem phase_residues (V : Rˣ) (S : R) (hV : (V:R)=1+(4:ℤ) • S)
 /-- The phase determines the derivative as a linear form in the relative direction. -/
 theorem derivative_odd (y U : R)
     (hH : relH (1+(4:ℤ) • U)=1) (hK : relK (1+(4:ℤ) • U)=0)
-    (hy : f y=0)
     (h0 : (16:ℤ) ∣ y 0-2) (h1 : (16:ℤ) ∣ y 1-3)
     (h2 : (4:ℤ) ∣ y 2-0) (h3 : (4:ℤ) ∣ y 3-1)
  :
     (64:ℤ) ∣ Lf y (y*U)-(-16*U 3) := by
+  have hy : (4:ℤ) ∣ f y :=
+    RelativeDirection.value_congruence (y 0) (y 1) 2 3 11 4 (by omega) (by omega) (by decide)
   have ho := derivative_pairing y U 1 (by decide) hH hK hy (by omega)
   norm_num only [Int.reduceMul] at ho
   have hr : (64:ℤ) ∣ 8*pairing y U-(-16*U 3) := by

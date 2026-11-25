@@ -20,11 +20,11 @@ theorem square {R : Type*} [CommRing R] (U V N : R) (c : ℤ)
 
 theorem norm_two (a b H K q e : ℤ)
     (ha : a= -2*q*H) (hb : b= -2*q*K)
-    (hH : 2 ∣ H-a^2-e*b^2) (hK : 2 ∣ K-2*a*b) :
-    2 ∣ H ∧ 2 ∣ K := by
+    (hH : 4 ∣ H-a^2-e*b^2) (hK : 2 ∣ K-2*a*b) :
+    4 ∣ H ∧ 2 ∣ K := by
   obtain ⟨p,hp⟩ := hH; obtain ⟨r,hr⟩ := hK
   constructor
-  · refine ⟨2*q^2*(H^2+e*K^2)+p,?_⟩
+  · refine ⟨q^2*(H^2+e*K^2)+p,?_⟩
     rw [ha,hb] at hp; linear_combination hp
   · refine ⟨4*q^2*H*K+r,?_⟩
     rw [ha,hb] at hr; linear_combination hr
@@ -40,11 +40,23 @@ theorem norm_four (a b H K q e : ℤ)
   · refine ⟨2*q^2*H*K+r,?_⟩
     rw [ha,hb] at hr; linear_combination hr
 
-/-- The differential on a base-field multiple, evaluated at a root. -/
-theorem at_root (a b H K e : ℤ) (hy : (a-3)^2-e*b^2+2=0) :
-    2*(a-3)*(a*H+e*b*K)-2*e*b*(a*K+b*H)=
-      2*((3*a-11)*H-3*e*b*K) := by
-  linear_combination 2*H*hy
+/-- Away from an exact root the only error is twice H times the value.
+Vanishing modulo the width therefore suffices for the scalar estimate. -/
+theorem base_differential (a b H K e h : ℤ)
+    (hy : h ∣ (a-3)^2-e*b^2+2) (hH : h ∣ H)
+    (hmain : 2*h^2 ∣ 2*((3*a-11)*H-3*e*b*K)) :
+    2*h^2 ∣ 2*(a-3)*(a*H+e*b*K)-2*e*b*(a*K+b*H) := by
+  have he : 2*(a-3)*(a*H+e*b*K)-2*e*b*(a*K+b*H)=
+      2*((3*a-11)*H-3*e*b*K)+2*H*((a-3)^2-e*b^2+2) := by ring
+  obtain ⟨u,hu⟩ := hH; obtain ⟨v,hv⟩ := hy
+  rw [he]
+  exact hmain.add ⟨u*v,by rw [hu,hv]; ring⟩
+
+/-- Coordinate congruences already determine a quadratic value modulo h. -/
+theorem value_congruence (a b A B e h : ℤ)
+    (ha : h ∣ a-A) (hb : h ∣ b-B) (hv : h ∣ (A-3)^2-e*B^2+2) :
+    h ∣ (a-3)^2-e*b^2+2 := by
+  convert ((ha.mul_right (a+A-6)).sub (hb.mul_right (e*(b+B)))).add hv using 1; ring
 
 theorem product_differential (a b e p q H K h : ℤ)
     (hp : h ∣ p) (hq : h ∣ q) (hH : h ∣ H) (hK : h ∣ K) :
@@ -53,13 +65,13 @@ theorem product_differential (a b e p q H K h : ℤ)
   obtain ⟨w,rfl⟩ := hH; obtain ⟨z,rfl⟩ := hK
   exact ⟨a*(u*w+e*v*z)-b*(u*z+v*w),by ring⟩
 
+/-- Width two has a stronger factor four in H, so the base differential
+is divisible by eight at every point, without a root or parity hypothesis. -/
 theorem scalar_two (a b H K e : ℤ)
-    (ha : 2 ∣ a-1) (he : 2 ∣ e) (hH : 2 ∣ H) (hK : 2 ∣ K) :
-    8 ∣ 2*((3*a-11)*H-3*e*b*K) := by
-  obtain ⟨u,hu⟩ := ha; obtain ⟨v,rfl⟩ := he
-  obtain ⟨w,rfl⟩ := hH; obtain ⟨z,rfl⟩ := hK
-  have haa : a=1+2*u := by omega
-  exact ⟨(-4+3*u)*w-3*v*b*z,by rw [haa]; ring⟩
+    (he : 2 ∣ e) (hH : 4 ∣ H) (hK : 2 ∣ K) :
+    8 ∣ 2*(a-3)*(a*H+e*b*K)-2*e*b*(a*K+b*H) := by
+  obtain ⟨v,rfl⟩ := he; obtain ⟨w,rfl⟩ := hH; obtain ⟨z,rfl⟩ := hK
+  exact ⟨(a*(a-3)-2*v*b^2)*w-3*v*b*z,by ring⟩
 
 /-- For width four, the matching norm character and orbit character give
 the extra bit; no particular unit or centre appears. -/
