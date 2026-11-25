@@ -25,9 +25,9 @@ theorem branch_complete (n r y : ℕ) (hr : n+3=2*r^2) (hy : n^2+2=3*y^2) : n=5 
     rw [h0,h1]; push_cast; have := cR_pos; positivity)).1
   obtain ⟨j,hcase⟩ := Window2.norm_eleven_positive ξ hH hK hpos
   have ttau0 : tau (tau xi0)=xi0 := by decide
-  have ttau1 : tau (tau xi1)=xi1 := by decide
+  have ttau1 : tau (tau shiftedSeed)=shiftedSeed := by decide
   obtain ⟨z,m,hz,hzf,hz0⟩ : ∃ z : R, ∃ m : ℤ,
-      (z=xi0*(↑(rhoU^m):R) ∨ z=xi1*(↑(rhoU^m):R)) ∧
+      (z=xi0*(↑(rhoU^m):R) ∨ z=shiftedSeed*(↑(rhoU^m):R)) ∧
       f z=0 ∧ z 0=(n:ℤ)+3 := by
     rcases hcase with hc|hc|hc|hc
     · refine ⟨tau ξ,-j,Or.inl ?_,by rw [f_tau]; exact hξ,by simp [h0]⟩

@@ -6,7 +6,7 @@ import Mathlib.Analysis.SpecialFunctions.Pow.Real
 # Real embeddings and known unit powers (d=66)
 
 The explicit unit and its relative norm are used to reduce norm-eleven elements.
-A classification of all relative norm-one units is no longer used here.
+The group of all relative units is not determined.
 -/
 
 namespace Tetrahedral.Quartic66

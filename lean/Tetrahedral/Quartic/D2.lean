@@ -8,7 +8,8 @@ namespace Tetrahedral.Quartic2
 open R
 
 def xi0 : R := ⟨![2,1,2,-1]⟩
-def xi1 : R := ⟨![2,3,1,0]⟩
+-- The reduced norm-eleven representative, with Pell coordinate y=1.
+def shiftedSeed : R := ⟨![4,1,1,-1]⟩
 
 /-! ## The norm condition -/
 

@@ -31,7 +31,7 @@ end Tetrahedral.NormEleven.Window1
 namespace Tetrahedral.NormEleven.Window2
 open Quartic2 R
 theorem norm_eleven_positive (x : R) (hH : relH x=11) (hK : relK x=0) (hx : 0<sig x) :
-    ∃ m : ℤ, x=(tau xi0)*(↑(rhoU^m):R) ∨x=xi0*(↑(rhoU^m):R) ∨x=(tau xi1)*(↑(rhoU^m):R) ∨x=xi1*(↑(rhoU^m):R) := by
+    ∃ m : ℤ, x=(tau xi0)*(↑(rhoU^m):R) ∨x=xi0*(↑(rhoU^m):R) ∨x=(tau shiftedSeed)*(↑(rhoU^m):R) ∨x=shiftedSeed*(↑(rhoU^m):R) := by
   obtain ⟨v,i,hv,hback,hpos,hlo,hhi⟩ :=
     NormWindow.centered_positive sigHom rhoU one_lt_Lam 11 (by norm_num) x hx
   have hN := relN_rho_zpow (-i)
@@ -52,15 +52,8 @@ theorem norm_eleven_positive (x : R) (hH : relH x=11) (hK : relK x=0) (hx : 0<si
   rcases hsmall with he|he|he|he
   · exact ⟨i,Or.inr (Or.inl (by rw [hback,he]))⟩
   · exact ⟨i,Or.inl (by rw [hback,he])⟩
-  · refine ⟨i-1,Or.inr (Or.inr (Or.inr ?_))⟩
-    have hs : shiftedSeed=xi1*(↑(rhoU^(-1:ℤ)):R) := by rw [zpow_neg_one]; decide +kernel
-    rw [hback,he,hs,mul_assoc,←Units.val_mul,←zpow_add]
-    rw [show (-1:ℤ)+i=i-1 by omega]
-  · refine ⟨i+1,Or.inr (Or.inr (Or.inl ?_))⟩
-    have hs : tau shiftedSeed=(tau xi1)*(rhoU:R) := by decide +kernel
-    rw [hback,he,hs,mul_assoc,←Units.val_mul]
-    have hh : rhoU*rhoU^i=rhoU^(i+1) := by rw [zpow_add]; simp [mul_comm]
-    rw [hh]
+  · exact ⟨i,Or.inr (Or.inr (Or.inr (by rw [hback,he])))⟩
+  · exact ⟨i,Or.inr (Or.inr (Or.inl (by rw [hback,he])))⟩
 end Tetrahedral.NormEleven.Window2
 
 namespace Tetrahedral.NormEleven.Window3

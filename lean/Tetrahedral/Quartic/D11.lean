@@ -13,9 +13,6 @@ def xi0 : R := ⟨![11,1,1,0]⟩
 
 theorem cast_zero_iff (z : ℤ) : (z:ZMod 11)=0 ↔ (11:ℤ) ∣ z := ZMod.intCast_zmod_eq_zero_iff_dvd z 11
 
-/-- `8` is not a square modulo `11` (here `96 ≡ 8`). -/
-theorem qnr8 : ∀ a d : ZMod 11, a^2-96*d^2=0 → a=0 ∧ d=0 := by decide
-
 /-! ## The norm condition -/
 
 /-- `N(A−3)+2` for the `F`-part `A = a+bq`. -/

@@ -5,12 +5,11 @@ import Tetrahedral.Quartic.D3
 import Tetrahedral.Quartic.D11
 import Tetrahedral.Quartic.D66
 
-/-! The small norm-eleven elements. Parity, size, and elementary factorizations
+/-! The small norm-eleven elements. Parity, size, and a discriminant identity
 give the representatives; there is no enumeration of a large coordinate box. -/
 
 namespace Tetrahedral.Quartic2
 open R
-def shiftedSeed : R := ⟨![4,1,1,-1]⟩
 theorem small_norm_eleven (x : R) (hH : relH x=11) (hK : relK x=0)
     (ha0 : 0≤x 0) (hb0 : 0≤x 1)
     (hA : 4*((x 0:ℝ)+(x 1:ℝ)*cR)^2<187) :
@@ -42,10 +41,8 @@ theorem small_norm_eleven (x : R) (hH : relH x=11) (hK : relK x=0)
   · rw [ha,hb] at hh hk
     have hp : x 2*x 3= -2 := by nlinarith only [hh,hk]
     have hn : (x 2)^2+3*(x 3)^2=7 := by nlinarith only [hh,hk,hp]
-    have hf : ((x 3)^2-1)*(3*(x 3)^2-4)=0 := by
-      nlinarith only [congrArg (fun z : ℤ => z^2) hp,
-        congrArg (fun z : ℤ => z*(x 3)^2) hn]
-    have ht : (x 3)^2=1 := by rcases mul_eq_zero.mp hf with h|h <;> omega
+    have hr := NormWindow.squared_coordinate (x 2) (x 3) 3 _ _ 1 hn hp (by norm_num)
+    have ht : (x 3)^2=1 := by rcases hr with h|h <;> omega
     have htf : (x 3-1)*(x 3+1)=0 := by nlinarith only [ht]
     rcases mul_eq_zero.mp htf with h|h
     · have htz : x 3=1 := by omega
@@ -57,10 +54,8 @@ theorem small_norm_eleven (x : R) (hH : relH x=11) (hK : relK x=0)
   · rw [ha,hb] at hh hk
     have hp : x 2*x 3= -1 := by nlinarith only [hh,hk]
     have hn : (x 2)^2+3*(x 3)^2=4 := by nlinarith only [hh,hk,hp]
-    have hf : ((x 3)^2-1)*(3*(x 3)^2-1)=0 := by
-      nlinarith only [congrArg (fun z : ℤ => z^2) hp,
-        congrArg (fun z : ℤ => z*(x 3)^2) hn]
-    have ht : (x 3)^2=1 := by rcases mul_eq_zero.mp hf with h|h <;> omega
+    have hr := NormWindow.squared_coordinate (x 2) (x 3) 3 _ _ 2 hn hp (by norm_num)
+    have ht : (x 3)^2=1 := by rcases hr with h|h <;> omega
     have htf : (x 3-1)*(x 3+1)=0 := by nlinarith only [ht]
     rcases mul_eq_zero.mp htf with h|h
     · have htz : x 3=1 := by omega
@@ -99,10 +94,8 @@ theorem small_norm_eleven (x : R) (hH : relH x=11) (hK : relK x=0)
   · rw [ha,hb] at hh hk
     have hp : x 2*x 3=-10 := by nlinarith only [hh,hk]
     have hn : (x 2)^2+6*(x 3)^2=49 := by nlinarith only [hh,hk,hp]
-    have hf : ((x 3)^2-4)*(6*(x 3)^2-25)=0 := by
-      nlinarith only [congrArg (fun z : ℤ => z^2) hp,
-        congrArg (fun z : ℤ => z*(x 3)^2) hn]
-    have ht : (x 3)^2=4 := by rcases mul_eq_zero.mp hf with h|h <;> omega
+    have hr := NormWindow.squared_coordinate (x 2) (x 3) 6 _ _ 1 hn hp (by norm_num)
+    have ht : (x 3)^2=4 := by rcases hr with h|h <;> omega
     have htf : (x 3-2)*(x 3+2)=0 := by nlinarith only [ht]
     rcases mul_eq_zero.mp htf with h|h
     · have htz : x 3=2 := by omega
@@ -114,17 +107,13 @@ theorem small_norm_eleven (x : R) (hH : relH x=11) (hK : relK x=0)
   · rw [ha,hb] at hh hk
     have hp : x 2*x 3=-12 := by nlinarith only [hh,hk]
     have hn : (x 2)^2+6*(x 3)^2=59 := by nlinarith only [hh,hk,hp]
-    have hf : (2*(x 3)^2-9)*(3*(x 3)^2-16)=0 := by
-      nlinarith only [congrArg (fun z : ℤ => z^2) hp,
-        congrArg (fun z : ℤ => z*(x 3)^2) hn]
-    rcases mul_eq_zero.mp hf with h|h <;> omega
+    have hr := NormWindow.squared_coordinate (x 2) (x 3) 6 _ _ 5 hn hp (by norm_num)
+    rcases hr with h|h <;> omega
   · rw [ha,hb] at hh hk
     have hp : x 2*x 3=-5 := by nlinarith only [hh,hk]
     have hn : (x 2)^2+6*(x 3)^2=25 := by nlinarith only [hh,hk,hp]
-    have hf : (2*(x 3)^2-5)*(3*(x 3)^2-5)=0 := by
-      nlinarith only [congrArg (fun z : ℤ => z^2) hp,
-        congrArg (fun z : ℤ => z*(x 3)^2) hn]
-    rcases mul_eq_zero.mp hf with h|h <;> omega
+    have hr := NormWindow.squared_coordinate (x 2) (x 3) 6 _ _ 5 hn hp (by norm_num)
+    rcases hr with h|h <;> omega
   · rw [ha,hb] at hh hk
     have hp : x 2*x 3=11 := by nlinarith only [hh,hk]
     have hn : (x 2)^2+6*(x 3)^2=-53 := by nlinarith only [hh,hk,hp]
@@ -201,18 +190,18 @@ theorem small_norm_eleven (x : R) (hH : relH x=11) (hK : relK x=0)
   · rw [ha,hb] at hh hk
     have hp : x 2*x 3=2 := by nlinarith only [hh]
     have hn : (x 2)^2+2*(x 3)^2=5 := by nlinarith only [hk]
-    nlinarith only [congrArg (fun z : ℤ => z^2) hp,
-      congrArg (fun z : ℤ => z^2) hn,sq_nonneg ((x 2)^2-2*(x 3)^2)]
+    have hd := NormWindow.discriminant (x 2) (x 3) 2 _ _ hn hp
+    nlinarith only [hd,sq_nonneg ((x 2)^2-2*(x 3)^2)]
   · rw [ha,hb] at hh hk
     have hp : x 2*x 3=4 := by nlinarith only [hh]
     have hn : (x 2)^2+2*(x 3)^2=7 := by nlinarith only [hk]
-    nlinarith only [congrArg (fun z : ℤ => z^2) hp,
-      congrArg (fun z : ℤ => z^2) hn,sq_nonneg ((x 2)^2-2*(x 3)^2)]
+    have hd := NormWindow.discriminant (x 2) (x 3) 2 _ _ hn hp
+    nlinarith only [hd,sq_nonneg ((x 2)^2-2*(x 3)^2)]
   · rw [ha,hb] at hh hk
     have hp : x 2*x 3=3 := by nlinarith only [hh]
     have hn : (x 2)^2+2*(x 3)^2=3 := by nlinarith only [hk]
-    nlinarith only [congrArg (fun z : ℤ => z^2) hp,
-      congrArg (fun z : ℤ => z^2) hn,sq_nonneg ((x 2)^2-2*(x 3)^2)]
+    have hd := NormWindow.discriminant (x 2) (x 3) 2 _ _ hn hp
+    nlinarith only [hd,sq_nonneg ((x 2)^2-2*(x 3)^2)]
 end Tetrahedral.Quartic3
 namespace Tetrahedral.Quartic11
 open R
@@ -222,38 +211,30 @@ theorem small_norm_eleven (x : R) (hH : relH x=11) (hK : relK x=0)
   have hd : (11:ℤ) ∣ (x 0)^2-96*(x 3)^2 :=
     ⟨1-6*(x 1)^2+16*(x 2)^2+24*x 2*x 3,by simp only [relH] at hH; linarith⟩
   rw [←cast_zero_iff] at hd; push_cast at hd
-  obtain ⟨ha,ht⟩ := qnr8 _ _ hd
-  rw [cast_zero_iff] at ha ht
-  have hk := hK; simp only [relK] at hk
-  have hs : (11*x 2+8*x 3)^2+2*(x 3)^2=11*(x 0*x 1) := by nlinarith only [hk]
+  rw [show (96:ZMod 11)=8 by decide] at hd
+  have ha := (NormWindow.qnr_eleven _ _ hd).1
+  rw [cast_zero_iff] at ha
+  have hh := hH; simp only [relH] at hh
+  have h4 : (4:ℤ) ∣ (x 0)^2+2*(x 1)^2-11 :=
+    ⟨-16*(x 1)^2+44*(x 2)^2+66*x 2*x 3+24*(x 3)^2,by nlinarith only [hh]⟩
+  obtain ⟨hao,hbo⟩ := NormWindow.parity_two _ _ h4
   have haR : (0:ℝ)≤x 0 := by exact_mod_cast ha0
   have hbR : (0:ℝ)≤x 1 := by exact_mod_cast hb0
   have hc : 8<cR := by nlinarith [cR_sq,cR_pos]
-  have hb : (x 0:ℝ)+8*(x 1:ℝ)<20 := by
+  have hlin : x 0+8*x 1<20 := by
     have hp := mul_nonneg hbR (sub_nonneg.mpr hc.le)
     have hsum : 0≤(x 0:ℝ)+(x 1:ℝ)*cR := by positivity
-    nlinarith only [hA,hp,hsum]
-  have hbi : x 0+8*x 1<20 := by exact_mod_cast hb
-  have haz : x 0=0 ∨x 0=11 := by omega
-  rcases haz with haz|haz
-  · rw [haz] at hs
-    have htz : x 3=0 := by nlinarith [sq_nonneg (11*x 2+8*x 3)]
-    have hcz : x 2=0 := by rw [htz] at hs; nlinarith
-    norm_num [relH,haz,htz,hcz] at hH
-    omega
-  · have hb : x 1=1 := by
-      by_contra hn
-      have hbz : x 1=0 := by omega
-      rw [hbz] at hs
-      have htz : x 3=0 := by nlinarith [sq_nonneg (11*x 2+8*x 3)]
-      have hcz : x 2=0 := by rw [htz] at hs; nlinarith
-      norm_num [relH,haz,hbz,htz,hcz] at hH
-    rw [haz,hb] at hs
-    have htb : -8≤x 3 ∧x 3≤8 := by
-      constructor <;> nlinarith [sq_nonneg (11*x 2+8*x 3)]
-    have htz : x 3=0 := by omega
-    rw [htz] at hs
-    have hf : (x 2-1)*(x 2+1)=0 := by nlinarith only [hs]
+    have hl : (x 0:ℝ)+8*(x 1:ℝ)<20 := by nlinarith only [hA,hp,hsum]
+    exact_mod_cast hl
+  have haz : x 0=11 := by omega
+  have hb : x 1=1 := by omega
+  have hk := hK; simp only [relK] at hk
+  rw [haz,hb] at hh hk
+  have hct : x 2*x 3=0 := by nlinarith only [hh,hk]
+  rcases mul_eq_zero.mp hct with hcz|htz
+  · rw [hcz] at hk; omega
+  · rw [htz] at hk
+    have hf : (x 2-1)*(x 2+1)=0 := by nlinarith only [hk]
     rcases mul_eq_zero.mp hf with hc|hc
     · left; have hcz : x 2=1 := by omega
       ext i; fin_cases i <;> simp [xi0,haz,hb,hcz,htz]
@@ -269,8 +250,9 @@ theorem small_norm_eleven (x : R) (hH : relH x=11) (hK : relK x=0)
   have hd : (11:ℤ) ∣ (x 0)^2-756*(x 2)^2 :=
     ⟨1-(x 1)^2+456*x 2*x 3+756*(x 3)^2,by simp only [relH] at hH; linarith⟩
   rw [←cast_zero_iff] at hd; push_cast at hd
-  obtain ⟨ha,hc⟩ := qnr8 _ _ hd
-  rw [cast_zero_iff] at ha hc
+  rw [show (756:ZMod 11)=8 by decide] at hd
+  have ha := (NormWindow.qnr_eleven _ _ hd).1
+  rw [cast_zero_iff] at ha
   have hh := hH; simp only [relH] at hh
   have h4 : (4:ℤ) ∣ (x 0)^2+3*(x 1)^2-11 :=
     ⟨-2*(x 1)^2+189*(x 2)^2+1254*x 2*x 3+2079*(x 3)^2,by nlinarith only [hh]⟩

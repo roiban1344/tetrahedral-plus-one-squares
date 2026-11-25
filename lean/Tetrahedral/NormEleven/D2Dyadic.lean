@@ -40,8 +40,8 @@ theorem roots (m : ℤ) (hm : f (xi0*(↑(rhoU^m):R))=0) : m=0 ∨ m= -4 ∨ m= 
     right; right; omega
 
 theorem exclude (r : ℕ) (m : ℤ)
-    (hf : f (xi1*(↑(rhoU^m):R))=0)
-    (hr : (xi1*(↑(rhoU^m):R)) 0=2*(r:ℤ)^2) : False :=
+    (hf : f (shiftedSeed*(↑(rhoU^m):R))=0)
+    (hr : (shiftedSeed*(↑(rhoU^m):R)) 0=2*(r:ℤ)^2) : False :=
   Extra2.exclude r m hf hr
 
 end Tetrahedral.NormEleven.Dyadic2

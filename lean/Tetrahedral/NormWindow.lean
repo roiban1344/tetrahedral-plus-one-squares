@@ -144,4 +144,18 @@ theorem parity_three (a b : ℤ) (h : (4:ℤ) ∣ a^2+3*b^2-11) :
   have hae := Tetrahedral.IntegerParity.square_sub_self_even a
   exact ⟨by omega,hbo⟩
 
+theorem discriminant (c t e C P : ℤ) (hC : c^2+e*t^2=C) (hP : c*t=P) :
+    (c^2-e*t^2)^2=C^2-4*e*P^2 := by
+  linear_combination (c^2+e*t^2+C)*hC-4*e*(c*t+P)*hP
+theorem squared_coordinate (c t e C P k : ℤ) (hC : c^2+e*t^2=C)
+    (hP : c*t=P) (hdisc : C^2-4*e*P^2=k^2) :
+    2*e*t^2=C+k ∨2*e*t^2=C-k := by
+  have he := discriminant c t e C P hC hP
+  rw [hdisc] at he
+  have hf : (c^2-e*t^2-k)*(c^2-e*t^2+k)=0 := by nlinarith only [he]
+  rcases mul_eq_zero.mp hf with h|h
+  · right; nlinarith only [hC,h]
+  · left; nlinarith only [hC,h]
+theorem qnr_eleven : ∀ a b : ZMod 11, a^2-8*b^2=0 → a=0 ∧b=0 := by decide +kernel
+
 end Tetrahedral.NormWindow
