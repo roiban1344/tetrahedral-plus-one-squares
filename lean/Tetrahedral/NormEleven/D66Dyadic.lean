@@ -1,12 +1,12 @@
-import Tetrahedral.NormEleven.LatticeDirectionData
+import Tetrahedral.NormEleven.ParityDirectionData
 import Tetrahedral.NormEleven.D66Square
 import Tetrahedral.NormEleven.DyadicSimple
 
 namespace Tetrahedral.NormEleven.Dyadic66
 open Quartic66 R
 
-abbrev step : R := Local66.step
-theorem step_eq : (↑(rhoU^4):R)=1+4*step := Local66.step_eq
+abbrev step : R := Differential66.step
+theorem step_eq : (↑(rhoU^4):R)=1+4*step := Differential66.step_eq
 
 /-- The original square coordinate removes every even exponent, including
 zero, before any condition on f is used. -/
@@ -32,18 +32,18 @@ theorem roots (r : ℤ) (hr : r≠0) (m : ℤ)
     have := Int.emod_add_mul_ediv m 2
     omega
   have he (c : Fin 2) : rhoU*((rhoU^2)^(DyadicSimple.centre c))=
-      rhoU^(Local66.centre c) := by
+      rhoU^(Differential66.centre c) := by
     calc _=rhoU^((1:ℤ)+2*DyadicSimple.centre c) := by
            rw [zpow_add,zpow_mul,zpow_one,zpow_ofNat]
-         _=rhoU^(Local66.centre c) := by
-           congr 1; fin_cases c <;> norm_num [DyadicSimple.centre,Local66.centre]
+         _=rhoU^(Differential66.centre c) := by
+           congr 1; fin_cases c <;> norm_num [DyadicSimple.centre,Differential66.centre]
   have h4 : (rhoU^2)^2=rhoU^4 := by rw [← pow_mul]
   have hu : ∀ c : Fin 2, ∀ a : ℤ,
       f (((xi0*(rhoU:R))*(↑((rhoU^2)^(DyadicSimple.centre c)):R))*
         (↑(((rhoU^2)^2)^a):R))=0 → a=0 := by
     intro c a ha
     rw [h4] at ha
-    apply Local66.unique c a
+    apply Differential66.unique c a
     simpa only [mul_assoc,← Units.val_mul,he c] using ha
   have hp : rhoU^m=rhoU*(rhoU^2)^i := by
     rw [hi,zpow_add,zpow_mul,zpow_one,zpow_ofNat]
