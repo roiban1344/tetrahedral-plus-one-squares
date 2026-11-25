@@ -6,8 +6,7 @@ import Mathlib.Analysis.SpecialFunctions.Pow.Real
 /-!
 # Relative units from a balanced trace window (d=2)
 
-The smaller of a reduced unit and its companion has squared real value at
-most Λ. Its half-trace has square less than 2e−1; the other trace has square
+A centered power interval bounds the squares of both real conjugates by Λ. Its half-trace has square less than 2e−1; the other trace has square
 at most one. Their difference forces the integral base coefficient to vanish.
 The remaining norm coefficient is a positive quadratic form.
 
@@ -84,8 +83,6 @@ theorem relN_rho_zpow (m : ℤ) : relH (↑(rhoU^m):R)=1 ∧ relK (↑(rhoU^m):R
 
 /-! ## The gap -/
 
-theorem tau_rel (x : R) : relH (tau x)=relH x ∧ relK (tau x)=relK x := by
-  constructor <;> simp [relH,relK,tau]
 
 theorem trivial_unit (x : R) (hH : relH x=1) (hK : relK x=0) (h0 : x 2=0 ∧ x 3=0) :
     x=1 ∨ x= -1 := by
@@ -101,23 +98,30 @@ theorem trivial_unit (x : R) (hH : relH x=1) (hK : relK x=0) (h0 : x 2=0 ∧ x 3
 
 theorem rel_unit_trace (u : R) (hH : relH u=1) (hK : relK u=0) :
     ∃ m : ℤ, u=(↑(rhoU^m):R) ∨ u= -(↑(rhoU^m):R) := by
-  apply RelativeUnitGap.generate sigHom tau
+  apply RelativeUnitGap.generate sigHom
     (fun x => relH x=1 ∧ relK x=0) (fun x => x 2=0 ∧ x 3=0)
-    rhoU one_lt_Lam (by change |sig (-1)|=1; simp [sig])
+    rhoU one_lt_Lam
     (fun x z hx hz => by
       constructor <;> simp [relH_mul,relK_mul,hx.1,hx.2,hz.1,hz.2])
-    (fun x hx => by rw [(tau_rel x).1,(tau_rel x).2]; exact hx)
     relN_rho_zpow
-    (fun x hx => by change sig x*sig (tau x)=1; rw [sig_tau,hx.1,hx.2]; simp)
+    (fun x hx => by
+      intro hz
+      change sig x=0 at hz
+      have hh := sig_tau x
+      rw [hx.1,hx.2,hz] at hh
+      norm_num at hh)
     (fun x hx => trivial_unit x hx.1 hx.2) ?_ u ⟨hH,hK⟩
-  intro v hv hv0 hlo hsmall
-  change 1≤|sig v| at hlo
-  change |sig v|^2≤Lam at hsmall
+  intro v hv hv0 hS hT
+  change (sig v)^2≤Lam at hS
+  change ((sig v)⁻¹)^2≤Lam at hT
+  have hp : sig v*sig (tau v)=1 := by rw [sig_tau,hv.1,hv.2]; simp
+  have hTau : (sig (tau v))^2≤Lam := by
+    rw [eq_inv_of_mul_eq_one_right hp]; exact hT
   have ht : 2*((v 0:ℝ)+(v 1:ℝ)*cR)=sig v+sig (tau v) := by
     simp only [sig,tau_apply0,tau_apply1,tau_apply2,tau_apply3]; push_cast; ring
   have hA := RelativeUnitGap.half_trace_bound (sig v) (sig (tau v))
     ((v 0:ℝ)+(v 1:ℝ)*cR) Lam (2*3-1)
-    (by rw [sig_tau,hv.1,hv.2]; simp) ht hlo hsmall (by linarith [Lam_coarse])
+    hp ht hS hTau (by linarith [Lam_coarse])
   have hc1 : ((v 0:ℝ)-(v 1:ℝ)*cR)^2+(12*cR-20)*((v 2:ℝ)-(v 3:ℝ)*cR)^2=1 := by
     have hh := conj_place v; rw [hv.1,hv.2] at hh; push_cast at hh; linarith
   have hA' : ((v 0:ℝ)-(v 1:ℝ)*cR)^2≤1 := by

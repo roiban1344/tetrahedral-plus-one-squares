@@ -6,7 +6,7 @@ import Mathlib.Analysis.SpecialFunctions.Pow.Real
 /-!
 # Relative units from a balanced trace window (d=3)
 
-The half-trace has square less than 26. The nonconstant norm coefficient
+The half-trace has square less than 24. The nonconstant norm coefficient
 then bounds c²+2t² below two; integrality forces t=0. Both norm equations
 reduce to positive sums of squares. No irrationality or norm gap is needed.
 
@@ -23,6 +23,8 @@ theorem cR_pos : 0 < cR := Real.sqrt_pos.mpr (by norm_num)
 
 theorem dR_sq : dR^2=6*cR := Real.sq_sqrt (by have := cR_pos; positivity)
 theorem dR_pos : 0 < dR := Real.sqrt_pos.mpr (by have := cR_pos; positivity)
+
+
 
 /-- The real embedding `q ↦ √2`, `s ↦ √(6√2)`. -/
 noncomputable def sig (x : R) : ℝ := (x 0:ℝ)+(x 1:ℝ)*cR+((x 2:ℝ)+(x 3:ℝ)*cR)*dR
@@ -44,17 +46,18 @@ theorem sig_tau (x : R) : sig x*sig (tau x)=(relH x:ℝ)+(relK x:ℝ)*cR := by
   linear_combination ((x 1:ℝ)^2-12*(x 2:ℝ)*(x 3:ℝ)-6*(x 3:ℝ)^2*cR)*hc
     +(-((x 2:ℝ)+(x 3:ℝ)*cR)^2)*hd
 
+
 /-! ## Bounds from one real parameter -/
 
 noncomputable def Lam : ℝ := sig rho
 theorem Lam_val : Lam=17+12*cR+(6+4*cR)*dR := by simp [Lam,sig,rho]
 
-theorem Lam_coarse : Lam < 100 := by
-  have hc : cR < 2 := by nlinarith [cR_sq,cR_pos]
-  have hd : dR < 4 := by nlinarith [dR_sq,dR_pos]
-  have hcd : cR*dR < 8 := calc
-    cR*dR < 2*dR := mul_lt_mul_of_pos_right hc dR_pos
-    _ < 8 := by linarith
+theorem Lam_coarse : Lam < 72 := by
+  have hc : cR < 3/2 := by nlinarith [cR_sq,cR_pos]
+  have hd : dR < 3 := by nlinarith [dR_sq,dR_pos]
+  have hcd : cR*dR < 9/2 := calc
+    cR*dR < (3/2)*dR := mul_lt_mul_of_pos_right hc dR_pos
+    _ < 9/2 := by linarith
   rw [Lam_val]; nlinarith [cR_pos,dR_pos]
 
 theorem one_lt_Lam : 1 < Lam := by
@@ -75,8 +78,6 @@ theorem relN_rho_zpow (m : ℤ) : relH (↑(rhoU^m):R)=1 ∧ relK (↑(rhoU^m):R
 
 /-! ## The gap -/
 
-theorem tau_rel (x : R) : relH (tau x)=relH x ∧ relK (tau x)=relK x := by
-  constructor <;> simp [relH,relK,tau]
 
 theorem trivial_unit (x : R) (hH : relH x=1) (hK : relK x=0) (h0 : x 2=0 ∧ x 3=0) :
     x=1 ∨ x= -1 := by
@@ -92,30 +93,37 @@ theorem trivial_unit (x : R) (hH : relH x=1) (hK : relK x=0) (h0 : x 2=0 ∧ x 3
 
 theorem rel_unit_trace (u : R) (hH : relH u=1) (hK : relK u=0) :
     ∃ m : ℤ, u=(↑(rhoU^m):R) ∨ u= -(↑(rhoU^m):R) := by
-  apply RelativeUnitGap.generate sigHom tau
+  apply RelativeUnitGap.generate sigHom
     (fun x => relH x=1 ∧ relK x=0) (fun x => x 2=0 ∧ x 3=0)
-    rhoU one_lt_Lam (by change |sig (-1)|=1; simp [sig])
+    rhoU one_lt_Lam
     (fun x z hx hz => by
       constructor <;> simp [relH_mul,relK_mul,hx.1,hx.2,hz.1,hz.2])
-    (fun x hx => by rw [(tau_rel x).1,(tau_rel x).2]; exact hx)
     relN_rho_zpow
-    (fun x hx => by change sig x*sig (tau x)=1; rw [sig_tau,hx.1,hx.2]; simp)
+    (fun x hx => by
+      intro hz
+      change sig x=0 at hz
+      have hh := sig_tau x
+      rw [hx.1,hx.2,hz] at hh
+      norm_num at hh)
     (fun x hx => trivial_unit x hx.1 hx.2) ?_ u ⟨hH,hK⟩
-  intro v hv hv0 hlo hsmall
-  change 1≤|sig v| at hlo
-  change |sig v|^2≤Lam at hsmall
+  intro v hv hv0 hS hT
+  change (sig v)^2≤Lam at hS
+  change ((sig v)⁻¹)^2≤Lam at hT
+  have hp : sig v*sig (tau v)=1 := by rw [sig_tau,hv.1,hv.2]; simp
+  have hTau : (sig (tau v))^2≤Lam := by
+    rw [eq_inv_of_mul_eq_one_right hp]; exact hT
   have ht : 2*((v 0:ℝ)+(v 1:ℝ)*cR)=sig v+sig (tau v) := by
     simp only [sig,tau_apply0,tau_apply1,tau_apply2,tau_apply3]; push_cast; ring
   have hA := RelativeUnitGap.half_trace_bound (sig v) (sig (tau v))
-    ((v 0:ℝ)+(v 1:ℝ)*cR) Lam 26
-    (by rw [sig_tau,hv.1,hv.2]; simp) ht hlo hsmall (by linarith [Lam_coarse])
+    ((v 0:ℝ)+(v 1:ℝ)*cR) Lam 24
+    hp ht hS hTau (by linarith [Lam_coarse])
   have hab : v 0*v 1=3*((v 2)^2+2*(v 3)^2) := by
     have hk := hv.2; simp only [relK] at hk; linarith
   have habR : (v 0:ℝ)*(v 1:ℝ)=3*((v 2:ℝ)^2+2*(v 3:ℝ)^2) := by exact_mod_cast hab
   have he : ((v 0:ℝ)+(v 1:ℝ)*cR)^2=
       ((v 0:ℝ)-(v 1:ℝ)*cR)^2+12*((v 2:ℝ)^2+2*(v 3:ℝ)^2)*cR := by
     linear_combination 4*cR*habR
-  have hc : (4:ℝ)/3<cR := by nlinarith [cR_sq,cR_pos]
+  have hc : (1:ℝ)<cR := by nlinarith [cR_sq,cR_pos]
   have hC : (v 2:ℝ)^2+2*(v 3:ℝ)^2<2 := by
     by_contra hn
     have hge : 2≤(v 2:ℝ)^2+2*(v 3:ℝ)^2 := by linarith
