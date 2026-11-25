@@ -17,14 +17,14 @@ set_option maxHeartbeats 0
 namespace Tetrahedral.NormEleven
 """
 PROJECTION = """
-namespace NormProjection{d}
+namespace Tetrahedral.NormEleven.NormProjection{d}
 open {quartic} R
 def coord (j : Fin 4) : R →ₗ[ℤ] ℤ where
   toFun x := x j
   map_add' _ _ := rfl
   map_smul' _ _ := rfl
 {parity}
-end NormProjection{d}
+end Tetrahedral.NormEleven.NormProjection{d}
 """
 PARITY = """
 /-- Evaluation at q=1, s=0 is multiplicative modulo two. -/
@@ -34,13 +34,11 @@ theorem parity_mul (x z : R) :
   simp only [mul_apply0,mul_apply1]
   ring_nf; omega
 """
-DIRECTION = """/-- Width and all first-coordinate divisibilities follow from the relative norm,
-for every unit direction at a multiple of four. -/
-theorem direction (U : R) (q : ℤ) (hq : q≠0)
+DIRECTION = """/-- The base coordinates and norm divisibility of a unit direction. -/
+theorem trace_norm (U : R) (q : ℤ) (hq : q≠0)
     (hH : relH (1+(4*q) • U)=1) (hK : relK (1+(4*q) • U)=0) :
-    (∀ y : R, ({m}:ℤ) ∣ (y*U) 0 ∧ ({m}:ℤ) ∣ (y*U) 1) ∧
-    (∀ j, ({m}:ℤ) ∣ (U^2) j) ∧
-    (({m}:ℤ)=2 ∨ ({twom}:ℤ) ∣ (U^2) 0+(U^2) 1) := by
+    U 0= -2*q*relH U ∧ U 1= -2*q*relK U ∧
+      ({m}:ℤ) ∣ relH U ∧ ({m}:ℤ) ∣ relK U := by
   have eH : relH (1+(4*q) • U)=1+8*q*U 0+16*q^2*relH U := by
     simp only [relH,add_apply,zsmul_apply,one_apply]; norm_num; ring
   have eK : relK (1+(4*q) • U)=8*q*U 1+16*q^2*relK U := by
@@ -50,18 +48,13 @@ theorem direction (U : R) (q : ℤ) (hq : q≠0)
   have hB := RelativeDirection.trace q (U 1) (relK U) hq (by linarith only [hK])
   have hn := RelativeDirection.norm_{word} (U 0) (U 1) (relH U) (relK U) q {e} hA hB
     (by simp only [relH]; ring_nf; omega) (by simp only [relK]; ring_nf; omega)
-  obtain ⟨a,ha⟩ := hn.1
-  obtain ⟨b,hb⟩ := hn.2
-  have hu0 : U 0={m}*(-2*q*a) := by rw [hA,ha]; ring
-  have hu1 : U 1={m}*(-2*q*b) := by rw [hB,hb]; ring
-  let Z : R := ⟨![a,b,0,0]⟩
-  have hN : U*tau U=({m}:ℤ) • Z := by
-    rw [mul_tau]
-    ext j; fin_cases j
-    · exact ha
-    · exact hb
-    · change 0={m}*0; ring
-    · change 0={m}*0; ring
+  exact ⟨hA,hB,hn⟩
+
+/-- The direction square is minus the unit times its base-field norm. -/
+theorem direction_square (U : R) (q : ℤ) (hq : q≠0)
+    (hH : relH (1+(4*q) • U)=1) (hK : relK (1+(4*q) • U)=0) :
+    U^2= -(1+(4*q) • U)*(⟨![relH U,relK U,0,0]⟩:R) := by
+  obtain ⟨hA,hB,_,_⟩ := trace_norm U q hq hH hK
   have htr : U+tau U= (-(4*q):ℤ) • (U*tau U) := by
     rw [mul_tau]
     ext j; fin_cases j
@@ -69,7 +62,30 @@ theorem direction (U : R) (q : ℤ) (hq : q≠0)
     · change U 1+U 1= -(4*q)*relK U; nlinarith only [hB]
     · change U 2+(-U 2)= -(4*q)*0; ring
     · change U 3+(-U 3)= -(4*q)*0; ring
-  have hs := RelativeDirection.square U (tau U) (U*tau U) (4*q) rfl htr
+  simpa only [mul_tau] using
+    RelativeDirection.square U (tau U) (U*tau U) (4*q) rfl htr
+
+/-- Width and all first-coordinate divisibilities follow from the relative norm,
+for every unit direction at a multiple of four. -/
+theorem direction (U : R) (q : ℤ) (hq : q≠0)
+    (hH : relH (1+(4*q) • U)=1) (hK : relK (1+(4*q) • U)=0) :
+    (∀ y : R, ({m}:ℤ) ∣ (y*U) 0 ∧ ({m}:ℤ) ∣ (y*U) 1) ∧
+    (∀ j, ({m}:ℤ) ∣ (U^2) j) ∧
+    (({m}:ℤ)=2 ∨ ({twom}:ℤ) ∣ (U^2) 0+(U^2) 1) := by
+  obtain ⟨hA,hB,hN0,hN1⟩ := trace_norm U q hq hH hK
+  have hn := And.intro hN0 hN1
+  obtain ⟨a,ha⟩ := hn.1
+  obtain ⟨b,hb⟩ := hn.2
+  have hu0 : U 0={m}*(-2*q*a) := by rw [hA,ha]; ring
+  have hu1 : U 1={m}*(-2*q*b) := by rw [hB,hb]; ring
+  let Z : R := ⟨![a,b,0,0]⟩
+  have hN : (⟨![relH U,relK U,0,0]⟩:R)=({m}:ℤ) • Z := by
+    ext j; fin_cases j
+    · exact ha
+    · exact hb
+    · change 0={m}*0; ring
+    · change 0={m}*0; ring
+  have hs := direction_square U q hq hH hK
   have hsquare : U^2=({m}:ℤ) • (-(1+(4*q) • U)*Z) := by
     rw [hs,hN,mul_smul_comm]
   {refine}
@@ -80,6 +96,58 @@ theorem direction (U : R) (q : ℤ) (hq : q≠0)
     exact dvd_mul_right _ _
 {sumproof}"""
 
+SCALAR = """theorem base_mul (x : R) (H K : ℤ) :
+    (x*(⟨![H,K,0,0]⟩:R)) 0=x 0*H+{e}*x 1*K ∧
+    (x*(⟨![H,K,0,0]⟩:R)) 1=x 0*K+x 1*H := by
+  constructor <;> simp only [mul_apply0,mul_apply1] <;> norm_num{finish}
+
+{phase}
+/-- Root parity, and at width four the preserved orbit character,
+supply the scalar bit for every relative unit direction. -/
+theorem scalar (y U : R) (q : ℤ) (hq : q≠0)
+    (hH : relH (1+(4*q) • U)=1) (hK : relK (1+(4*q) • U)=0)
+    (hy : f y=0){phasearg} :
+    ({scalar}:ℤ) ∣ Lf y (y*U^2) := by
+  obtain ⟨hA,hB,hN0,hN1⟩ := trace_norm U q hq hH hK
+  let N : R := ⟨![relH U,relK U,0,0]⟩
+  have hy' : (y 0-3)^2-{e}*(y 1)^2+2=0 := hy
+  apply RelativeDirection.scalar_of_norm (Lf y) y U N (4*q) {m}
+    (direction_square U q hq hH hK)
+  · change ({scalar}:ℤ) ∣
+      2*(y 0-3)*(y*N) 0-2*{e}*y 1*(y*N) 1
+    rw [(base_mul y _ _).1,(base_mul y _ _).2,
+      RelativeDirection.at_root (y 0) (y 1) (relH U) (relK U) {e} hy']
+{scalarproof}
+  · change ({scalar}:ℤ) ∣
+      2*(y 0-3)*((y*U)*N) 0-2*{e}*y 1*((y*U)*N) 1
+    rw [(base_mul (y*U) _ _).1,(base_mul (y*U) _ _).2]
+    simpa only [show (2:ℤ)*{m}^2={scalar} by norm_num,mul_assoc] using
+      RelativeDirection.product_differential (y 0-3) ({e}*y 1) {e}
+      ((y*U) 0) ((y*U) 1) (relH U) (relK U) {m}
+      ((direction U q hq hH hK).1 y).1
+      ((direction U q hq hH hK).1 y).2 hN0 hN1
+"""
+PHASE = """/-- The signed base-coordinate sum is fixed by each unit step modulo four. -/
+theorem orbit_phase (i : ℤ) :
+    (4:ℤ) ∣ (xi0*(↑(rhoU^i):R)) 0+({sign})*(xi0*(↑(rhoU^i):R)) 1-1 := by
+  have hs (x : R) : (4:ℤ) ∣
+      (x*(rhoU:R)) 0+({sign})*(x*(rhoU:R)) 1-(x 0+({sign})*x 1) := by
+    simp only [mul_apply0,mul_apply1]
+    norm_num [rhoU,rho]; ring_nf; omega
+  have hh := OrbitCongruence.invariant rhoU (fun x : R => x 0+({sign})*x 1) 4 hs xi0 i
+  simpa only [show xi0 0+({sign})*xi0 1=1 by decide] using hh
+"""
+SCALAR_TWO = """    have hp := NormDerivative.root_parity {e} (y 0-3) (y 1) hy'
+    exact RelativeDirection.scalar_two (y 0) (y 1) (relH U) (relK U) {e}
+      (by omega) (by decide) hN0 hN1"""
+SCALAR_FOUR = """    have hchar : (16:ℤ) ∣ relH U-({sign})*relK U := by
+      obtain ⟨a,ha⟩ := hN0; obtain ⟨b,hb⟩ := hN1
+      have hu0 : U 0=4*(-2*q*a) := by rw [hA,ha]; ring
+      have hu1 : U 1=4*(-2*q*b) := by rw [hB,hb]; ring
+      simp only [relH,relK]; rw [hu0,hu1]; ring_nf; omega
+    exact RelativeDirection.scalar_four (y 0) (y 1) (relH U) (relK U) {e} ({sign})
+      (by decide) (by decide) hphase hN0 hchar"""
+
 LOCAL = """
 namespace Differential{label}
 open {quartic} R NormProjection{d}
@@ -88,18 +156,21 @@ theorem step_eq : (↑(rhoU^{P}):R)=1+{delta}*step := by
   have h : (↑(rhoU^{P}):R)=1+({delta}:ℤ) • step := by
     ext i; fin_cases i <;> decide +kernel
   simpa only [zsmul_eq_mul,Int.cast_ofNat] using h
-/-- These properties hold for every relative unit congruent to one modulo four. -/
-theorem properties :
-    (∀ y : R, ({m}:ℤ) ∣ (y*step) 0 ∧ ({m}:ℤ) ∣ (y*step) 1) ∧
-    (∀ j, ({m}:ℤ) ∣ (step^2) j) ∧
-    (({m}:ℤ)=2 ∨ ({twom}:ℤ) ∣ (step^2) 0+(step^2) 1) := by
+/-- The displayed step lies on the relative norm-one equation. -/
+theorem norm_step : relH (1+(4*{q}:ℤ) • step)=1 ∧ relK (1+(4*{q}:ℤ) • step)=0 := by
   have he : 1+(4*{q}:ℤ) • step=(↑(rhoU^{P}):R) := by
     change 1+({delta}:ℤ) • step=(↑(rhoU^{P}):R)
     simpa only [zsmul_eq_mul,Int.cast_ofNat] using step_eq.symm
   obtain ⟨hH,hK⟩ := relN_rho_zpow ({P}:ℤ)
-  exact direction step {q} (by decide)
-    (by rw [he]; simpa only [zpow_natCast,zpow_ofNat] using hH)
-    (by rw [he]; simpa only [zpow_natCast,zpow_ofNat] using hK)
+  exact ⟨by rw [he]; simpa only [zpow_natCast,zpow_ofNat] using hH,
+    by rw [he]; simpa only [zpow_natCast,zpow_ofNat] using hK⟩
+
+/-- These properties hold for every relative unit congruent to one modulo four. -/
+theorem properties :
+    (∀ y : R, ({m}:ℤ) ∣ (y*step) 0 ∧ ({m}:ℤ) ∣ (y*step) 1) ∧
+    (∀ j, ({m}:ℤ) ∣ (step^2) j) ∧
+    (({m}:ℤ)=2 ∨ ({twom}:ℤ) ∣ (step^2) 0+(step^2) 1) :=
+  direction step {q} (by decide) norm_step.1 norm_step.2
 
 def squarePart : R := ⟨fun j => (step^2) j/{m}⟩
 theorem square_eq : step^2=({m}:ℤ) • squarePart := by
@@ -112,20 +183,24 @@ def point (c : Fin {count}) : R := xi0*(↑({orbit}^(centre c)):R)
 def first (c : Fin {count}) : R := point c*step
 def tangent (c : Fin {count}) : R := point c*step^2
 
-/-- Only root, scalar and derivative remain at each centre. -/
-theorem root_data : ∀ c : Fin {count},
+/-- Only the root and its first derivative remain as finite data. -/
+theorem root_and_derivative : ∀ c : Fin {count},
     f (point c)=0 ∧
-    {scalar} ∣ Lf (point c) (tangent c) ∧
     {N} ∣ Lf (point c) (first c)-{H} := by decide +kernel
+
+/-- The scalar bit is a consequence of the norm and the orbit, not a certificate. -/
+theorem scalar_bit (c : Fin {count}) : {scalar} ∣ Lf (point c) (tangent c) :=
+  scalar (point c) step {q} (by decide) norm_step.1 norm_step.2
+    (root_and_derivative c).1{localphase}
 
 theorem unique (c : Fin {count}) (i : ℤ)
     (hi : f ((xi0*(↑({orbit}^(centre c)):R))*(↑((rhoU^{P})^i):R))=0) : i=0 := by
-  obtain ⟨hz,hs,hd⟩ := root_data c
+  obtain ⟨hz,hd⟩ := root_and_derivative c
   exact NormDerivative.unique (coord 0) (coord 1) {e}
     (point c) (rhoU^{P}) {t} {v} (by decide) step
     (by simpa only [Nat.reduceAdd,show (2:R)^({t}+1)={delta} by ring] using step_eq)
     hz {m} (by decide) (by norm_num) squarePart square_eq
-    {good} (properties.1 (point c)) hs hd i hi
+    {good} (properties.1 (point c)) (scalar_bit c) hd i hi
 end Differential{label}
 """
 TRACE = """theorem square_trace : (2:ℤ) ∣ coord 0 squarePart+coord 1 squarePart := by
@@ -138,22 +213,25 @@ TRACE = """theorem square_trace : (2:ℤ) ∣ coord 0 squarePart+coord 1 squareP
 
 
 def main():
-    directions = ['-- Generated by scripts/generate_parity_direction_data.py; universal norm arguments.\nimport Tetrahedral.RelativeDirection\n']
+    directions = ['-- Generated by scripts/generate_parity_direction_data.py; universal norm arguments.\nimport Tetrahedral.NormDerivative\nimport Tetrahedral.RelativeDirection\nimport Tetrahedral.OrbitCongruence\n']
     for d in [1,2,3,11,66]:
-        directions.append(f'import Tetrahedral.Quartic.D{d}Ring\n')
+        directions.append(f'import Tetrahedral.Quartic.D{d}\n')
     for d,e in [(1,6),(2,3),(3,2),(11,66),(66,11)]:
         m = 4 if d in [2,66] else 2
         quartic = 'Quartic66' if d==66 else f'Quartic{d}'
+        directions.append(PROJECTION.format(d=d,quartic=quartic,parity=PARITY if m==4 else ''))
         directions.append(f'\nnamespace Tetrahedral.NormEleven.NormProjection{d}\nopen {quartic} R\n')
         directions.append(DIRECTION.format(m=m,twom=2*m,e=e,word='four' if m==4 else 'two',
             refine='refine ⟨?_,?_,Or.inr ?_⟩' if m==4 else 'refine ⟨?_,?_,Or.inl rfl⟩',
             sumproof='  · simp only [pow_two,mul_apply0,mul_apply1]\n    rw [hu0,hu1]; ring_nf; omega\n' if m==4 else ''))
+        sign = -1 if d==2 else 1
+        directions.append(SCALAR.format(e=e,m=m,scalar=2*m*m,finish='' if d in [3,11] else ' <;> ring',
+            phase=PHASE.format(sign=sign) if m==4 else '',
+            phasearg=f' (hphase : (4:ℤ) ∣ y 0+({sign})*y 1-1)' if m==4 else '',
+            scalarproof=(SCALAR_FOUR if m==4 else SCALAR_TWO).format(e=e,sign=sign)))
         directions.append(f'\nend Tetrahedral.NormEleven.NormProjection{d}\n')
     (OUT.parent/'RelativeDirectionData.lean').write_text(''.join(directions))
     parts = [HEADER]
-    for d in [1,2,3,11,66]:
-        parts.append(PROJECTION.format(d=d,quartic='Quartic66' if d==66 else f'Quartic{d}',
-            parity=PARITY if d in [2,66] else ''))
     specs = [(1,1,2,4,1,4,2,6,[0,-1]),(2,2,8,8,2,7,4,3,[0,-1]),
              (3,3,2,4,1,4,2,2,[0,-1]),(11,11,2,4,1,4,2,66,[0]),
              (66,66,4,4,1,6,4,11,[1]),('2Odd',2,4,4,1,6,4,3,[-1])]
@@ -162,6 +240,8 @@ def main():
             quartic='Quartic66' if d==66 else f'Quartic{d}', count=len(centres),
             centres=','.join(map(str,centres)),orbit='(rhoU^4)' if label==2 else 'rhoU',
             scalar=2*m*m,N=2**v,H=2**(v-1),twom=2*m,q=delta//4,trace=TRACE.format(m=m) if m==4 else '',
+            localphase=(' (by simpa only [point,zpow_mul,zpow_ofNat] using orbit_phase (4*centre c))'
+              if label==2 else ' (by simpa only [point] using orbit_phase (centre c))') if m==4 else '',
             good='(Or.inl rfl)' if m==2 else '(Or.inr ⟨rfl,parity_mul,square_trace⟩)'))
     parts.append('\nend Tetrahedral.NormEleven\n')
     OUT.write_text(''.join(parts))

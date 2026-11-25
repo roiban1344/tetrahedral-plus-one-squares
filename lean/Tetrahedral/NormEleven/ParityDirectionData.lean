@@ -11,65 +11,6 @@ set_option maxRecDepth 20000
 set_option maxHeartbeats 0
 namespace Tetrahedral.NormEleven
 
-namespace NormProjection1
-open Quartic1 R
-def coord (j : Fin 4) : R →ₗ[ℤ] ℤ where
-  toFun x := x j
-  map_add' _ _ := rfl
-  map_smul' _ _ := rfl
-
-end NormProjection1
-
-namespace NormProjection2
-open Quartic2 R
-def coord (j : Fin 4) : R →ₗ[ℤ] ℤ where
-  toFun x := x j
-  map_add' _ _ := rfl
-  map_smul' _ _ := rfl
-
-/-- Evaluation at q=1, s=0 is multiplicative modulo two. -/
-theorem parity_mul (x z : R) :
-    (2:ℤ) ∣ coord 0 (x*z)+coord 1 (x*z)-(coord 0 x+coord 1 x)*(coord 0 z+coord 1 z) := by
-  change (2:ℤ) ∣ (x*z) 0+(x*z) 1-(x 0+x 1)*(z 0+z 1)
-  simp only [mul_apply0,mul_apply1]
-  ring_nf; omega
-
-end NormProjection2
-
-namespace NormProjection3
-open Quartic3 R
-def coord (j : Fin 4) : R →ₗ[ℤ] ℤ where
-  toFun x := x j
-  map_add' _ _ := rfl
-  map_smul' _ _ := rfl
-
-end NormProjection3
-
-namespace NormProjection11
-open Quartic11 R
-def coord (j : Fin 4) : R →ₗ[ℤ] ℤ where
-  toFun x := x j
-  map_add' _ _ := rfl
-  map_smul' _ _ := rfl
-
-end NormProjection11
-
-namespace NormProjection66
-open Quartic66 R
-def coord (j : Fin 4) : R →ₗ[ℤ] ℤ where
-  toFun x := x j
-  map_add' _ _ := rfl
-  map_smul' _ _ := rfl
-
-/-- Evaluation at q=1, s=0 is multiplicative modulo two. -/
-theorem parity_mul (x z : R) :
-    (2:ℤ) ∣ coord 0 (x*z)+coord 1 (x*z)-(coord 0 x+coord 1 x)*(coord 0 z+coord 1 z) := by
-  change (2:ℤ) ∣ (x*z) 0+(x*z) 1-(x 0+x 1)*(z 0+z 1)
-  simp only [mul_apply0,mul_apply1]
-  ring_nf; omega
-
-end NormProjection66
-
 namespace Differential1
 open Quartic1 R NormProjection1
 def step : R := ⟨fun i => ((↑(rhoU^2):R) i-(if i=0 then 1 else 0))/4⟩
@@ -77,18 +18,21 @@ theorem step_eq : (↑(rhoU^2):R)=1+4*step := by
   have h : (↑(rhoU^2):R)=1+(4:ℤ) • step := by
     ext i; fin_cases i <;> decide +kernel
   simpa only [zsmul_eq_mul,Int.cast_ofNat] using h
-/-- These properties hold for every relative unit congruent to one modulo four. -/
-theorem properties :
-    (∀ y : R, (2:ℤ) ∣ (y*step) 0 ∧ (2:ℤ) ∣ (y*step) 1) ∧
-    (∀ j, (2:ℤ) ∣ (step^2) j) ∧
-    ((2:ℤ)=2 ∨ (4:ℤ) ∣ (step^2) 0+(step^2) 1) := by
+/-- The displayed step lies on the relative norm-one equation. -/
+theorem norm_step : relH (1+(4*1:ℤ) • step)=1 ∧ relK (1+(4*1:ℤ) • step)=0 := by
   have he : 1+(4*1:ℤ) • step=(↑(rhoU^2):R) := by
     change 1+(4:ℤ) • step=(↑(rhoU^2):R)
     simpa only [zsmul_eq_mul,Int.cast_ofNat] using step_eq.symm
   obtain ⟨hH,hK⟩ := relN_rho_zpow (2:ℤ)
-  exact direction step 1 (by decide)
-    (by rw [he]; simpa only [zpow_natCast,zpow_ofNat] using hH)
-    (by rw [he]; simpa only [zpow_natCast,zpow_ofNat] using hK)
+  exact ⟨by rw [he]; simpa only [zpow_natCast,zpow_ofNat] using hH,
+    by rw [he]; simpa only [zpow_natCast,zpow_ofNat] using hK⟩
+
+/-- These properties hold for every relative unit congruent to one modulo four. -/
+theorem properties :
+    (∀ y : R, (2:ℤ) ∣ (y*step) 0 ∧ (2:ℤ) ∣ (y*step) 1) ∧
+    (∀ j, (2:ℤ) ∣ (step^2) j) ∧
+    ((2:ℤ)=2 ∨ (4:ℤ) ∣ (step^2) 0+(step^2) 1) :=
+  direction step 1 (by decide) norm_step.1 norm_step.2
 
 def squarePart : R := ⟨fun j => (step^2) j/2⟩
 theorem square_eq : step^2=(2:ℤ) • squarePart := by
@@ -101,20 +45,24 @@ def point (c : Fin 2) : R := xi0*(↑(rhoU^(centre c)):R)
 def first (c : Fin 2) : R := point c*step
 def tangent (c : Fin 2) : R := point c*step^2
 
-/-- Only root, scalar and derivative remain at each centre. -/
-theorem root_data : ∀ c : Fin 2,
+/-- Only the root and its first derivative remain as finite data. -/
+theorem root_and_derivative : ∀ c : Fin 2,
     f (point c)=0 ∧
-    8 ∣ Lf (point c) (tangent c) ∧
     16 ∣ Lf (point c) (first c)-8 := by decide +kernel
+
+/-- The scalar bit is a consequence of the norm and the orbit, not a certificate. -/
+theorem scalar_bit (c : Fin 2) : 8 ∣ Lf (point c) (tangent c) :=
+  scalar (point c) step 1 (by decide) norm_step.1 norm_step.2
+    (root_and_derivative c).1
 
 theorem unique (c : Fin 2) (i : ℤ)
     (hi : f ((xi0*(↑(rhoU^(centre c)):R))*(↑((rhoU^2)^i):R))=0) : i=0 := by
-  obtain ⟨hz,hs,hd⟩ := root_data c
+  obtain ⟨hz,hd⟩ := root_and_derivative c
   exact NormDerivative.unique (coord 0) (coord 1) 6
     (point c) (rhoU^2) 1 4 (by decide) step
     (by simpa only [Nat.reduceAdd,show (2:R)^(1+1)=4 by ring] using step_eq)
     hz 2 (by decide) (by norm_num) squarePart square_eq
-    (Or.inl rfl) (properties.1 (point c)) hs hd i hi
+    (Or.inl rfl) (properties.1 (point c)) (scalar_bit c) hd i hi
 end Differential1
 
 namespace Differential2
@@ -124,18 +72,21 @@ theorem step_eq : (↑(rhoU^8):R)=1+8*step := by
   have h : (↑(rhoU^8):R)=1+(8:ℤ) • step := by
     ext i; fin_cases i <;> decide +kernel
   simpa only [zsmul_eq_mul,Int.cast_ofNat] using h
-/-- These properties hold for every relative unit congruent to one modulo four. -/
-theorem properties :
-    (∀ y : R, (4:ℤ) ∣ (y*step) 0 ∧ (4:ℤ) ∣ (y*step) 1) ∧
-    (∀ j, (4:ℤ) ∣ (step^2) j) ∧
-    ((4:ℤ)=2 ∨ (8:ℤ) ∣ (step^2) 0+(step^2) 1) := by
+/-- The displayed step lies on the relative norm-one equation. -/
+theorem norm_step : relH (1+(4*2:ℤ) • step)=1 ∧ relK (1+(4*2:ℤ) • step)=0 := by
   have he : 1+(4*2:ℤ) • step=(↑(rhoU^8):R) := by
     change 1+(8:ℤ) • step=(↑(rhoU^8):R)
     simpa only [zsmul_eq_mul,Int.cast_ofNat] using step_eq.symm
   obtain ⟨hH,hK⟩ := relN_rho_zpow (8:ℤ)
-  exact direction step 2 (by decide)
-    (by rw [he]; simpa only [zpow_natCast,zpow_ofNat] using hH)
-    (by rw [he]; simpa only [zpow_natCast,zpow_ofNat] using hK)
+  exact ⟨by rw [he]; simpa only [zpow_natCast,zpow_ofNat] using hH,
+    by rw [he]; simpa only [zpow_natCast,zpow_ofNat] using hK⟩
+
+/-- These properties hold for every relative unit congruent to one modulo four. -/
+theorem properties :
+    (∀ y : R, (4:ℤ) ∣ (y*step) 0 ∧ (4:ℤ) ∣ (y*step) 1) ∧
+    (∀ j, (4:ℤ) ∣ (step^2) j) ∧
+    ((4:ℤ)=2 ∨ (8:ℤ) ∣ (step^2) 0+(step^2) 1) :=
+  direction step 2 (by decide) norm_step.1 norm_step.2
 
 def squarePart : R := ⟨fun j => (step^2) j/4⟩
 theorem square_eq : step^2=(4:ℤ) • squarePart := by
@@ -154,20 +105,24 @@ def point (c : Fin 2) : R := xi0*(↑((rhoU^4)^(centre c)):R)
 def first (c : Fin 2) : R := point c*step
 def tangent (c : Fin 2) : R := point c*step^2
 
-/-- Only root, scalar and derivative remain at each centre. -/
-theorem root_data : ∀ c : Fin 2,
+/-- Only the root and its first derivative remain as finite data. -/
+theorem root_and_derivative : ∀ c : Fin 2,
     f (point c)=0 ∧
-    32 ∣ Lf (point c) (tangent c) ∧
     128 ∣ Lf (point c) (first c)-64 := by decide +kernel
+
+/-- The scalar bit is a consequence of the norm and the orbit, not a certificate. -/
+theorem scalar_bit (c : Fin 2) : 32 ∣ Lf (point c) (tangent c) :=
+  scalar (point c) step 2 (by decide) norm_step.1 norm_step.2
+    (root_and_derivative c).1 (by simpa only [point,zpow_mul,zpow_ofNat] using orbit_phase (4*centre c))
 
 theorem unique (c : Fin 2) (i : ℤ)
     (hi : f ((xi0*(↑((rhoU^4)^(centre c)):R))*(↑((rhoU^8)^i):R))=0) : i=0 := by
-  obtain ⟨hz,hs,hd⟩ := root_data c
+  obtain ⟨hz,hd⟩ := root_and_derivative c
   exact NormDerivative.unique (coord 0) (coord 1) 3
     (point c) (rhoU^8) 2 7 (by decide) step
     (by simpa only [Nat.reduceAdd,show (2:R)^(2+1)=8 by ring] using step_eq)
     hz 4 (by decide) (by norm_num) squarePart square_eq
-    (Or.inr ⟨rfl,parity_mul,square_trace⟩) (properties.1 (point c)) hs hd i hi
+    (Or.inr ⟨rfl,parity_mul,square_trace⟩) (properties.1 (point c)) (scalar_bit c) hd i hi
 end Differential2
 
 namespace Differential3
@@ -177,18 +132,21 @@ theorem step_eq : (↑(rhoU^2):R)=1+4*step := by
   have h : (↑(rhoU^2):R)=1+(4:ℤ) • step := by
     ext i; fin_cases i <;> decide +kernel
   simpa only [zsmul_eq_mul,Int.cast_ofNat] using h
-/-- These properties hold for every relative unit congruent to one modulo four. -/
-theorem properties :
-    (∀ y : R, (2:ℤ) ∣ (y*step) 0 ∧ (2:ℤ) ∣ (y*step) 1) ∧
-    (∀ j, (2:ℤ) ∣ (step^2) j) ∧
-    ((2:ℤ)=2 ∨ (4:ℤ) ∣ (step^2) 0+(step^2) 1) := by
+/-- The displayed step lies on the relative norm-one equation. -/
+theorem norm_step : relH (1+(4*1:ℤ) • step)=1 ∧ relK (1+(4*1:ℤ) • step)=0 := by
   have he : 1+(4*1:ℤ) • step=(↑(rhoU^2):R) := by
     change 1+(4:ℤ) • step=(↑(rhoU^2):R)
     simpa only [zsmul_eq_mul,Int.cast_ofNat] using step_eq.symm
   obtain ⟨hH,hK⟩ := relN_rho_zpow (2:ℤ)
-  exact direction step 1 (by decide)
-    (by rw [he]; simpa only [zpow_natCast,zpow_ofNat] using hH)
-    (by rw [he]; simpa only [zpow_natCast,zpow_ofNat] using hK)
+  exact ⟨by rw [he]; simpa only [zpow_natCast,zpow_ofNat] using hH,
+    by rw [he]; simpa only [zpow_natCast,zpow_ofNat] using hK⟩
+
+/-- These properties hold for every relative unit congruent to one modulo four. -/
+theorem properties :
+    (∀ y : R, (2:ℤ) ∣ (y*step) 0 ∧ (2:ℤ) ∣ (y*step) 1) ∧
+    (∀ j, (2:ℤ) ∣ (step^2) j) ∧
+    ((2:ℤ)=2 ∨ (4:ℤ) ∣ (step^2) 0+(step^2) 1) :=
+  direction step 1 (by decide) norm_step.1 norm_step.2
 
 def squarePart : R := ⟨fun j => (step^2) j/2⟩
 theorem square_eq : step^2=(2:ℤ) • squarePart := by
@@ -201,20 +159,24 @@ def point (c : Fin 2) : R := xi0*(↑(rhoU^(centre c)):R)
 def first (c : Fin 2) : R := point c*step
 def tangent (c : Fin 2) : R := point c*step^2
 
-/-- Only root, scalar and derivative remain at each centre. -/
-theorem root_data : ∀ c : Fin 2,
+/-- Only the root and its first derivative remain as finite data. -/
+theorem root_and_derivative : ∀ c : Fin 2,
     f (point c)=0 ∧
-    8 ∣ Lf (point c) (tangent c) ∧
     16 ∣ Lf (point c) (first c)-8 := by decide +kernel
+
+/-- The scalar bit is a consequence of the norm and the orbit, not a certificate. -/
+theorem scalar_bit (c : Fin 2) : 8 ∣ Lf (point c) (tangent c) :=
+  scalar (point c) step 1 (by decide) norm_step.1 norm_step.2
+    (root_and_derivative c).1
 
 theorem unique (c : Fin 2) (i : ℤ)
     (hi : f ((xi0*(↑(rhoU^(centre c)):R))*(↑((rhoU^2)^i):R))=0) : i=0 := by
-  obtain ⟨hz,hs,hd⟩ := root_data c
+  obtain ⟨hz,hd⟩ := root_and_derivative c
   exact NormDerivative.unique (coord 0) (coord 1) 2
     (point c) (rhoU^2) 1 4 (by decide) step
     (by simpa only [Nat.reduceAdd,show (2:R)^(1+1)=4 by ring] using step_eq)
     hz 2 (by decide) (by norm_num) squarePart square_eq
-    (Or.inl rfl) (properties.1 (point c)) hs hd i hi
+    (Or.inl rfl) (properties.1 (point c)) (scalar_bit c) hd i hi
 end Differential3
 
 namespace Differential11
@@ -224,18 +186,21 @@ theorem step_eq : (↑(rhoU^2):R)=1+4*step := by
   have h : (↑(rhoU^2):R)=1+(4:ℤ) • step := by
     ext i; fin_cases i <;> decide +kernel
   simpa only [zsmul_eq_mul,Int.cast_ofNat] using h
-/-- These properties hold for every relative unit congruent to one modulo four. -/
-theorem properties :
-    (∀ y : R, (2:ℤ) ∣ (y*step) 0 ∧ (2:ℤ) ∣ (y*step) 1) ∧
-    (∀ j, (2:ℤ) ∣ (step^2) j) ∧
-    ((2:ℤ)=2 ∨ (4:ℤ) ∣ (step^2) 0+(step^2) 1) := by
+/-- The displayed step lies on the relative norm-one equation. -/
+theorem norm_step : relH (1+(4*1:ℤ) • step)=1 ∧ relK (1+(4*1:ℤ) • step)=0 := by
   have he : 1+(4*1:ℤ) • step=(↑(rhoU^2):R) := by
     change 1+(4:ℤ) • step=(↑(rhoU^2):R)
     simpa only [zsmul_eq_mul,Int.cast_ofNat] using step_eq.symm
   obtain ⟨hH,hK⟩ := relN_rho_zpow (2:ℤ)
-  exact direction step 1 (by decide)
-    (by rw [he]; simpa only [zpow_natCast,zpow_ofNat] using hH)
-    (by rw [he]; simpa only [zpow_natCast,zpow_ofNat] using hK)
+  exact ⟨by rw [he]; simpa only [zpow_natCast,zpow_ofNat] using hH,
+    by rw [he]; simpa only [zpow_natCast,zpow_ofNat] using hK⟩
+
+/-- These properties hold for every relative unit congruent to one modulo four. -/
+theorem properties :
+    (∀ y : R, (2:ℤ) ∣ (y*step) 0 ∧ (2:ℤ) ∣ (y*step) 1) ∧
+    (∀ j, (2:ℤ) ∣ (step^2) j) ∧
+    ((2:ℤ)=2 ∨ (4:ℤ) ∣ (step^2) 0+(step^2) 1) :=
+  direction step 1 (by decide) norm_step.1 norm_step.2
 
 def squarePart : R := ⟨fun j => (step^2) j/2⟩
 theorem square_eq : step^2=(2:ℤ) • squarePart := by
@@ -248,20 +213,24 @@ def point (c : Fin 1) : R := xi0*(↑(rhoU^(centre c)):R)
 def first (c : Fin 1) : R := point c*step
 def tangent (c : Fin 1) : R := point c*step^2
 
-/-- Only root, scalar and derivative remain at each centre. -/
-theorem root_data : ∀ c : Fin 1,
+/-- Only the root and its first derivative remain as finite data. -/
+theorem root_and_derivative : ∀ c : Fin 1,
     f (point c)=0 ∧
-    8 ∣ Lf (point c) (tangent c) ∧
     16 ∣ Lf (point c) (first c)-8 := by decide +kernel
+
+/-- The scalar bit is a consequence of the norm and the orbit, not a certificate. -/
+theorem scalar_bit (c : Fin 1) : 8 ∣ Lf (point c) (tangent c) :=
+  scalar (point c) step 1 (by decide) norm_step.1 norm_step.2
+    (root_and_derivative c).1
 
 theorem unique (c : Fin 1) (i : ℤ)
     (hi : f ((xi0*(↑(rhoU^(centre c)):R))*(↑((rhoU^2)^i):R))=0) : i=0 := by
-  obtain ⟨hz,hs,hd⟩ := root_data c
+  obtain ⟨hz,hd⟩ := root_and_derivative c
   exact NormDerivative.unique (coord 0) (coord 1) 66
     (point c) (rhoU^2) 1 4 (by decide) step
     (by simpa only [Nat.reduceAdd,show (2:R)^(1+1)=4 by ring] using step_eq)
     hz 2 (by decide) (by norm_num) squarePart square_eq
-    (Or.inl rfl) (properties.1 (point c)) hs hd i hi
+    (Or.inl rfl) (properties.1 (point c)) (scalar_bit c) hd i hi
 end Differential11
 
 namespace Differential66
@@ -271,18 +240,21 @@ theorem step_eq : (↑(rhoU^4):R)=1+4*step := by
   have h : (↑(rhoU^4):R)=1+(4:ℤ) • step := by
     ext i; fin_cases i <;> decide +kernel
   simpa only [zsmul_eq_mul,Int.cast_ofNat] using h
-/-- These properties hold for every relative unit congruent to one modulo four. -/
-theorem properties :
-    (∀ y : R, (4:ℤ) ∣ (y*step) 0 ∧ (4:ℤ) ∣ (y*step) 1) ∧
-    (∀ j, (4:ℤ) ∣ (step^2) j) ∧
-    ((4:ℤ)=2 ∨ (8:ℤ) ∣ (step^2) 0+(step^2) 1) := by
+/-- The displayed step lies on the relative norm-one equation. -/
+theorem norm_step : relH (1+(4*1:ℤ) • step)=1 ∧ relK (1+(4*1:ℤ) • step)=0 := by
   have he : 1+(4*1:ℤ) • step=(↑(rhoU^4):R) := by
     change 1+(4:ℤ) • step=(↑(rhoU^4):R)
     simpa only [zsmul_eq_mul,Int.cast_ofNat] using step_eq.symm
   obtain ⟨hH,hK⟩ := relN_rho_zpow (4:ℤ)
-  exact direction step 1 (by decide)
-    (by rw [he]; simpa only [zpow_natCast,zpow_ofNat] using hH)
-    (by rw [he]; simpa only [zpow_natCast,zpow_ofNat] using hK)
+  exact ⟨by rw [he]; simpa only [zpow_natCast,zpow_ofNat] using hH,
+    by rw [he]; simpa only [zpow_natCast,zpow_ofNat] using hK⟩
+
+/-- These properties hold for every relative unit congruent to one modulo four. -/
+theorem properties :
+    (∀ y : R, (4:ℤ) ∣ (y*step) 0 ∧ (4:ℤ) ∣ (y*step) 1) ∧
+    (∀ j, (4:ℤ) ∣ (step^2) j) ∧
+    ((4:ℤ)=2 ∨ (8:ℤ) ∣ (step^2) 0+(step^2) 1) :=
+  direction step 1 (by decide) norm_step.1 norm_step.2
 
 def squarePart : R := ⟨fun j => (step^2) j/4⟩
 theorem square_eq : step^2=(4:ℤ) • squarePart := by
@@ -301,20 +273,24 @@ def point (c : Fin 1) : R := xi0*(↑(rhoU^(centre c)):R)
 def first (c : Fin 1) : R := point c*step
 def tangent (c : Fin 1) : R := point c*step^2
 
-/-- Only root, scalar and derivative remain at each centre. -/
-theorem root_data : ∀ c : Fin 1,
+/-- Only the root and its first derivative remain as finite data. -/
+theorem root_and_derivative : ∀ c : Fin 1,
     f (point c)=0 ∧
-    32 ∣ Lf (point c) (tangent c) ∧
     64 ∣ Lf (point c) (first c)-32 := by decide +kernel
+
+/-- The scalar bit is a consequence of the norm and the orbit, not a certificate. -/
+theorem scalar_bit (c : Fin 1) : 32 ∣ Lf (point c) (tangent c) :=
+  scalar (point c) step 1 (by decide) norm_step.1 norm_step.2
+    (root_and_derivative c).1 (by simpa only [point] using orbit_phase (centre c))
 
 theorem unique (c : Fin 1) (i : ℤ)
     (hi : f ((xi0*(↑(rhoU^(centre c)):R))*(↑((rhoU^4)^i):R))=0) : i=0 := by
-  obtain ⟨hz,hs,hd⟩ := root_data c
+  obtain ⟨hz,hd⟩ := root_and_derivative c
   exact NormDerivative.unique (coord 0) (coord 1) 11
     (point c) (rhoU^4) 1 6 (by decide) step
     (by simpa only [Nat.reduceAdd,show (2:R)^(1+1)=4 by ring] using step_eq)
     hz 4 (by decide) (by norm_num) squarePart square_eq
-    (Or.inr ⟨rfl,parity_mul,square_trace⟩) (properties.1 (point c)) hs hd i hi
+    (Or.inr ⟨rfl,parity_mul,square_trace⟩) (properties.1 (point c)) (scalar_bit c) hd i hi
 end Differential66
 
 namespace Differential2Odd
@@ -324,18 +300,21 @@ theorem step_eq : (↑(rhoU^4):R)=1+4*step := by
   have h : (↑(rhoU^4):R)=1+(4:ℤ) • step := by
     ext i; fin_cases i <;> decide +kernel
   simpa only [zsmul_eq_mul,Int.cast_ofNat] using h
-/-- These properties hold for every relative unit congruent to one modulo four. -/
-theorem properties :
-    (∀ y : R, (4:ℤ) ∣ (y*step) 0 ∧ (4:ℤ) ∣ (y*step) 1) ∧
-    (∀ j, (4:ℤ) ∣ (step^2) j) ∧
-    ((4:ℤ)=2 ∨ (8:ℤ) ∣ (step^2) 0+(step^2) 1) := by
+/-- The displayed step lies on the relative norm-one equation. -/
+theorem norm_step : relH (1+(4*1:ℤ) • step)=1 ∧ relK (1+(4*1:ℤ) • step)=0 := by
   have he : 1+(4*1:ℤ) • step=(↑(rhoU^4):R) := by
     change 1+(4:ℤ) • step=(↑(rhoU^4):R)
     simpa only [zsmul_eq_mul,Int.cast_ofNat] using step_eq.symm
   obtain ⟨hH,hK⟩ := relN_rho_zpow (4:ℤ)
-  exact direction step 1 (by decide)
-    (by rw [he]; simpa only [zpow_natCast,zpow_ofNat] using hH)
-    (by rw [he]; simpa only [zpow_natCast,zpow_ofNat] using hK)
+  exact ⟨by rw [he]; simpa only [zpow_natCast,zpow_ofNat] using hH,
+    by rw [he]; simpa only [zpow_natCast,zpow_ofNat] using hK⟩
+
+/-- These properties hold for every relative unit congruent to one modulo four. -/
+theorem properties :
+    (∀ y : R, (4:ℤ) ∣ (y*step) 0 ∧ (4:ℤ) ∣ (y*step) 1) ∧
+    (∀ j, (4:ℤ) ∣ (step^2) j) ∧
+    ((4:ℤ)=2 ∨ (8:ℤ) ∣ (step^2) 0+(step^2) 1) :=
+  direction step 1 (by decide) norm_step.1 norm_step.2
 
 def squarePart : R := ⟨fun j => (step^2) j/4⟩
 theorem square_eq : step^2=(4:ℤ) • squarePart := by
@@ -354,20 +333,24 @@ def point (c : Fin 1) : R := xi0*(↑(rhoU^(centre c)):R)
 def first (c : Fin 1) : R := point c*step
 def tangent (c : Fin 1) : R := point c*step^2
 
-/-- Only root, scalar and derivative remain at each centre. -/
-theorem root_data : ∀ c : Fin 1,
+/-- Only the root and its first derivative remain as finite data. -/
+theorem root_and_derivative : ∀ c : Fin 1,
     f (point c)=0 ∧
-    32 ∣ Lf (point c) (tangent c) ∧
     64 ∣ Lf (point c) (first c)-32 := by decide +kernel
+
+/-- The scalar bit is a consequence of the norm and the orbit, not a certificate. -/
+theorem scalar_bit (c : Fin 1) : 32 ∣ Lf (point c) (tangent c) :=
+  scalar (point c) step 1 (by decide) norm_step.1 norm_step.2
+    (root_and_derivative c).1 (by simpa only [point] using orbit_phase (centre c))
 
 theorem unique (c : Fin 1) (i : ℤ)
     (hi : f ((xi0*(↑(rhoU^(centre c)):R))*(↑((rhoU^4)^i):R))=0) : i=0 := by
-  obtain ⟨hz,hs,hd⟩ := root_data c
+  obtain ⟨hz,hd⟩ := root_and_derivative c
   exact NormDerivative.unique (coord 0) (coord 1) 3
     (point c) (rhoU^4) 1 6 (by decide) step
     (by simpa only [Nat.reduceAdd,show (2:R)^(1+1)=4 by ring] using step_eq)
     hz 4 (by decide) (by norm_num) squarePart square_eq
-    (Or.inr ⟨rfl,parity_mul,square_trace⟩) (properties.1 (point c)) hs hd i hi
+    (Or.inr ⟨rfl,parity_mul,square_trace⟩) (properties.1 (point c)) (scalar_bit c) hd i hi
 end Differential2Odd
 
 end Tetrahedral.NormEleven
