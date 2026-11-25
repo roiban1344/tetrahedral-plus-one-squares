@@ -14,11 +14,8 @@ theorem branch_complete (n r y : ℕ) (hr : n+3=66*r^2) (hy : n^2+2=11*y^2) : n=
   · rw [hc,e,mul_comm] at hξ h0
     have hrZ : (n:ℤ)+3=66*(r:ℤ)^2 := by exact_mod_cast hr
     have hr0 : (r:ℤ)≠0 := by intro h; rw [h] at hrZ; norm_num at hrZ; omega
-    rcases Dyadic66.roots r hr0 j (h0.trans hrZ) hξ with h|h <;> subst h
-    · have : (xi0*(↑(rhoU^(1:ℤ)):R)) 0=66 := by decide
-      rw [this] at h0; omega
-    · have : (xi0*(↑(rhoU^(-1:ℤ)):R)) 0=66 := by decide
-      rw [this] at h0; omega
+    have hv := Dyadic66.coordinate r hr0 j (h0.trans hrZ) hξ
+    rw [hv] at h0; omega
   · rw [hc,e,neg_mul,mul_comm,neg_apply] at h0
     have := Positive66.xi0_nonnegative j
     omega

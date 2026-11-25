@@ -20,12 +20,4 @@ theorem roots (m : ℤ) (hm : f (xi0*(↑(rhoU^m):R))=0) : m=0 ∨ m= -1 :=
   DyadicSimple.pair f rhoU xi0 Differential3.unique m hm
 end Dyadic3
 
-namespace Dyadic11
-open Quartic11 R
-abbrev step : R := Differential11.step
-theorem step_eq : (↑(rhoU^2):R)=1+4*step := Differential11.step_eq
-theorem roots (m : ℤ) (hm : f (xi0*(↑(rhoU^m):R))=0) : m=0 ∨ m= -1 :=
-  DyadicSimple.pair f rhoU xi0 Differential11.unique m hm
-end Dyadic11
-
 end Tetrahedral.NormEleven

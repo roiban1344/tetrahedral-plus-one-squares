@@ -1,3 +1,4 @@
+import Tetrahedral.OrbitReflection
 import Tetrahedral.NormEleven.PositiveOrbitData
 import Tetrahedral.NormEleven.D2Dyadic
 import Tetrahedral.Quartic.D2Euler
@@ -12,10 +13,8 @@ abbrev tauHom : R →* R := Positive2.tauHom
 theorem tau_rhoU : Units.map tauHom rhoU=rhoU⁻¹ := by
   ext i; fin_cases i <;> rfl
 
-theorem tau_rho_zpow (m : ℤ) : tau (↑(rhoU^m):R)=(↑(rhoU^(-m)):R) := by
-  have := congrArg (fun z : Rˣ => (z:R)) (map_zpow (Units.map tauHom) rhoU m)
-  simp only [tau_rhoU,inv_zpow',Units.coe_map] at this
-  exact this
+theorem tau_rho_zpow (m : ℤ) : tau (↑(rhoU^m):R)=(↑(rhoU^(-m)):R) :=
+  OrbitReflection.zpow tauHom rhoU tau_rhoU m
 
 theorem f_tau (x : R) : f (tau x)=f x := by simp only [f,tau_apply0,tau_apply1]
 

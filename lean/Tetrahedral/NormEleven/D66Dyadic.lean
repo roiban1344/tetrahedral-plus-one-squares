@@ -1,6 +1,7 @@
 import Tetrahedral.NormEleven.ParityDirectionData
 import Tetrahedral.NormEleven.D66Square
-import Tetrahedral.NormEleven.DyadicSimple
+import Tetrahedral.NormEleven.PositiveOrbitData
+import Tetrahedral.OrbitReflection
 
 namespace Tetrahedral.NormEleven.Dyadic66
 open Quartic66 R
@@ -20,35 +21,34 @@ theorem odd (r : ℤ) (hr : r≠0) (m : ℤ)
   norm_num at hs
   exact hr (by nlinarith [sq_nonneg r])
 
-theorem roots (r : ℤ) (hr : r≠0) (m : ℤ)
+theorem reflected (m : ℤ) : tau (xi0*(↑(rhoU^m):R))=
+    xi0*(↑(rhoU^(0-m)):R) :=
+  OrbitReflection.point Positive66.tauHom rhoU
+    (by ext i; fin_cases i <;> rfl) xi0 0 (by ext i; fin_cases i <;> rfl) m
+
+/-- Odd exponents fold into the class of 1 under reflection; the required
+coordinate is fixed by conjugation. -/
+theorem coordinate (r : ℤ) (hr : r≠0) (m : ℤ)
     (hs : (xi0*(↑(rhoU^m):R)) 0=66*r^2)
-    (hm : f (xi0*(↑(rhoU^m):R))=0) : m=1 ∨ m= -1 := by
+    (hm : f (xi0*(↑(rhoU^m):R))=0) : (xi0*(↑(rhoU^m):R)) 0=66 := by
   have ho := odd r hr m hs
-  obtain ⟨i,hi⟩ : ∃ i : ℤ, m=1+2*i := by
-    refine ⟨m/2,?_⟩
-    have hlo := Int.emod_nonneg m (by decide : (2:ℤ)≠0)
-    have hhi := Int.emod_lt_of_pos m (by decide : (0:ℤ)<2)
+  let F (i : ℤ) := f (xi0*(↑(rhoU^i):R))
+  let P (i : ℤ) := (xi0*(↑(rhoU^i):R)) 0
+  have hF (i : ℤ) : F (0-i)=F i := by dsimp [F]; rw [← reflected]; rfl
+  have hP (i : ℤ) : P (0-i)=P i := by
+    change (xi0*(↑(rhoU^(0-i)):R)) 0=(xi0*(↑(rhoU^i):R)) 0
+    rw [← reflected]; rfl
+  have hlocal (a : ℤ) (ha : F (1+4*a)=0) : a=0 := by
+    apply Differential66.unique 0 a
+    change f ((xi0*(rhoU:R))*(↑((rhoU^4)^a):R))=0
+    have hp : rhoU^(1+4*a)=rhoU*(rhoU^4)^a := by
+      rw [zpow_add,zpow_mul,zpow_one,zpow_ofNat]
+    simpa only [F,hp,Units.val_mul,mul_assoc] using ha
+  have hcover : m%4=1%4 ∨ (0-m)%4=1%4 := by
     have hne : m%2≠0 := by intro h; exact ho (Int.dvd_of_emod_eq_zero h)
-    have := Int.emod_add_mul_ediv m 2
     omega
-  have he (c : Fin 2) : rhoU*((rhoU^2)^(DyadicSimple.centre c))=
-      rhoU^(Differential66.centre c) := by
-    calc _=rhoU^((1:ℤ)+2*DyadicSimple.centre c) := by
-           rw [zpow_add,zpow_mul,zpow_one,zpow_ofNat]
-         _=rhoU^(Differential66.centre c) := by
-           congr 1; fin_cases c <;> norm_num [DyadicSimple.centre,Differential66.centre]
-  have h4 : (rhoU^2)^2=rhoU^4 := by rw [← pow_mul]
-  have hu : ∀ c : Fin 2, ∀ a : ℤ,
-      f (((xi0*(rhoU:R))*(↑((rhoU^2)^(DyadicSimple.centre c)):R))*
-        (↑(((rhoU^2)^2)^a):R))=0 → a=0 := by
-    intro c a ha
-    rw [h4] at ha
-    apply Differential66.unique c a
-    simpa only [mul_assoc,← Units.val_mul,he c] using ha
-  have hp : rhoU^m=rhoU*(rhoU^2)^i := by
-    rw [hi,zpow_add,zpow_mul,zpow_one,zpow_ofNat]
-  have h := DyadicSimple.pair f (rhoU^2) (xi0*(rhoU:R)) hu i (by
-    simpa only [hp,Units.val_mul,mul_assoc] using hm)
-  rcases h with h|h <;> omega
+  have hv := OrbitReflection.value F P 0 1 4 hF hP hlocal m hcover hm
+  have h1 : P 1=66 := by decide +kernel
+  exact hv.trans h1
 
 end Tetrahedral.NormEleven.Dyadic66

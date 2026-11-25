@@ -176,18 +176,18 @@ def squarePart : R := ⟨fun j => (step^2) j/2⟩
 theorem square_eq : step^2=(2:ℤ) • squarePart := by
   ext j; fin_cases j <;> decide +kernel
 
-def centre : Fin 2 → ℤ := ![0,-1]
-def point (c : Fin 2) : R := xi0*(↑(rhoU^(centre c)):R)
-def first (c : Fin 2) : R := point c*step
-def tangent (c : Fin 2) : R := point c*step^2
+def centre : Fin 1 → ℤ := ![0]
+def point (c : Fin 1) : R := xi0*(↑(rhoU^(centre c)):R)
+def first (c : Fin 1) : R := point c*step
+def tangent (c : Fin 1) : R := point c*step^2
 
 /-- Only root, two coordinates, scalar and derivative remain at each centre. -/
-theorem certificate : ∀ c : Fin 2,
+theorem certificate : ∀ c : Fin 1,
     f (point c)=0 ∧ 2 ∣ coord 0 (first c) ∧ 2 ∣ coord 1 (first c) ∧
     8 ∣ Lf (point c) (tangent c) ∧
     16 ∣ Lf (point c) (first c)-8 := by decide +kernel
 
-theorem unique (c : Fin 2) (i : ℤ)
+theorem unique (c : Fin 1) (i : ℤ)
     (hi : f ((xi0*(↑(rhoU^(centre c)):R))*(↑((rhoU^2)^i):R))=0) : i=0 := by
   obtain ⟨hz,hA,hB,hs,hd⟩ := certificate c
   exact NormDerivative.unique (coord 0) (coord 1) 66
@@ -208,18 +208,18 @@ def squarePart : R := ⟨fun j => (step^2) j/4⟩
 theorem square_eq : step^2=(4:ℤ) • squarePart := by
   ext j; fin_cases j <;> decide +kernel
 theorem square_trace : (2:ℤ) ∣ coord 0 squarePart+coord 1 squarePart := by decide +kernel
-def centre : Fin 2 → ℤ := ![1,-1]
-def point (c : Fin 2) : R := xi0*(↑(rhoU^(centre c)):R)
-def first (c : Fin 2) : R := point c*step
-def tangent (c : Fin 2) : R := point c*step^2
+def centre : Fin 1 → ℤ := ![1]
+def point (c : Fin 1) : R := xi0*(↑(rhoU^(centre c)):R)
+def first (c : Fin 1) : R := point c*step
+def tangent (c : Fin 1) : R := point c*step^2
 
 /-- Only root, two coordinates, scalar and derivative remain at each centre. -/
-theorem certificate : ∀ c : Fin 2,
+theorem certificate : ∀ c : Fin 1,
     f (point c)=0 ∧ 4 ∣ coord 0 (first c) ∧ 4 ∣ coord 1 (first c) ∧
     32 ∣ Lf (point c) (tangent c) ∧
     64 ∣ Lf (point c) (first c)-32 := by decide +kernel
 
-theorem unique (c : Fin 2) (i : ℤ)
+theorem unique (c : Fin 1) (i : ℤ)
     (hi : f ((xi0*(↑(rhoU^(centre c)):R))*(↑((rhoU^4)^i):R))=0) : i=0 := by
   obtain ⟨hz,hA,hB,hs,hd⟩ := certificate c
   exact NormDerivative.unique (coord 0) (coord 1) 11

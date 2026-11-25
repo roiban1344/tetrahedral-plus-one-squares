@@ -74,8 +74,8 @@ def main():
         parts.append(PROJECTION.format(d=d,quartic='Quartic66' if d==66 else f'Quartic{d}',
             parity=PARITY if d in [2,66] else ''))
     specs = [(1,1,2,4,1,4,2,6,[0,-1]),(2,2,8,8,2,7,4,3,[0,-1]),
-             (3,3,2,4,1,4,2,2,[0,-1]),(11,11,2,4,1,4,2,66,[0,-1]),
-             (66,66,4,4,1,6,4,11,[1,-1]),('2Odd',2,4,4,1,6,4,3,[-1])]
+             (3,3,2,4,1,4,2,2,[0,-1]),(11,11,2,4,1,4,2,66,[0]),
+             (66,66,4,4,1,6,4,11,[1]),('2Odd',2,4,4,1,6,4,3,[-1])]
     for label,d,P,delta,t,v,m,e,centres in specs:
         parts.append(LOCAL.format(label=label,d=d,P=P,delta=delta,t=t,v=v,m=m,e=e,
             quartic='Quartic66' if d==66 else f'Quartic{d}', count=len(centres),

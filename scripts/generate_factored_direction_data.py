@@ -144,7 +144,7 @@ def main():
             N=N, q=2**t, quarter=N//4, halfN=N//2, three=3*N//4))
     parts.append('\nend Tetrahedral.NormEleven\n')
     OUT.write_text(''.join(parts))
-    parity = PARITY_HEADER + ''.join(PARITY_TEMPLATE.format(d=d) for d in [1, 3, 11])
+    parity = PARITY_HEADER + ''.join(PARITY_TEMPLATE.format(d=d) for d in [1, 3])
     parity += '\nend Tetrahedral.NormEleven\n'
     (OUT.parent / 'DyadicCertificates.lean').write_text(parity)
 
