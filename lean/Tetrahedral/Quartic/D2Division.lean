@@ -1,14 +1,16 @@
 import Tetrahedral.Quartic.D2
 
 /-!
-# The classification of relative norm 11 for d=2, by the places above 11
+# Relative norm 11 for d=2, using only residues modulo 11
 
-`11` splits in `F = ℚ(√3)` (`√3 ≡ ±5 mod 11`; we use the lifts `27, 94` of `√3` modulo `121`).
-At each prime `𝔭` above `11`, `s` has the two values `±δ` (`δ = 6` for `√3 ↦ 27`, `δ = 2` for
-`√3 ↦ 94`), giving four ring maps `χ : R → ZMod 11`. An element of relative norm `11` vanishes under
-exactly one of the two maps at each `𝔭` (its *type*); the four representatives `ξ₀, ξ₁, τξ₀, τξ₁`
-realise the four types, and two elements of the same type differ by a relative unit.
-This avoids a check of all `11⁴` residues.
+11 splits in F = ℚ(√3), with the two residues √3 = 5, 6 modulo 11.
+At each place, s has values ±δ (δ = 6 for the first, δ = 2 for the second).
+Relative norm 11 forces at least one of the two evaluations to vanish.
+Choose one vanishing evaluation at each place: the four representatives
+ξ₀, ξ₁, τξ₀, τξ₁ cover these four choices. Matching those choices makes
+x·τξ divisible by 11 in every coordinate.
+This existence argument does not require the two evaluations to be exclusive,
+or lifts to modulus 121. The previous exclusivity proof is in D2EulerArchive.
 -/
 
 namespace Tetrahedral.Quartic2
@@ -17,7 +19,7 @@ open R
 /-- `A + B s ↦ Ā + B̄·δ` at the place `√3 ↦ r`, `s ↦ δ`. -/
 def chi (r δ : ℤ) (x : R) : ZMod 11 := ((x 0+r*x 1+δ*(x 2+r*x 3) : ℤ) : ZMod 11)
 
-theorem chi_mul (r δ : ℤ) (h : (r=27 ∧ (δ=6 ∨ δ= -6)) ∨ (r=94 ∧ (δ=2 ∨ δ= -2))) (x y : R) :
+theorem chi_mul (r δ : ℤ) (h : (r=5 ∧ (δ=6 ∨ δ= -6)) ∨ (r=6 ∧ (δ=2 ∨ δ= -2))) (x y : R) :
     chi r δ (x*y)=chi r δ x*chi r δ y := by
   rcases h with ⟨rfl,rfl|rfl⟩|⟨rfl,rfl|rfl⟩ <;>
     simp only [chi,mul_apply0,mul_apply1,mul_apply2,mul_apply3] <;> push_cast <;> ring_nf <;>
@@ -27,7 +29,7 @@ theorem chi_tau (r δ : ℤ) (x : R) : chi r (-δ) x=chi r δ (tau x) := by
   simp only [chi,tau_apply0,tau_apply1,tau_apply2,tau_apply3]; push_cast; ring
 
 /-- The two values at one place multiply to the relative norm. -/
-theorem chi_norm (r δ : ℤ) (h : (r=27 ∧ δ=6) ∨ (r=94 ∧ δ=2)) (x : R) :
+theorem chi_norm (r δ : ℤ) (h : (r=5 ∧ δ=6) ∨ (r=6 ∧ δ=2)) (x : R) :
     chi r δ x*chi r (-δ) x=((relH x+r*relK x : ℤ) : ZMod 11) := by
   rcases h with ⟨rfl,rfl⟩|⟨rfl,rfl⟩ <;> simp only [chi,relH,relK] <;> push_cast <;> ring_nf <;>
     reduce_mod_char
@@ -38,15 +40,15 @@ theorem split11 (A B δ : ℤ) (hδ : δ=6 ∨ δ=2) (h1 : (11:ℤ) ∣ A+δ*B) 
     (11:ℤ) ∣ A ∧ (11:ℤ) ∣ B := by
   rcases hδ with rfl|rfl <;> constructor <;> omega
 
-theorem split2 (u v : ℤ) (h1 : (11:ℤ) ∣ u+27*v) (h2 : (11:ℤ) ∣ u+94*v) :
+theorem split2 (u v : ℤ) (h1 : (11:ℤ) ∣ u+5*v) (h2 : (11:ℤ) ∣ u+6*v) :
     (11:ℤ) ∣ u ∧ (11:ℤ) ∣ v := by
   constructor <;> omega
 
 theorem dvd11 (z : ℤ) (h : ((z:ℤ):ZMod 11)=0) : (11:ℤ) ∣ z := (ZMod.intCast_zmod_eq_zero_iff_dvd z 11).mp h
 
 /-- All four values vanish only on `11R`. -/
-theorem all_zero (z : R) (h1 : chi 27 6 z=0) (h2 : chi 27 (-6) z=0) (h3 : chi 94 2 z=0)
-    (h4 : chi 94 (-2) z=0) : ∀ i, (11:ℤ) ∣ z i := by
+theorem all_zero (z : R) (h1 : chi 5 6 z=0) (h2 : chi 5 (-6) z=0) (h3 : chi 6 2 z=0)
+    (h4 : chi 6 (-2) z=0) : ∀ i, (11:ℤ) ∣ z i := by
   unfold chi at h1 h2 h3 h4
   obtain ⟨a1,b1⟩ := split11 _ _ 6 (Or.inl rfl) (dvd11 _ h1) (dvd11 _ h2)
   obtain ⟨a2,b2⟩ := split11 _ _ 2 (Or.inr rfl) (dvd11 _ h3) (dvd11 _ h4)
@@ -89,21 +91,21 @@ theorem divide_eleven (x : R) (hH : relH x=11) (hK : relK x=0) :
     have ht2 : relK (tau π)=0 := by simp only [relK,tau_apply0,tau_apply1,tau_apply2,tau_apply3] at h2 ⊢; linarith
     obtain ⟨e1,e2⟩ := unit_of _ u ht1 ht2 hu
     exact ⟨u,e1,e2,cancel π u h3 hu⟩
-  have p5 : ((27:ℤ)=27 ∧ (6:ℤ)=6) ∨ ((27:ℤ)=94 ∧ (6:ℤ)=2) := Or.inl ⟨rfl,rfl⟩
-  have p6 : ((94:ℤ)=27 ∧ (2:ℤ)=6) ∨ ((94:ℤ)=94 ∧ (2:ℤ)=2) := Or.inr ⟨rfl,rfl⟩
-  have n5 := chi_norm 27 6 p5 x
-  have n6 := chi_norm 94 2 p6 x
+  have p5 : ((5:ℤ)=5 ∧ (6:ℤ)=6) ∨ ((5:ℤ)=6 ∧ (6:ℤ)=2) := Or.inl ⟨rfl,rfl⟩
+  have p6 : ((6:ℤ)=5 ∧ (2:ℤ)=6) ∨ ((6:ℤ)=6 ∧ (2:ℤ)=2) := Or.inr ⟨rfl,rfl⟩
+  have n5 := chi_norm 5 6 p5 x
+  have n6 := chi_norm 6 2 p6 x
   rw [hH,hK] at n5 n6
-  have z11 : ((11+27*0 : ℤ) : ZMod 11)=0 := by decide
-  have z11' : ((11+94*0 : ℤ) : ZMod 11)=0 := by decide
+  have z11 : ((11+5*0 : ℤ) : ZMod 11)=0 := by decide
+  have z11' : ((11+6*0 : ℤ) : ZMod 11)=0 := by decide
   rw [z11] at n5; rw [z11'] at n6
-  have m : ∀ r δ, ((r=27 ∧ (δ=6 ∨ δ= -6)) ∨ (r=94 ∧ (δ=2 ∨ δ= -2))) → ∀ π : R,
+  have m : ∀ r δ, ((r=5 ∧ (δ=6 ∨ δ= -6)) ∨ (r=6 ∧ (δ=2 ∨ δ= -2))) → ∀ π : R,
       chi r δ (x*tau π)=chi r δ x*chi r (-δ) π := by
     intro r δ h π; rw [chi_mul r δ h,← chi_tau]
-  have h56 : ((27:ℤ)=27 ∧ ((6:ℤ)=6 ∨ (6:ℤ)= -6)) ∨ ((27:ℤ)=94 ∧ ((6:ℤ)=2 ∨ (6:ℤ)= -2)) := by decide
-  have h5m : ((27:ℤ)=27 ∧ ((-6:ℤ)=6 ∨ (-6:ℤ)= -6)) ∨ ((27:ℤ)=94 ∧ ((-6:ℤ)=2 ∨ (-6:ℤ)= -2)) := by decide
-  have h62 : ((94:ℤ)=27 ∧ ((2:ℤ)=6 ∨ (2:ℤ)= -6)) ∨ ((94:ℤ)=94 ∧ ((2:ℤ)=2 ∨ (2:ℤ)= -2)) := by decide
-  have h6m : ((94:ℤ)=27 ∧ ((-2:ℤ)=6 ∨ (-2:ℤ)= -6)) ∨ ((94:ℤ)=94 ∧ ((-2:ℤ)=2 ∨ (-2:ℤ)= -2)) := by decide
+  have h56 : ((5:ℤ)=5 ∧ ((6:ℤ)=6 ∨ (6:ℤ)= -6)) ∨ ((5:ℤ)=6 ∧ ((6:ℤ)=2 ∨ (6:ℤ)= -2)) := by decide
+  have h5m : ((5:ℤ)=5 ∧ ((-6:ℤ)=6 ∨ (-6:ℤ)= -6)) ∨ ((5:ℤ)=6 ∧ ((-6:ℤ)=2 ∨ (-6:ℤ)= -2)) := by decide
+  have h62 : ((6:ℤ)=5 ∧ ((2:ℤ)=6 ∨ (2:ℤ)= -6)) ∨ ((6:ℤ)=6 ∧ ((2:ℤ)=2 ∨ (2:ℤ)= -2)) := by decide
+  have h6m : ((6:ℤ)=5 ∧ ((-2:ℤ)=6 ∨ (-2:ℤ)= -6)) ∨ ((6:ℤ)=6 ∧ ((-2:ℤ)=2 ∨ (-2:ℤ)= -2)) := by decide
   have pi0 : xi0*tau xi0=(11:ℤ) • (1:R) := by ext i; fin_cases i <;> rfl
   have pi1 : xi1*tau xi1=(11:ℤ) • (1:R) := by ext i; fin_cases i <;> rfl
   have tt0 : tau (tau xi0)=xi0 := by decide
@@ -113,31 +115,31 @@ theorem divide_eleven (x : R) (hH : relH x=11) (hK : relK x=0) :
   rcases mul_eq_zero.mp n5 with a|a <;> rcases mul_eq_zero.mp n6 with b|b
   · -- type `(+,+)`: that of `ξ₀`
     obtain ⟨u,e1,e2,e3⟩ := finish xi0 (by decide) (by decide) pi0 (all_zero _
-      (by rw [m 27 6 h56,a,zero_mul])
-      (by rw [m 27 (-6) h5m,neg_neg,show chi 27 6 xi0=0 by decide,mul_zero])
-      (by rw [m 94 2 h62,b,zero_mul])
-      (by rw [m 94 (-2) h6m,neg_neg,show chi 94 2 xi0=0 by decide,mul_zero]))
+      (by rw [m 5 6 h56,a,zero_mul])
+      (by rw [m 5 (-6) h5m,neg_neg,show chi 5 6 xi0=0 by decide,mul_zero])
+      (by rw [m 6 2 h62,b,zero_mul])
+      (by rw [m 6 (-2) h6m,neg_neg,show chi 6 2 xi0=0 by decide,mul_zero]))
     exact ⟨u,e1,e2,Or.inr (Or.inl e3)⟩
   · -- type `(+,−)`: that of `τξ₁`
     obtain ⟨u,e1,e2,e3⟩ := finish (tau xi1) (by decide) (by decide) pi1' (all_zero _
-      (by rw [m 27 6 h56,a,zero_mul])
-      (by rw [m 27 (-6) h5m,neg_neg,show chi 27 6 (tau xi1)=0 by decide,mul_zero])
-      (by rw [m 94 2 h62,show chi 94 (-2) (tau xi1)=0 by decide,mul_zero])
-      (by rw [m 94 (-2) h6m,b,zero_mul]))
+      (by rw [m 5 6 h56,a,zero_mul])
+      (by rw [m 5 (-6) h5m,neg_neg,show chi 5 6 (tau xi1)=0 by decide,mul_zero])
+      (by rw [m 6 2 h62,show chi 6 (-2) (tau xi1)=0 by decide,mul_zero])
+      (by rw [m 6 (-2) h6m,b,zero_mul]))
     exact ⟨u,e1,e2,Or.inr (Or.inr (Or.inl e3))⟩
   · -- type `(−,+)`: that of `ξ₁`
     obtain ⟨u,e1,e2,e3⟩ := finish xi1 (by decide) (by decide) pi1 (all_zero _
-      (by rw [m 27 6 h56,show chi 27 (-6) xi1=0 by decide,mul_zero])
-      (by rw [m 27 (-6) h5m,a,zero_mul])
-      (by rw [m 94 2 h62,b,zero_mul])
-      (by rw [m 94 (-2) h6m,neg_neg,show chi 94 2 xi1=0 by decide,mul_zero]))
+      (by rw [m 5 6 h56,show chi 5 (-6) xi1=0 by decide,mul_zero])
+      (by rw [m 5 (-6) h5m,a,zero_mul])
+      (by rw [m 6 2 h62,b,zero_mul])
+      (by rw [m 6 (-2) h6m,neg_neg,show chi 6 2 xi1=0 by decide,mul_zero]))
     exact ⟨u,e1,e2,Or.inr (Or.inr (Or.inr e3))⟩
   · -- type `(−,−)`: that of `τξ₀`
     obtain ⟨u,e1,e2,e3⟩ := finish (tau xi0) (by decide) (by decide) pi0' (all_zero _
-      (by rw [m 27 6 h56,show chi 27 (-6) (tau xi0)=0 by decide,mul_zero])
-      (by rw [m 27 (-6) h5m,a,zero_mul])
-      (by rw [m 94 2 h62,show chi 94 (-2) (tau xi0)=0 by decide,mul_zero])
-      (by rw [m 94 (-2) h6m,b,zero_mul]))
+      (by rw [m 5 6 h56,show chi 5 (-6) (tau xi0)=0 by decide,mul_zero])
+      (by rw [m 5 (-6) h5m,a,zero_mul])
+      (by rw [m 6 2 h62,show chi 6 (-2) (tau xi0)=0 by decide,mul_zero])
+      (by rw [m 6 (-2) h6m,b,zero_mul]))
     exact ⟨u,e1,e2,Or.inl e3⟩
 
 end Tetrahedral.Quartic2
