@@ -1,6 +1,6 @@
 import Tetrahedral.NormEleven.D2Entrance
 import Tetrahedral.NormEleven.D2Congruences
-import Tetrahedral.NormEleven.FactoredDirectionData
+import Tetrahedral.NormEleven.LatticeDirectionData
 import Tetrahedral.NormEleven.DyadicSimple
 
 set_option maxRecDepth 20000
@@ -31,12 +31,12 @@ theorem roots (m : ℤ) (hm : f (xi0*(↑(rhoU^m):R))=0) : m=0 ∨ m= -4 ∨ m= 
   · change m=0+4*a at he
     change f (xi0*(↑((rhoU^4)^a):R))=0 at hb
     rcases DyadicSimple.pair f (rhoU^4) xi0 (fun j i hi =>
-      Direction2.unique j i (by simpa only [← pow_mul,Nat.reduceMul,Direction2.centre,DyadicSimple.centre] using hi)) a hb with h|h
+      Local2.unique j i (by simpa only [← pow_mul,Nat.reduceMul,Local2.centre,DyadicSimple.centre] using hi)) a hb with h|h
     · left; omega
     · right; left; omega
   · change m= -1+4*a at he
     change f ((xi0*(↑(rhoU^(-1:ℤ)):R))*(↑((rhoU^4)^a):R))=0 at hb
-    have ha0 := Direction2Odd.unique 0 a hb
+    have ha0 := Local2Odd.unique 0 a hb
     right; right; omega
 
 theorem exclude (r : ℕ) (m : ℤ)

@@ -1,4 +1,5 @@
-import Tetrahedral.NormEleven.FactoredDirectionData
+import Tetrahedral.Quartic.D66
+import Tetrahedral.Binomial
 
 namespace Tetrahedral.NormEleven.Square66
 open Quartic66 R
