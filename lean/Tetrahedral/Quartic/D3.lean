@@ -11,16 +11,6 @@ open R
 
 def xi0 : R := ⟨![3,1,1,0]⟩
 
-theorem relH_smul (k : ℤ) (x : R) : relH (k • x)=k^2*relH x := by
-  simp only [relH,zsmul_apply]; ring
-theorem relK_smul (k : ℤ) (x : R) : relK (k • x)=k^2*relK x := by
-  simp only [relK,zsmul_apply]; ring
-
-/-! ## Division by 11 -/
-
-/-- `2` is not a square modulo `11`, so `11` stays prime in `ℤ[√2]`. -/
-theorem qnr11 : ∀ a b : ZMod 11, a^2-2*b^2=0 → a=0 ∧ b=0 := by decide
-
 /-! ## The norm condition -/
 
 /-- `N(A−3)+2` for the `F`-part `A = x₀+x₁q`. -/

@@ -10,11 +10,6 @@ open R
 def xi0 : R := ⟨![2,1,2,-1]⟩
 def xi1 : R := ⟨![2,3,1,0]⟩
 
-theorem relH_smul (k : ℤ) (x : R) : relH (k • x)=k^2*relH x := by
-  simp only [relH,zsmul_apply]; ring
-theorem relK_smul (k : ℤ) (x : R) : relK (k • x)=k^2*relK x := by
-  simp only [relK,zsmul_apply]; ring
-
 /-! ## The norm condition -/
 
 def f (x : R) : ℤ := (x 0-3)^2-3*(x 1)^2+2

@@ -1,15 +1,12 @@
 import Tetrahedral.Quartic.D3Ring
 import Mathlib.NumberTheory.Zsqrtd.Basic
-import Tetrahedral.Quartic.RelativeUnitGap
 import Mathlib.Analysis.SpecialFunctions.Pow.Real
 
 /-!
-# Relative units from a balanced trace window (d=3)
+# Real embeddings and known unit powers (d=3)
 
-The half-trace has square less than 19. The nonconstant norm coefficient
-then bounds c²+2t² below two; integrality forces t=0. Both norm equations
-reduce to positive sums of squares. No irrationality or norm gap is needed.
-
+The explicit unit and its relative norm are used to reduce norm-eleven elements.
+A classification of all relative norm-one units is no longer used here.
 -/
 
 namespace Tetrahedral.Quartic3
@@ -76,70 +73,5 @@ theorem relN_rho_zpow (m : ℤ) : relH (↑(rhoU^m):R)=1 ∧ relK (↑(rhoU^m):R
   simp only [h1,one_zpow,Units.coe_map,Units.val_one] at this
   exact ⟨congrArg Zsqrtd.re this,congrArg Zsqrtd.im this⟩
 
-/-! ## The small trace window -/
-
-
-theorem trivial_unit (x : R) (hH : relH x=1) (hK : relK x=0) (h0 : x 2=0 ∧ x 3=0) :
-    x=1 ∨ x= -1 := by
-  obtain ⟨h2,h3⟩ := h0
-  simp only [relH,relK,h2,h3] at hH hK
-  have h1sq : (x 1)^2=0 := by nlinarith [sq_nonneg (x 0),sq_nonneg (x 1)]
-  have h1 : x 1=0 := pow_eq_zero_iff (n:=2) (by norm_num) |>.mp h1sq
-  rw [h1] at hH
-  have : (x 0-1)*(x 0+1)=0 := by nlinarith
-  rcases mul_eq_zero.mp this with h|h
-  · left; ext i; fin_cases i <;> simp [h1,h2,h3] <;> omega
-  · right; ext i; fin_cases i <;> simp [h1,h2,h3] <;> omega
-
-theorem rel_unit_trace (u : R) (hH : relH u=1) (hK : relK u=0) :
-    ∃ m : ℤ, u=(↑(rhoU^m):R) ∨ u= -(↑(rhoU^m):R) := by
-  apply RelativeUnitGap.generate sigHom
-    (fun x => relH x=1 ∧ relK x=0) (fun x => x 2=0 ∧ x 3=0)
-    rhoU one_lt_Lam
-    (fun x z hx hz => by
-      constructor <;> simp [relH_mul,relK_mul,hx.1,hx.2,hz.1,hz.2])
-    relN_rho_zpow
-    (fun x hx => by
-      intro hz
-      change sig x=0 at hz
-      have hh := sig_tau x
-      rw [hx.1,hx.2,hz] at hh
-      norm_num at hh)
-    (fun x hx => trivial_unit x hx.1 hx.2) ?_ u ⟨hH,hK⟩
-  intro v hv hv0 hS hT
-  change (sig v)^2≤Lam at hS
-  change ((sig v)⁻¹)^2≤Lam at hT
-  have hp : sig v*sig (tau v)=1 := by rw [sig_tau,hv.1,hv.2]; simp
-  have hTau : (sig (tau v))^2≤Lam := by
-    rw [eq_inv_of_mul_eq_one_right hp]; exact hT
-  have ht : 2*((v 0:ℝ)+(v 1:ℝ)*cR)=sig v+sig (tau v) := by
-    simp only [sig,tau_apply0,tau_apply1,tau_apply2,tau_apply3]; push_cast; ring
-  have hA := RelativeUnitGap.half_trace_bound (sig v) (sig (tau v))
-    ((v 0:ℝ)+(v 1:ℝ)*cR) Lam hp ht hS hTau
-  have hab : v 0*v 1=3*((v 2)^2+2*(v 3)^2) := by
-    have hk := hv.2; simp only [relK] at hk; linarith
-  have habR : (v 0:ℝ)*(v 1:ℝ)=3*((v 2:ℝ)^2+2*(v 3:ℝ)^2) := by exact_mod_cast hab
-  have he : ((v 0:ℝ)+(v 1:ℝ)*cR)^2=
-      ((v 0:ℝ)-(v 1:ℝ)*cR)^2+12*((v 2:ℝ)^2+2*(v 3:ℝ)^2)*cR := by
-    linear_combination 4*cR*habR
-  have hc : (1:ℝ)<cR := by nlinarith [cR_sq,cR_pos]
-  have hC : (v 2:ℝ)^2+2*(v 3:ℝ)^2<2 := by
-    by_contra hn
-    have hge : 2≤(v 2:ℝ)^2+2*(v 3:ℝ)^2 := by linarith
-    have hp := mul_nonneg (sub_nonneg.mpr hge) cR_pos.le
-    nlinarith only [hA,Lam_coarse,he,hp,hc,sq_nonneg ((v 0:ℝ)-(v 1:ℝ)*cR)]
-  have hCi : (v 2)^2+2*(v 3)^2<2 := by exact_mod_cast hC
-  have h3 : v 3=0 := by
-    by_contra hn
-    have hh := Int.one_le_abs hn
-    nlinarith [sq_abs (v 3),sq_nonneg (v 2)]
-  have hh := hv.1
-  norm_num [relH,h3] at hh
-  have h1sq : (v 1)^2=0 := by nlinarith [sq_nonneg (v 0),sq_nonneg (v 1)]
-  have h1 : v 1=0 := (pow_eq_zero_iff (n:=2) (by norm_num)).mp h1sq
-  have hk := hv.2
-  norm_num [relK,h1,h3] at hk
-  have h2 : v 2=0 := by nlinarith
-  exact hv0 ⟨h2,h3⟩
 
 end Tetrahedral.Quartic3
