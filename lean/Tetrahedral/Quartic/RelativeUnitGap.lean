@@ -1,16 +1,10 @@
-import Tetrahedral.Quartic.UnitGap
+import Mathlib.Tactic
 import Mathlib.Analysis.SpecialFunctions.Pow.Real
 
 namespace Tetrahedral.RelativeUnitGap
 
-/-- A norm-one real parameter turns the conjugate gap into an absolute gap. -/
-theorem absolute_gap (S T M : ℝ) (hprod : S*T=1) (hgap : 4*M≤(S-T)^2) :
-    4*M≤(|S|-|S|⁻¹)^2 := by
-  have he : T=S⁻¹ := eq_inv_of_mul_eq_one_right hprod
-  rwa [he,UnitGap.sq_sub_inv_abs] at hgap
-
 /-- One multiplicative interval and the companion rho*tau(v) suffice to
-generate all relative units. All field-specific work is the pair obstruction. -/
+generate all relative units. Each field only excludes one nontrivial unit in the smaller half-interval. -/
 theorem generate {R : Type*} [CommRing R]
     (sigma : R →* ℝ) (tau : R → R) (N C : R → Prop) (rho : Rˣ)
     (hLambda : 1<sigma (rho:R)) (hneg : |sigma (-1)|=1)
@@ -19,8 +13,8 @@ theorem generate {R : Type*} [CommRing R]
     (hpowers : ∀ i : ℤ, N (↑(rho^i):R))
     (hprod : ∀ x, N x → sigma x*sigma (tau x)=1)
     (htrivial : ∀ x, N x → C x → x=1 ∨ x= -1)
-    (hpair : ∀ x z, N x → N z → ¬ C x → ¬ C z →
-      1≤|sigma x| → 1≤|sigma z| → |sigma x| * |sigma z|=sigma (rho:R) → False)
+    (hsmall : ∀ x, N x → ¬ C x → 1≤|sigma x| →
+      |sigma x|^2≤sigma (rho:R) → False)
     (u : R) (hu : N u) : ∃ i : ℤ, u=(↑(rho^i):R) ∨ u= -(↑(rho^i):R) := by
   let L := sigma (rho:R)
   have hL : 0<L := by dsimp [L]; linarith
@@ -69,22 +63,44 @@ theorem generate {R : Type*} [CommRing R]
       · rw [he,map_one,abs_one]
       · rwa [he]
     rw [hzabs,mul_one] at hab; linarith
-  exact (hpair v z hvN hzN hvC hzC hlo hzlo hab).elim
+  rcases le_total |sigma v| |sigma z| with hle|hle
+  · have hvsmall : |sigma v|^2≤sigma (rho:R) := by
+      have hh := mul_le_mul_of_nonneg_left hle (abs_nonneg (sigma v))
+      nlinarith only [hh,hab]
+    exact (hsmall v hvN hvC hlo hvsmall).elim
+  · have hzsmall : |sigma z|^2≤sigma (rho:R) := by
+      have hh := mul_le_mul_of_nonneg_left hle (abs_nonneg (sigma z))
+      nlinarith only [hh,hab]
+    exact (hsmall z hzN hzC hzlo hzsmall).elim
 
-/-- A coarse bound on the companion gap bounds the squared half-trace.
-No approximation to either square root is needed. -/
-theorem trace_bound (a b L : ℝ) (ha1 : 1≤a) (hb1 : 1≤b)
-    (hab : a*b=L) (hL : L<40) (hb : 32≤(b-b⁻¹)^2) :
-    ((a+a⁻¹)/2)^2<14 := by
-  have hb2 : 32≤b^2 := le_trans hb (UnitGap.sq_le_of_one_le b hb1)
-  have hab2 : a^2*b^2=L^2 := by rw [← hab]; ring
-  have hprod := mul_le_mul_of_nonneg_left hb2 (sq_nonneg a)
-  have hLpos : 0<L := by nlinarith
-  have hupper := mul_pos (sub_pos.mpr hL) (show 0<40+L by linarith)
-  have ha2 : a^2<50 := by nlinarith
-  have hi0 : 0≤a⁻¹ := inv_nonneg.mpr (by linarith)
-  have hi1 : a⁻¹≤1 := inv_le_one_of_one_le₀ ha1
-  have he : a*a⁻¹=1 := mul_inv_cancel₀ (by linarith)
-  nlinarith
+/-- The smaller half-interval bounds the squared base-field half-trace. -/
+theorem half_trace_bound (S T A L B : ℝ) (hprod : S*T=1) (htrace : 2*A=S+T)
+    (hlo : 1≤|S|) (hsmall : |S|^2≤L) (hL : L+3<4*B) : A^2<B := by
+  have hT : T=S⁻¹ := eq_inv_of_mul_eq_one_right hprod
+  have habs : (S+S⁻¹)^2=(|S|+|S|⁻¹)^2 := by
+    rcases le_or_gt 0 S with hs|hs
+    · rw [abs_of_nonneg hs]
+    · rw [abs_of_neg hs,inv_neg]; ring
+  have hsq : 4*A^2=(|S|+|S|⁻¹)^2 := by
+    rw [←habs,←hT,←htrace]; ring
+  have hi0 : 0≤|S|⁻¹ := inv_nonneg.mpr (by linarith)
+  have hi1 : |S|⁻¹≤1 := inv_le_one_of_one_le₀ hlo
+  have he : |S| * |S|⁻¹=1 := mul_inv_cancel₀ (by linarith)
+  nlinarith [mul_self_le_mul_self hi0 hi1]
+
+/-- Two conjugate trace bounds force an integral coefficient to vanish. -/
+theorem trace_coefficient_zero (a b : ℤ) (s e : ℝ) (hs : s^2=e)
+    (hA : ((a:ℝ)+(b:ℝ)*s)^2<2*e-1)
+    (hA' : ((a:ℝ)-(b:ℝ)*s)^2≤1) : b=0 := by
+  by_contra hb
+  have hb2 : (1:ℝ)≤(b:ℝ)^2 := by
+    have hh : (1:ℤ)≤b^2 := by
+      have hh := Int.one_le_abs hb; nlinarith [sq_abs b]
+    exact_mod_cast hh
+  have he : 0≤e := by rw [←hs]; exact sq_nonneg _
+  have hp := mul_nonneg he (sub_nonneg.mpr hb2)
+  have hd : ((a:ℝ)+(b:ℝ)*s-((a:ℝ)-(b:ℝ)*s))^2=4*e*(b:ℝ)^2 := by
+    linear_combination 4*(b:ℝ)^2*hs
+  nlinarith only [hA,hA',hp,hd,sq_nonneg ((a:ℝ)+(b:ℝ)*s+((a:ℝ)-(b:ℝ)*s))]
 
 end Tetrahedral.RelativeUnitGap

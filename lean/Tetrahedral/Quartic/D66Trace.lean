@@ -4,12 +4,13 @@ import Tetrahedral.Quartic.RelativeUnitGap
 import Mathlib.Analysis.SpecialFunctions.Pow.Real
 
 /-!
-# Relative units of `ℤ[q][t]` by one real parameter (d=66)
+# Relative units from a balanced trace window (d=66)
 
-Real place `q ↦ √11`, `t ↦ √(756+228√11)`; at the other place of `F` the relative norm is
-`A'² + (228√11−756)·B'²` with the small positive coefficient `≈ 0.19`. If `u ≠ ±1` then the `s`-coefficient `B` is nonzero, so `|N(B)|` is bounded below and
-`(σ(u) − σ(u)⁻¹)² ≥ 4ν²|N(D)|` (`gap_x`). Applied to `u` and `ρ·τu` with `1 ≤ |σ(u)| < σ(ρ)`, this
-contradicts `σ(ρ) < 4ν²|N(D)|`, so no box of lattice points is enumerated.
+The smaller of a reduced unit and its companion has squared real value at
+most Λ. Its half-trace has square less than 2e−1; the other trace has square
+at most one. Their difference forces the integral base coefficient to vanish.
+The remaining norm coefficient is a positive quadratic form.
+
 -/
 
 namespace Tetrahedral.Quartic66
@@ -60,9 +61,9 @@ theorem conj_place (x : R) :
 noncomputable def Lam : ℝ := sig rho
 theorem Lam_val : Lam=19+6*cR+dR := by simp [Lam,sig,rho]
 
-theorem Lam_coarse : Lam < 84 := by
-  have hc : cR < 4 := by nlinarith [cR_sq,cR_pos]
-  have hd : dR < 41 := by nlinarith [dR_sq,dR_pos]
+theorem Lam_coarse : Lam < 78 := by
+  have hc : cR < 10/3 := by nlinarith [cR_sq,cR_pos]
+  have hd : dR < 39 := by nlinarith [dR_sq,dR_pos]
   rw [Lam_val]; nlinarith [cR_pos,dR_pos]
 
 theorem one_lt_Lam : 1 < Lam := by
@@ -98,33 +99,6 @@ theorem trivial_unit (x : R) (hH : relH x=1) (hK : relK x=0) (h0 : x 2=0 ∧ x 3
   · left; ext i; fin_cases i <;> simp [h1,h2,h3] <;> omega
   · right; ext i; fin_cases i <;> simp [h1,h2,h3] <;> omega
 
-theorem sqrt_irr : Irrational (Real.sqrt ((11:ℕ):ℝ)) := by
-  apply irrational_sqrt_natCast_iff.mpr
-  rintro ⟨r,hr⟩
-  have : r ≤ 11 := by nlinarith
-  interval_cases r <;> omega
-
-theorem normB (x : R) (hnz : ¬(x 2=0 ∧ x 3=0)) : (1:ℝ)^2 ≤ (((x 2:ℝ)+(x 3:ℝ)*cR)*((x 2:ℝ)-(x 3:ℝ)*cR))^2 := by
-  have hk := UnitGap.norm_ne_zero 11 sqrt_irr (x 2) (x 3) hnz
-  have h1 : (1:ℤ) ≤ ((x 2)^2-(11:ℕ)*(x 3)^2)^2 := by
-    have := Int.one_le_abs hk; nlinarith [sq_abs ((x 2)^2-(11:ℕ)*(x 3)^2)]
-  have e1 : ((x 2:ℝ)+(x 3:ℝ)*cR)*((x 2:ℝ)-(x 3:ℝ)*cR)=(((x 2)^2-(11:ℕ)*(x 3)^2:ℤ):ℝ) := by
-    push_cast; have := cR_sq; linear_combination (-(x 3:ℝ)^2)*this
-  rw [e1]; exact_mod_cast h1
-
-theorem gap_x (x : R) (hH : relH x=1) (hK : relK x=0) (hnz : ¬(x 2=0 ∧ x 3=0)) :
-    4*288 ≤ (sig x-sig (tau x))^2 := by
-  have hc1 : ((x 0:ℝ)-(x 1:ℝ)*cR)^2+(228*cR-756)*((x 2:ℝ)-(x 3:ℝ)*cR)^2=1 := by
-    have := conj_place x; rw [hH,hK] at this; push_cast at this; linarith
-  have hDm : 0 < (228*cR-756) := conjugate_pos
-  have hST : sig x-sig (tau x)=2*((x 2:ℝ)+(x 3:ℝ)*cR)*dR := by
-    simp only [sig,tau_apply0,tau_apply1,tau_apply2,tau_apply3]; push_cast; ring
-  have := UnitGap.gap (sig x) (sig (tau x)) ((x 2:ℝ)+(x 3:ℝ)*cR) ((x 2:ℝ)-(x 3:ℝ)*cR) ((x 0:ℝ)-(x 1:ℝ)*cR) dR
-    (756+228*cR) (228*cR-756) 1 hST dR_sq hDm hc1 (normB x hnz)
-  have hM : 4*1^2*(756+228*cR)*(228*cR-756)=4*288 := by
-    have := cR_sq; linear_combination (4*1^2*228^2)*this
-  linarith
-
 theorem rel_unit_trace (u : R) (hH : relH u=1) (hK : relK u=0) :
     ∃ m : ℤ, u=(↑(rhoU^m):R) ∨ u= -(↑(rhoU^m):R) := by
   apply RelativeUnitGap.generate sigHom tau
@@ -136,14 +110,25 @@ theorem rel_unit_trace (u : R) (hH : relH u=1) (hK : relK u=0) :
     relN_rho_zpow
     (fun x hx => by change sig x*sig (tau x)=1; rw [sig_tau,hx.1,hx.2]; simp)
     (fun x hx => trivial_unit x hx.1 hx.2) ?_ u ⟨hH,hK⟩
-  intro v z hv hz hv0 hz0 hlo hb1 hab
+  intro v hv hv0 hlo hsmall
   change 1≤|sig v| at hlo
-  change 1≤|sig z| at hb1
-  change |sig v| * |sig z|=Lam at hab
-  have ha := RelativeUnitGap.absolute_gap (sig v) (sig (tau v)) 288
-    (by rw [sig_tau,hv.1,hv.2]; simp) (gap_x v hv.1 hv.2 hv0)
-  have hb := RelativeUnitGap.absolute_gap (sig z) (sig (tau z)) 288
-    (by rw [sig_tau,hz.1,hz.2]; simp) (gap_x z hz.1 hz.2 hz0)
-  exact UnitGap.contra |sig v| |sig z| Lam 288 hlo hb1 hab (by linarith [Lam_coarse]) ha hb
+  change |sig v|^2≤Lam at hsmall
+  have ht : 2*((v 0:ℝ)+(v 1:ℝ)*cR)=sig v+sig (tau v) := by
+    simp only [sig,tau_apply0,tau_apply1,tau_apply2,tau_apply3]; push_cast; ring
+  have hA := RelativeUnitGap.half_trace_bound (sig v) (sig (tau v))
+    ((v 0:ℝ)+(v 1:ℝ)*cR) Lam (2*11-1)
+    (by rw [sig_tau,hv.1,hv.2]; simp) ht hlo hsmall (by linarith [Lam_coarse])
+  have hc1 : ((v 0:ℝ)-(v 1:ℝ)*cR)^2+(228*cR-756)*((v 2:ℝ)-(v 3:ℝ)*cR)^2=1 := by
+    have hh := conj_place v; rw [hv.1,hv.2] at hh; push_cast at hh; linarith
+  have hA' : ((v 0:ℝ)-(v 1:ℝ)*cR)^2≤1 := by
+    have hh := mul_nonneg conjugate_pos.le (sq_nonneg ((v 2:ℝ)-(v 3:ℝ)*cR))
+    linarith
+  have h1 := RelativeUnitGap.trace_coefficient_zero (v 0) (v 1) cR 11 cR_sq hA hA'
+  have hk := hv.2
+  simp only [relK,h1,mul_zero] at hk
+  have hs : (19*v 2+63*v 3)^2+2*(v 3)^2=0 := by nlinarith only [hk]
+  have h3 : v 3=0 := by nlinarith [sq_nonneg (19*v 2+63*v 3)]
+  have h2 : v 2=0 := by rw [h3] at hs; nlinarith
+  exact hv0 ⟨h2,h3⟩
 
 end Tetrahedral.Quartic66
