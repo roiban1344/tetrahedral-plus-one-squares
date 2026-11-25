@@ -78,19 +78,23 @@ theorem half_trace_bound (S T A L B : ℝ) (hprod : S*T=1) (htrace : 2*A=S+T)
       linarith
   linarith
 
-/-- Two conjugate trace bounds force an integral coefficient to vanish. -/
-theorem trace_coefficient_zero (a b : ℤ) (s e : ℝ) (hs : s^2=e)
-    (hA : ((a:ℝ)+(b:ℝ)*s)^2<2*e-1)
-    (hA' : ((a:ℝ)-(b:ℝ)*s)^2≤1) : b=0 := by
-  by_contra hb
+/-- A positive product of two nonzero integers gives a lower trace bound. -/
+theorem integer_trace_lower (a b : ℤ) (s e : ℝ) (hs : s^2=e)
+    (hab : 0<a*b) :
+    1+e+2*s*(a*b:ℤ)≤((a:ℝ)+(b:ℝ)*s)^2 := by
+  have ha : a≠0 := by intro hz; simp [hz] at hab
+  have hb : b≠0 := by intro hz; simp [hz] at hab
+  have ha2 : (1:ℝ)≤(a:ℝ)^2 := by
+    have hh : (1:ℤ)≤a^2 := by nlinarith [Int.one_le_abs ha,sq_abs a]
+    exact_mod_cast hh
   have hb2 : (1:ℝ)≤(b:ℝ)^2 := by
-    have hh : (1:ℤ)≤b^2 := by
-      have hh := Int.one_le_abs hb; nlinarith [sq_abs b]
+    have hh : (1:ℤ)≤b^2 := by nlinarith [Int.one_le_abs hb,sq_abs b]
     exact_mod_cast hh
   have he : 0≤e := by rw [←hs]; exact sq_nonneg _
-  have hp := mul_nonneg he (sub_nonneg.mpr hb2)
-  have hd : ((a:ℝ)+(b:ℝ)*s-((a:ℝ)-(b:ℝ)*s))^2=4*e*(b:ℝ)^2 := by
-    linear_combination 4*(b:ℝ)^2*hs
-  nlinarith only [hA,hA',hp,hd,sq_nonneg ((a:ℝ)+(b:ℝ)*s+((a:ℝ)-(b:ℝ)*s))]
+  have hh := mul_nonneg he (sub_nonneg.mpr hb2)
+  have hid : ((a:ℝ)+(b:ℝ)*s)^2=(a:ℝ)^2+e*(b:ℝ)^2+2*s*(a*b:ℤ) := by
+    push_cast
+    linear_combination (b:ℝ)^2*hs
+  linarith
 
 end Tetrahedral.RelativeUnitGap

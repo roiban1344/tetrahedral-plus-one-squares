@@ -6,7 +6,7 @@ import Mathlib.Analysis.SpecialFunctions.Pow.Real
 /-!
 # Relative units from a balanced trace window (d=3)
 
-The half-trace has square less than 24. The nonconstant norm coefficient
+The half-trace has square less than 19. The nonconstant norm coefficient
 then bounds c²+2t² below two; integrality forces t=0. Both norm equations
 reduce to positive sums of squares. No irrationality or norm gap is needed.
 
@@ -76,7 +76,7 @@ theorem relN_rho_zpow (m : ℤ) : relH (↑(rhoU^m):R)=1 ∧ relK (↑(rhoU^m):R
   simp only [h1,one_zpow,Units.coe_map,Units.val_one] at this
   exact ⟨congrArg Zsqrtd.re this,congrArg Zsqrtd.im this⟩
 
-/-! ## The gap -/
+/-! ## The small trace window -/
 
 
 theorem trivial_unit (x : R) (hH : relH x=1) (hK : relK x=0) (h0 : x 2=0 ∧ x 3=0) :
@@ -115,7 +115,7 @@ theorem rel_unit_trace (u : R) (hH : relH u=1) (hK : relK u=0) :
   have ht : 2*((v 0:ℝ)+(v 1:ℝ)*cR)=sig v+sig (tau v) := by
     simp only [sig,tau_apply0,tau_apply1,tau_apply2,tau_apply3]; push_cast; ring
   have hA := RelativeUnitGap.half_trace_bound (sig v) (sig (tau v))
-    ((v 0:ℝ)+(v 1:ℝ)*cR) Lam 24
+    ((v 0:ℝ)+(v 1:ℝ)*cR) Lam 19
     hp ht hS hTau (by linarith [Lam_coarse])
   have hab : v 0*v 1=3*((v 2)^2+2*(v 3)^2) := by
     have hk := hv.2; simp only [relK] at hk; linarith

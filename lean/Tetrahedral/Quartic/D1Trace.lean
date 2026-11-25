@@ -6,9 +6,10 @@ import Mathlib.Analysis.SpecialFunctions.Pow.Real
 /-!
 # Relative units from a balanced trace window (d=1)
 
-A centered power interval bounds the squares of both real conjugates by Λ. Its half-trace has square less than 2e−1; the other trace has square
-at most one. Their difference forces the integral base coefficient to vanish.
-The remaining norm coefficient is a positive quadratic form.
+A centered power interval bounds both real conjugates. The nonconstant
+norm coefficient is a positive quadratic form, so a nontrivial unit has
+positive product of its two base coefficients. Integer trace lower bounds
+contradict the small trace window; no other-place norm bound is used.
 
 -/
 
@@ -23,11 +24,6 @@ theorem cR_pos : 0 < cR := Real.sqrt_pos.mpr (by norm_num)
 
 theorem dR_sq : dR^2=44+18*cR := Real.sq_sqrt (by have := cR_pos; positivity)
 theorem dR_pos : 0 < dR := Real.sqrt_pos.mpr (by have := cR_pos; positivity)
-
-theorem conjugate_pos : 0 < 18*cR-44 := by
-  apply pos_of_mul_pos_left (b:=(44+18*cR))
-  · nlinarith [cR_sq]
-  · have := cR_pos; positivity
 
 /-- The real embedding `q ↦ √6`, `s ↦ √(44+18√6)`. -/
 noncomputable def sig (x : R) : ℝ := (x 0:ℝ)+(x 1:ℝ)*cR+((x 2:ℝ)+(x 3:ℝ)*cR)*dR
@@ -47,13 +43,6 @@ theorem sig_tau (x : R) : sig x*sig (tau x)=(relH x:ℝ)+(relK x:ℝ)*cR := by
   have hc := cR_sq; have hd := dR_sq
   simp only [sig,tau_apply0,tau_apply1,tau_apply2,tau_apply3,relH,relK]; push_cast
   linear_combination ((-44)*(x 3:ℝ)^2+(-18)*(x 3:ℝ)^2*cR+(-36)*(x 2:ℝ)*(x 3:ℝ)+(1)*(x 1:ℝ)^2)*hc+((-1)*(x 3:ℝ)^2*cR^2+(-2)*(x 2:ℝ)*(x 3:ℝ)*cR+(-1)*(x 2:ℝ)^2)*hd
-
-/-- The relative norm at the other place of `F` (`q ↦ −√6`). -/
-theorem conj_place (x : R) :
-    ((x 0:ℝ)-(x 1:ℝ)*cR)^2+(18*cR-44)*((x 2:ℝ)-(x 3:ℝ)*cR)^2=(relH x:ℝ)-(relK x:ℝ)*cR := by
-  have hc := cR_sq
-  simp only [relH,relK]; push_cast
-  linear_combination ((-44)*(x 3:ℝ)^2+(18)*(x 3:ℝ)^2*cR+(-36)*(x 2:ℝ)*(x 3:ℝ)+(1)*(x 1:ℝ)^2)*hc
 
 /-! ## Bounds from one real parameter -/
 
@@ -81,7 +70,7 @@ theorem relN_rho_zpow (m : ℤ) : relH (↑(rhoU^m):R)=1 ∧ relK (↑(rhoU^m):R
   simp only [h1,one_zpow,Units.coe_map,Units.val_one] at this
   exact ⟨congrArg Zsqrtd.re this,congrArg Zsqrtd.im this⟩
 
-/-! ## The gap -/
+/-! ## The small trace window -/
 
 
 theorem trivial_unit (x : R) (hH : relH x=1) (hK : relK x=0) (h0 : x 2=0 ∧ x 3=0) :
@@ -122,17 +111,21 @@ theorem rel_unit_trace (u : R) (hH : relH u=1) (hK : relK u=0) :
   have hA := RelativeUnitGap.half_trace_bound (sig v) (sig (tau v))
     ((v 0:ℝ)+(v 1:ℝ)*cR) Lam (2*6-1)
     hp ht hS hTau (by linarith [Lam_coarse])
-  have hc1 : ((v 0:ℝ)-(v 1:ℝ)*cR)^2+(18*cR-44)*((v 2:ℝ)-(v 3:ℝ)*cR)^2=1 := by
-    have hh := conj_place v; rw [hv.1,hv.2] at hh; push_cast at hh; linarith
-  have hA' : ((v 0:ℝ)-(v 1:ℝ)*cR)^2≤1 := by
-    have hh := mul_nonneg conjugate_pos.le (sq_nonneg ((v 2:ℝ)-(v 3:ℝ)*cR))
-    linarith
-  have h1 := RelativeUnitGap.trace_coefficient_zero (v 0) (v 1) cR 6 cR_sq hA hA'
   have hk := hv.2
-  simp only [relK,h1,mul_zero] at hk
-  have hs : (9*v 2+22*v 3)^2+2*(v 3)^2=0 := by nlinarith only [hk]
-  have h3 : v 3=0 := by nlinarith [sq_nonneg (9*v 2+22*v 3)]
-  have h2 : v 2=0 := by rw [h3] at hs; nlinarith
-  exact hv0 ⟨h2,h3⟩
+  simp only [relK] at hk
+  have hs : 9*(v 0*v 1)=1*((9*v 2+22*v 3)^2+2*(v 3)^2) := by
+    nlinarith only [hk]
+  have hab : 0<v 0*v 1 := by
+    by_contra hn
+    have h3 : v 3=0 := by nlinarith [sq_nonneg (9*v 2+22*v 3)]
+    have h2 : v 2=0 := by rw [h3] at hs; nlinarith
+    exact hv0 ⟨h2,h3⟩
+  have hlo := RelativeUnitGap.integer_trace_lower (v 0) (v 1) cR 6 cR_sq hab
+  have hp : (1:ℝ)≤(v 0*v 1:ℤ) := by
+    have hh : (1:ℤ)≤v 0*v 1 := hab
+    exact_mod_cast hh
+  have hc : 2<cR := by nlinarith [cR_sq,cR_pos]
+  have hh := mul_nonneg cR_pos.le (sub_nonneg.mpr hp)
+  nlinarith only [hlo,hA,hh,hc]
 
 end Tetrahedral.Quartic1
