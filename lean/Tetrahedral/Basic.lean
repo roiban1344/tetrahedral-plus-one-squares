@@ -31,17 +31,18 @@ theorem solution_shift {n m : ℕ} : Solution n m ↔
   have : n * (n + 1) * (n + 2) + 6 = (n + 3) * (n ^ 2 + 2) := by ring
   rw [this]
 
-theorem triple_divisible_six (n : ℕ) : 6 ∣ n * (n + 1) * (n + 2) := by
-  have : n % 6 < 6 := Nat.mod_lt _ (by decide)
-  interval_cases h : n % 6 <;>
-    simp [Nat.dvd_iff_mod_eq_zero, Nat.mul_mod, Nat.add_mod, h]
-
-def tetrahedral (n : ℕ) : ℕ := n * (n + 1) * (n + 2) / 6
-
+/-- The equation with the exact rational quotient, cleared of the denominator. -/
 theorem original_equation {n m : ℕ} :
-    tetrahedral n + 1 = m ^ 2 ↔ Solution n m := by
-  have h := Nat.div_mul_cancel (triple_divisible_six n)
-  unfold tetrahedral Solution
-  omega
+    (n * (n + 1) * (n + 2) / 6 + 1 : ℚ) = m ^ 2 ↔ Solution n m := by
+  unfold Solution
+  constructor
+  · intro h
+    have h6 : ((6 * m ^ 2 : ℕ) : ℚ) = ((n * (n + 1) * (n + 2) + 6 : ℕ) : ℚ) := by
+      push_cast; linear_combination -6 * h
+    exact_mod_cast h6
+  · intro h
+    have h6 : ((6 * m ^ 2 : ℕ) : ℚ) = ((n * (n + 1) * (n + 2) + 6 : ℕ) : ℚ) := by rw [h]
+    push_cast at h6
+    linear_combination -h6 / 6
 
 end Tetrahedral

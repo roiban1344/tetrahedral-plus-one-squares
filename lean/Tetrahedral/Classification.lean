@@ -22,10 +22,10 @@ theorem complete_classification (n : ℕ) :
     · have := Branch66.branch_complete n r y hr hy; unfold Listed; tauto
   · exact listed_has_solution
 
-theorem tetrahedral_classification (n : ℕ) :
-    (∃ m : ℕ, n*(n+1)*(n+2)/6+1=m^2) ↔
-      n=0 ∨ n=5 ∨ n=8 ∨ n=22 ∨ n=24 ∨ n=63 ∨ n=13775 := by
-  change (∃ m : ℕ, tetrahedral n+1=m^2) ↔ _
+/-- `n(n+1)(n+2)/6 + 1` is a perfect square exactly for these seven `n`. -/
+theorem tetrahedral_add_one_eq_sq_iff (n : ℕ) :
+    (∃ m : ℕ, (n * (n + 1) * (n + 2) / 6 + 1 : ℚ) = m ^ 2) ↔
+      n = 0 ∨ n = 5 ∨ n = 8 ∨ n = 22 ∨ n = 24 ∨ n = 63 ∨ n = 13775 := by
   simp_rw [original_equation]
   exact complete_classification n
 

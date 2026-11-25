@@ -17,7 +17,7 @@ jobs:
         working-directory: lean
         run: |
           lake env lean Check.lean | tee check.out
-          tr -d ' \n' < check.out | grep -qx "'Tetrahedral.tetrahedral_classification'dependsonaxioms:\[propext,Classical.choice,Quot.sound\]"
+          tr -d ' \n' < check.out | grep -qx "'Tetrahedral.tetrahedral_add_one_eq_sq_iff'dependsonaxioms:\[propext,Classical.choice,Quot.sound\]"
       - name: Reject sorry, native_decide and new axioms
         run: |
           if grep -rnwE 'sorry|native_decide|admit' lean/Tetrahedral lean/Tetrahedral.lean; then exit 1; fi
