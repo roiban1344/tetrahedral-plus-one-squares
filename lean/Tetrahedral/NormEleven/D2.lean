@@ -1,7 +1,7 @@
 import Tetrahedral.OrbitReflection
 import Tetrahedral.NormEleven.PositiveOrbitData
 import Tetrahedral.NormEleven.D2Dyadic
-import Tetrahedral.Quartic.D2Euler
+import Tetrahedral.Quartic.D2Division
 import Tetrahedral.NormEleven.Certificates
 
 namespace Tetrahedral.NormEleven.Branch2
@@ -23,7 +23,7 @@ theorem tau_neg (x : R) : tau (-x)= -tau x := by ext i; fin_cases i <;> simp [ta
 
 theorem branch_complete (n r y : ℕ) (hr : n+3=2*r^2) (hy : n^2+2=3*y^2) : n=5 ∨ n=13775 := by
   obtain ⟨ξ,hH,hK,hξ,h0⟩ := Certificates.d2 n r y hr hy
-  obtain ⟨u,hu1,hu2,hcase⟩ := euler_type ξ hH hK
+  obtain ⟨u,hu1,hu2,hcase⟩ := divide_eleven ξ hH hK
   obtain ⟨j,hj⟩ := rel_unit_trace u hu1 hu2
   have ttau0 : tau (tau xi0)=xi0 := by decide
   have ttau1 : tau (tau xi1)=xi1 := by decide

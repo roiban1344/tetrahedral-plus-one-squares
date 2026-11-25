@@ -48,7 +48,7 @@ theorem sig_tau (x : R) : sig x*sig (tau x)=(relH x:ℝ)+(relK x:ℝ)*cR := by
   simp only [sig,tau_apply0,tau_apply1,tau_apply2,tau_apply3,relH,relK]; push_cast
   linear_combination ((-756)*(x 3:ℝ)^2+(-228)*(x 3:ℝ)^2*cR+(-456)*(x 2:ℝ)*(x 3:ℝ)+(1)*(x 1:ℝ)^2)*hc+((-1)*(x 3:ℝ)^2*cR^2+(-2)*(x 2:ℝ)*(x 3:ℝ)*cR+(-1)*(x 2:ℝ)^2)*hd
 
-/-- The relative norm at the other place of `F` (`q ↦ −√2`). -/
+/-- The relative norm at the other place of `F` (`q ↦ −√11`). -/
 theorem conj_place (x : R) :
     ((x 0:ℝ)-(x 1:ℝ)*cR)^2+(228*cR-756)*((x 2:ℝ)-(x 3:ℝ)*cR)^2=(relH x:ℝ)-(relK x:ℝ)*cR := by
   have hc := cR_sq

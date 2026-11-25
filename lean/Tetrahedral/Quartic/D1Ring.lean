@@ -3,8 +3,8 @@ import Mathlib.Tactic
 /-!
 # The ring `ℤ[q][s]` for the branch d=1
 
-`q² = 6` and `s² = 44+18q = 2(22+9q)`, where `22+9q = (2+q)(5+2q)` is the Pell element of
-the odd indices. An element `(a₀,a₁,b₀,b₁)` stands for `(a₀+a₁q)+(b₀+b₁q)s`.
+`q² = 6` and `s² = 44+18q = 2(22+9q)`, where `22+9q` is the fixed factor `β` of
+`n+yq = β·η²`. An element `(a₀,a₁,b₀,b₁)` stands for `(a₀+a₁q)+(b₀+b₁q)s`.
 
 The relative norm to `ℤ[q]` is `A² − s²B²`, recorded by its two coordinates `relH`, `relK`.
 -/

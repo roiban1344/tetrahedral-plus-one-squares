@@ -39,7 +39,7 @@ theorem scaled_even (c a r j : ℤ) (hc : c≠0)
   have h2 : (2:ℤ) ∣ a^2 := dvd_trans (by decide : (2:ℤ) ∣ 4) ha
   exact (show Prime (2:ℤ) by norm_num).dvd_of_dvd_pow h2
 
-/-- In the identity phase, the original square coordinate forces descent
+/-- For even exponents, the original square coordinate forces descent
 without using the quadratic condition f at all. -/
 theorem zero_phase (i r : ℤ)
     (hi : (↑((rhoU^2)^i):R) 1=6*r^2) : i=0 := by

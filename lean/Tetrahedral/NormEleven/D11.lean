@@ -9,7 +9,7 @@ open R
 
 theorem branch_complete (n r y : ℕ) (hr : n+3=11*r^2) (hy : n^2+2=66*y^2) : n=8 := by
   obtain ⟨ξ,hH,hK,hξ,h0⟩ := Certificates.d11 n r y hr hy
-  obtain ⟨u,hu1,hu2,hc⟩ := euler_mod ξ hH hK
+  obtain ⟨u,hu1,hu2,hc⟩ := divide_eleven ξ hH hK
   obtain ⟨j,hj⟩ := rel_unit_trace u hu1 hu2
   rcases hj with e|e
   · rw [hc,e,mul_comm] at hξ h0

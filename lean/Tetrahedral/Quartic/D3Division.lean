@@ -1,27 +1,27 @@
-import Tetrahedral.Quartic.D1
+import Tetrahedral.Quartic.D3
 
 /-!
-# The classification of relative norm 11 for d=1, by the residue field `𝔽₁₂₁`
+# The classification of relative norm 11 for d=3, by the residue field `𝔽₁₂₁`
 
-`11` is inert in `F = ℚ(√6)`, so `𝔽 = 𝒪_F/11` is a field with `121` elements, written as pairs
-`a + b√6` modulo `11`. With `δ = −Ā₀/B̄₀` for `ξ₀ = A₀ + B₀ s`, the two maps `χ± : R → 𝔽`,
+`11` is inert in `F = ℚ(√2)`, so `𝔽 = 𝒪_F/11` is a field with `121` elements, written as pairs
+`a + b√2` modulo `11`. With `δ = −Ā₀/B̄₀` for `ξ₀ = A₀ + B₀ s`, the two maps `χ± : R → 𝔽`,
 `A + Bs ↦ Ā ± B̄δ`, are ring maps; an element of relative norm `11` vanishes under exactly one of them
 (its type), and `ξ₀`, `τξ₀` have the two types. This is the argument of §6 of the paper.
 -/
 
-namespace Tetrahedral.Quartic1
+namespace Tetrahedral.Quartic3
 open R
 
 instance fact11 : Fact (Nat.Prime 11) := ⟨by norm_num⟩
 
 abbrev F11 := ZMod 11 × ZMod 11
-def mulF (a b : F11) : F11 := (a.1*b.1+6*a.2*b.2,a.1*b.2+a.2*b.1)
-def normF (a : F11) : ZMod 11 := a.1^2-6*a.2^2
+def mulF (a b : F11) : F11 := (a.1*b.1+2*a.2*b.2,a.1*b.2+a.2*b.1)
+def normF (a : F11) : ZMod 11 := a.1^2-2*a.2^2
 
 /-- `χ₊`: `s ↦ δ`. -/
-def chiP (x : R) : F11 := (((x 0-6*x 2-9*x 3 : ℤ) : ZMod 11),((x 1-7*x 2-6*x 3 : ℤ) : ZMod 11))
+def chiP (x : R) : F11 := (((x 0-3*x 2-2*x 3 : ℤ) : ZMod 11),((x 1-1*x 2-3*x 3 : ℤ) : ZMod 11))
 /-- `χ₋`: `s ↦ −δ`. -/
-def chiM (x : R) : F11 := (((x 0+6*x 2+9*x 3 : ℤ) : ZMod 11),((x 1+7*x 2+6*x 3 : ℤ) : ZMod 11))
+def chiM (x : R) : F11 := (((x 0+3*x 2+2*x 3 : ℤ) : ZMod 11),((x 1+1*x 2+3*x 3 : ℤ) : ZMod 11))
 
 theorem chiP_mul (x y : R) : chiP (x*y)=mulF (chiP x) (chiP y) := by
   simp only [chiP,mulF,mul_apply0,mul_apply1,mul_apply2,mul_apply3,Prod.mk.injEq]; push_cast
@@ -70,7 +70,7 @@ theorem both_zero (z : R) (hP : chiP z=0) (hM : chiM z=0) : ∀ i, (11:ℤ) ∣ 
   · exact g2
   · exact g3
 
-theorem euler_type (x : R) (hH : relH x=11) (hK : relK x=0) :
+theorem divide_eleven (x : R) (hH : relH x=11) (hK : relK x=0) :
     ∃ u : R, relH u=1 ∧ relK u=0 ∧ (x=u*xi0 ∨ x=u*tau xi0) := by
   have divide : ∀ y : R, (∀ i, (11:ℤ) ∣ y i) → ∃ u : R, (11:ℤ) • u=y := by
     intro y hy
@@ -116,4 +116,4 @@ theorem euler_type (x : R) (hH : relH x=11) (hK : relK x=0) :
     obtain ⟨e1,e2⟩ := unit_of _ u hr1 hr2 (by rw [← hx]; exact hu)
     exact ⟨u,e1,e2,Or.inr (cancel (tau xi0) u pi0' hu)⟩
 
-end Tetrahedral.Quartic1
+end Tetrahedral.Quartic3

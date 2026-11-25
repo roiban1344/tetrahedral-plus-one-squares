@@ -5,7 +5,8 @@ import Tetrahedral.NormEleven.D3
 import Tetrahedral.NormEleven.D11
 import Tetrahedral.NormEleven.D66
 
-namespace Tetrahedral.NormEleven
+namespace Tetrahedral
+open NormEleven
 
 /-- Direct quadratic parameters followed by the arithmetic of an element of relative norm 11. -/
 theorem complete_classification (n : ℕ) :
@@ -28,4 +29,4 @@ theorem tetrahedral_classification (n : ℕ) :
   simp_rw [original_equation]
   exact complete_classification n
 
-end Tetrahedral.NormEleven
+end Tetrahedral

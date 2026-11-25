@@ -54,7 +54,7 @@ theorem orbit_third (m : ℤ) :
   rw [← h3,← h2,← h1]
   exact third _ (orbit_lattice m)
 
-/-- A single quadratic congruence replaces the entrance table. -/
+/-- One quadratic congruence for every integer exponent. -/
 theorem polynomial (m : ℤ) :
     (128:ℤ) ∣ f (xi0*(↑(rhoU^m):R))-32*m*(m+1) := by
   let g (i : ℤ) := f (xi0*(↑(rhoU^i):R))-32*i*(i+1)

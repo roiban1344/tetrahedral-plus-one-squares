@@ -15,9 +15,7 @@ theorem relH_smul (k : ℤ) (x : R) : relH (k • x)=k^2*relH x := by
 theorem relK_smul (k : ℤ) (x : R) : relK (k • x)=k^2*relK x := by
   simp only [relK,zsmul_apply]; ring
 
-/-! ## 3. Euler's division with two representatives -/
-
-/-! ## 4. The norm condition and the 3-adic exponent -/
+/-! ## The norm condition -/
 
 def f (x : R) : ℤ := (x 0-3)^2-3*(x 1)^2+2
 
@@ -31,7 +29,7 @@ theorem val_zpow_nat (k : ℕ) : (↑(rhoU^(k:ℤ)):R)=rho^k := by
 theorem val_zpow_neg (k : ℕ) : (↑(rhoU^(-(k:ℤ))):R)=rhoInv^k := by
   rw [zpow_neg,zpow_natCast,← inv_pow,Units.val_pow_eq_pow_val]; rfl
 
-/-! The six known zeros of the norm condition. -/
+/-! The three zeros of the norm condition used in the classification. -/
 
 def c1 : R := ⟨![13778,7953,-2158,-1245]⟩
 theorem c1_eq : (1:R)*(xi0*(↑(rhoU^(-4:ℤ)):R))=c1 := by

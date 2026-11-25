@@ -58,7 +58,7 @@ theorem all_zero (z : R) (h1 : chi 27 6 z=0) (h2 : chi 27 (-6) z=0) (h3 : chi 94
   · exact g2
   · exact g3
 
-theorem euler_type (x : R) (hH : relH x=11) (hK : relK x=0) :
+theorem divide_eleven (x : R) (hH : relH x=11) (hK : relK x=0) :
     ∃ u : R, relH u=1 ∧ relK u=0 ∧
       (x=u*tau xi0 ∨ x=u*xi0 ∨ x=u*tau xi1 ∨ x=u*xi1) := by
   have divide : ∀ y : R, (∀ i, (11:ℤ) ∣ y i) → ∃ u : R, (11:ℤ) • u=y := by

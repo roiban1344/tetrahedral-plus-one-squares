@@ -1,7 +1,7 @@
 import Tetrahedral.OrbitReflection
 import Tetrahedral.NormEleven.PositiveOrbitData
 import Tetrahedral.NormEleven.DyadicCertificates
-import Tetrahedral.Quartic.D3Euler
+import Tetrahedral.Quartic.D3Division
 import Tetrahedral.NormEleven.Certificates
 
 namespace Tetrahedral.NormEleven.Branch3
@@ -20,7 +20,7 @@ theorem f_tau (x : R) : f (tau x)=f x := by simp only [f,tau_apply0,tau_apply1]
 
 theorem branch_complete (n r y : ℕ) (hr : n+3=3*r^2) (hy : n^2+2=2*y^2) : n=0 ∨ n=24 := by
   obtain ⟨ξ,hH,hK,hξ,h0⟩ := Certificates.d3 n r y hr hy
-  obtain ⟨u,hu1,hu2,hcase⟩ := euler_type ξ hH hK
+  obtain ⟨u,hu1,hu2,hcase⟩ := divide_eleven ξ hH hK
   obtain ⟨j,hj⟩ := rel_unit_trace u hu1 hu2
   -- reduce to `z = ±ξ₀ρ^m` with `f z = 0` and `z 0 = n+3`
   obtain ⟨z,m,hz,hzh,hz0⟩ : ∃ z : R, ∃ m : ℤ,

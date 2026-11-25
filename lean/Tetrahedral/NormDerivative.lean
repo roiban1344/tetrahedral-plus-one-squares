@@ -36,7 +36,7 @@ theorem image_two (A B : R →ₗ[ℤ] ℤ) (e : ℤ) (y G E : R) :
   exact ⟨(A y-3)*A (y*G*E)-e*B y*B (y*G*E),by ring⟩
 
 /-- At width four the extra bit comes from the parity character A+B.
-A root supplies the coefficient parity; no separate centre check is needed. -/
+A root supplies the coefficient parity. -/
 theorem image_four (A B : R →ₗ[ℤ] ℤ) (e : ℤ) (y G E : R)
     (hy : value A B e y=0)
     (hmul : ∀ x z, (2:ℤ) ∣ A (x*z)+B (x*z)-(A x+B x)*(A z+B z))
@@ -57,8 +57,8 @@ theorem image_four (A B : R →ₗ[ℤ] ℤ) (e : ℤ) (y G E : R)
   simp only [differential,LinearMap.coe_mk,AddHom.coe_mk,map_smul,smul_eq_mul]
   convert mul_dvd_mul_left 8 hc using 1 <;> ring
 
-/-- The local descent for the shifted binary norm. Its error ideal is
-controlled by differential parity, without checking four separate columns. -/
+/-- The local descent for the shifted binary norm. Its error terms are
+controlled by the parity of the differential. -/
 theorem unique (A B : R →ₗ[ℤ] ℤ) (e : ℤ)
     (y : R) (w : Rˣ) (t v : ℕ) (ht : 1≤t) (U : R)
     (hw : (w:R)=1+2^(t+1)*U) (hy : value A B e y=0)

@@ -14,14 +14,14 @@ theorem relH_smul (k : ℤ) (x : R) : relH (k • x)=k^2*relH x := by
 theorem relK_smul (k : ℤ) (x : R) : relK (k • x)=k^2*relK x := by
   simp only [relK,zsmul_apply]; ring
 
-/-! ## 3. Euler's division for the ramified 11 -/
+/-! ## Division by the ramified 11 -/
 
 theorem cast_zero_iff (z : ℤ) : (z:ZMod 11)=0 ↔ (11:ℤ) ∣ z := ZMod.intCast_zmod_eq_zero_iff_dvd z 11
 
 /-- `8` is not a square modulo `11` (here `96 ≡ 8`). -/
 theorem qnr8 : ∀ a d : ZMod 11, a^2-96*d^2=0 → a=0 ∧ d=0 := by decide
 
-theorem euler_mod (x : R) (hH : relH x=11) (hK : relK x=0) :
+theorem divide_eleven (x : R) (hH : relH x=11) (hK : relK x=0) :
     ∃ u : R, relH u=1 ∧ relK u=0 ∧ x=u*xi0 := by
   have h11 : (11:ℤ) ∣ (x 0)^2-96*(x 3)^2 :=
     ⟨1-6*(x 1)^2+16*(x 2)^2+24*x 2*x 3,by simp only [relH] at hH; linarith⟩
@@ -48,7 +48,7 @@ theorem euler_mod (x : R) (hH : relH x=11) (hK : relK x=0) :
   simp only [zsmul_apply] at this
   omega
 
-/-! ## 4. The norm condition and the descent at the centres -/
+/-! ## The norm condition -/
 
 /-- `N(A−3)+2` for the `F`-part `A = a+bq`. -/
 def f (x : R) : ℤ := (x 0-3)^2-66*(x 1)^2+2

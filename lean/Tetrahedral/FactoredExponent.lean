@@ -3,7 +3,7 @@ import Tetrahedral.QuadraticPolynomial
 namespace Tetrahedral.FactoredExponent
 
 /-- The square of the direction and its scalar residue retain the useful
-precision. No norm condition on an arbitrary error needs to be recovered. -/
+precision. -/
 theorem unique {R : Type*} [CommRing R]
     (f : R → ℤ) (L : R →ₗ[ℤ] ℤ) (Q : R → ℤ)
     (y : R) (w : Rˣ) (t v : ℕ) (ht : 1≤t) (U : R)

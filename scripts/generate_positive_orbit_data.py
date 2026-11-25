@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Kernel-checked positive cones for the six Euler initial elements."""
+"""Kernel-checked positive cones for the six initial elements."""
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]

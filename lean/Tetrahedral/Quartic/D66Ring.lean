@@ -3,10 +3,11 @@ import Mathlib.Tactic
 /-!
 # The ring `ℤ[q][t]` for the branch d=66
 
-`q² = 11` and `t² = 756+228q = 12(63+19q)`, where `63+19q = (3+q)(10+3q)` is the Pell element of
-the odd indices, and `t = s/√11` for the `s` with `s² = 132(63+19q)`. An element `(a₀,a₁,b₀,b₁)` stands for `(a₀+a₁q)+(b₀+b₁q)s`.
+`q² = 11` and `t² = 756+228q = 12(63+19q)`, where `63+19q` is the fixed factor `β` of
+`n+yq = β·η²`, and `t = s/q` for the `s` with `s² = 132(63+19q)`.
+An element `(a₀,a₁,b₀,b₁)` stands for `(a₀+a₁q)+(b₀+b₁q)t`.
 
-The relative norm to `ℤ[q]` is `A² − s²B²`, recorded by its two coordinates `relH`, `relK`.
+The relative norm to `ℤ[q]` is `A² − t²B²`, recorded by its two coordinates `relH`, `relK`.
 -/
 
 namespace Tetrahedral.Quartic66

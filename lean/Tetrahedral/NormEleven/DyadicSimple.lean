@@ -5,7 +5,7 @@ namespace Tetrahedral.NormEleven.DyadicSimple
 def centre : Fin 2 → ℤ := ![0,-1]
 
 /-- Two known roots exhaust the two parity classes once uniqueness holds
-under the square of the unit. No positive-phase table is needed. -/
+under the square of the unit. -/
 theorem pair {R : Type*} [CommRing R] (f : R → ℤ) (u : Rˣ) (y : R)
     (hu : ∀ c : Fin 2, ∀ i : ℤ,
       f ((y*(↑(u^(centre c)):R))*(↑((u^2)^i):R))=0 → i=0)

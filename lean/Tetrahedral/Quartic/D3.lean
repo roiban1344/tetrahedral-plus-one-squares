@@ -7,7 +7,7 @@ The element itself is constructed in NormEleven.Parameters. -/
 namespace Tetrahedral.Quartic3
 open R
 
-/-! ## 2. The element of relative norm 11 -/
+/-! ## The element of relative norm 11 -/
 
 def xi0 : R := ⟨![3,1,1,0]⟩
 
@@ -16,12 +16,12 @@ theorem relH_smul (k : ℤ) (x : R) : relH (k • x)=k^2*relH x := by
 theorem relK_smul (k : ℤ) (x : R) : relK (k • x)=k^2*relK x := by
   simp only [relK,zsmul_apply]; ring
 
-/-! ## 3. Euler's division modulo 11 -/
+/-! ## Division by 11 -/
 
 /-- `2` is not a square modulo `11`, so `11` stays prime in `ℤ[√2]`. -/
 theorem qnr11 : ∀ a b : ZMod 11, a^2-2*b^2=0 → a=0 ∧ b=0 := by decide
 
-/-! ## 4. The norm condition and the descent at the centres -/
+/-! ## The norm condition -/
 
 /-- `N(A−3)+2` for the `F`-part `A = x₀+x₁q`. -/
 def f (x : R) : ℤ := (x 0-3)^2-2*(x 1)^2+2
