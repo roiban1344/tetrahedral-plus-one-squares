@@ -6,14 +6,14 @@ open Quartic2 R
 
 /-- The affine lattice containing the entire two-sided orbit. -/
 def lattice (x : R) : Prop := (2:ℤ) ∣ x 0 ∧
-  (4:ℤ) ∣ x 1+2*x 3-3 ∧ (2:ℤ) ∣ x 2
+  (4:ℤ) ∣ x 1+2*x 3-3
 
 theorem lattice_step (x : R) (hx : lattice x) :
     lattice (x*rho) ∧ lattice (x*rhoInv) := by
-  obtain ⟨h0,h1,h2⟩ := hx
+  obtain ⟨h0,h1⟩ := hx
   constructor
   all_goals
-    refine ⟨?_,?_,?_⟩ <;>
+    refine ⟨?_,?_⟩ <;>
       simp only [mul_apply0,mul_apply1,mul_apply2,mul_apply3] <;>
       norm_num [rho,rhoInv] <;> omega
 
@@ -32,15 +32,14 @@ a finite list of powers. -/
 theorem third (x : R) (hx : lattice x) :
     (128:ℤ) ∣ f (x*(↑(rhoU^3):R))-3*f (x*(↑(rhoU^2):R))+
       3*f (x*(↑(rhoU^1):R))-f x := by
-  obtain ⟨⟨a,ha⟩,⟨b,hb⟩,⟨c,hc⟩⟩ := hx
+  obtain ⟨⟨a,ha⟩,⟨b,hb⟩⟩ := hx
   have h0 : x 0=2*a := by omega
   have h1 : x 1=4*b+3-2*x 3 := by omega
-  have h2 : x 2=2*c := by omega
   have hp2 : (↑(rhoU^2):R)=⟨![41,24,6,4]⟩ := by decide +kernel
   have hp3 : (↑(rhoU^3):R)=⟨![531,306,83,48]⟩ := by decide +kernel
   rw [hp2,hp3,pow_one]
   simp only [f,mul_apply0,mul_apply1]
-  rw [h0,h1,h2]
+  rw [h0,h1]
   norm_num [rhoU,rho]
   ring_nf; omega
 
