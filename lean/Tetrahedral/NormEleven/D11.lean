@@ -1,3 +1,4 @@
+import Tetrahedral.NormEleven.PositiveOrbitData
 import Tetrahedral.NormEleven.DyadicCertificates
 import Tetrahedral.NormEleven.Certificates
 
@@ -17,7 +18,8 @@ theorem branch_complete (n r y : ℕ) (hr : n+3=11*r^2) (hy : n^2+2=66*y^2) : n=
       rw [this] at h0; omega
     · rw [y1_eq] at h0; have : (tau xi0) 0=11 := rfl
       rw [this] at h0; omega
-  · rw [hc,e,neg_mul,mul_comm] at hξ
-    exact absurd hξ (Dyadic11.negative j)
+  · rw [hc,e,neg_mul,mul_comm,neg_apply] at h0
+    have := Positive11.xi0_nonnegative j
+    omega
 
 end Tetrahedral.NormEleven.Branch11

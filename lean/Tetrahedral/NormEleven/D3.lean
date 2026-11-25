@@ -1,3 +1,4 @@
+import Tetrahedral.NormEleven.PositiveOrbitData
 import Tetrahedral.NormEleven.DyadicCertificates
 import Tetrahedral.Quartic.D3Euler
 import Tetrahedral.NormEleven.Certificates
@@ -6,10 +7,7 @@ namespace Tetrahedral.NormEleven.Branch3
 open Tetrahedral.Quartic3
 open R
 
-def tauHom : R →* R where
-  toFun := tau
-  map_one' := by ext i; fin_cases i <;> rfl
-  map_mul' := tau_mul
+abbrev tauHom : R →* R := Positive3.tauHom
 
 theorem tau_rhoU : Units.map tauHom rhoU=rhoU⁻¹ := by
   ext i; fin_cases i <;> rfl
@@ -48,6 +46,8 @@ theorem branch_complete (n r y : ℕ) (hr : n+3=3*r^2) (hy : n^2+2=2*y^2) : n=0 
       rw [this] at hz0; omega
     · right; rw [y1_eq] at hz0; have : y1 0=27 := rfl
       rw [this] at hz0; omega
-  · rw [e] at hzh; exact absurd hzh (Dyadic3.negative m)
+  · rw [e,neg_apply] at hz0
+    have := Positive3.xi0_nonnegative m
+    omega
 
 end Tetrahedral.NormEleven.Branch3

@@ -1,3 +1,4 @@
+import Tetrahedral.NormEleven.PositiveOrbitData
 import Tetrahedral.NormEleven.D2Dyadic
 import Tetrahedral.Quartic.D2Euler
 import Tetrahedral.NormEleven.Certificates
@@ -6,10 +7,7 @@ namespace Tetrahedral.NormEleven.Branch2
 open Tetrahedral.Quartic2
 open R
 
-def tauHom : R →* R where
-  toFun := tau
-  map_one' := by ext i; fin_cases i <;> rfl
-  map_mul' := tau_mul
+abbrev tauHom : R →* R := Positive2.tauHom
 
 theorem tau_rhoU : Units.map tauHom rhoU=rhoU⁻¹ := by
   ext i; fin_cases i <;> rfl
@@ -60,11 +58,13 @@ theorem branch_complete (n r y : ℕ) (hr : n+3=2*r^2) (hy : n^2+2=3*y^2) : n=5 
       rw [this] at hz0; right; omega
     · rw [c2_eq] at hz0; have : c2 0=8 := rfl
       rw [this] at hz0; left; omega
-  · exact (Dyadic2.exclude 0 r m (by simpa [Dyadic2.bad,neg_mul] using hzf)
-      (by simpa [Dyadic2.bad,neg_mul] using hz0.trans hrZ)).elim
-  · exact (Dyadic2.exclude 1 r m (by simpa [Dyadic2.bad] using hzf)
-      (by simpa [Dyadic2.bad] using hz0.trans hrZ)).elim
-  · exact (Dyadic2.exclude 2 r m (by simpa [Dyadic2.bad,neg_mul] using hzf)
-      (by simpa [Dyadic2.bad,neg_mul] using hz0.trans hrZ)).elim
+  · have := Positive2.xi0_nonnegative m
+    simp only [neg_one_mul,neg_apply] at hz0
+    omega
+  · exact (Dyadic2.exclude r m (by simpa only [one_mul] using hzf)
+      (by simpa only [one_mul] using hz0.trans hrZ)).elim
+  · have := Positive2.xi1_nonnegative m
+    simp only [neg_one_mul,neg_apply] at hz0
+    omega
 
 end Tetrahedral.NormEleven.Branch2

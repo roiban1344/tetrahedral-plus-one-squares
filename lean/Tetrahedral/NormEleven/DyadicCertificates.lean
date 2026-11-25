@@ -10,9 +10,6 @@ abbrev step : R := Direction1.step
 theorem step_eq : (↑(rhoU^2):R)=1+4*step := Direction1.step_eq
 theorem roots (m : ℤ) (hm : f (xi0*(↑(rhoU^m):R))=0) : m=0 ∨ m= -1 :=
   DyadicSimple.pair f rhoU xi0 Direction1.unique m hm
-theorem negative (m : ℤ) : f (-(xi0*(↑(rhoU^m):R)))≠0 :=
-  DyadicSimple.negative f Lf Qf f_expand rhoU xi0 step step_eq
-    (by decide +kernel) (by decide +kernel) m
 end Dyadic1
 
 namespace Dyadic3
@@ -21,9 +18,6 @@ abbrev step : R := Direction3.step
 theorem step_eq : (↑(rhoU^2):R)=1+4*step := Direction3.step_eq
 theorem roots (m : ℤ) (hm : f (xi0*(↑(rhoU^m):R))=0) : m=0 ∨ m= -1 :=
   DyadicSimple.pair f rhoU xi0 Direction3.unique m hm
-theorem negative (m : ℤ) : f (-(xi0*(↑(rhoU^m):R)))≠0 :=
-  DyadicSimple.negative f Lf Qf f_expand rhoU xi0 step step_eq
-    (by decide +kernel) (by decide +kernel) m
 end Dyadic3
 
 namespace Dyadic11
@@ -32,9 +26,6 @@ abbrev step : R := Direction11.step
 theorem step_eq : (↑(rhoU^2):R)=1+4*step := Direction11.step_eq
 theorem roots (m : ℤ) (hm : f (xi0*(↑(rhoU^m):R))=0) : m=0 ∨ m= -1 :=
   DyadicSimple.pair f rhoU xi0 Direction11.unique m hm
-theorem negative (m : ℤ) : f (-(xi0*(↑(rhoU^m):R)))≠0 :=
-  DyadicSimple.negative f Lf Qf f_expand rhoU xi0 step step_eq
-    (by decide +kernel) (by decide +kernel) m
 end Dyadic11
 
 end Tetrahedral.NormEleven

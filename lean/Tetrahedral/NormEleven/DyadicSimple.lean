@@ -27,16 +27,4 @@ theorem pair {R : Type*} [CommRing R] (f : R → ℤ) (u : Rˣ) (y : R)
   have hmc : m=centre c := by simpa only [ha0,mul_zero,add_zero] using he
   fin_cases c <;> simp_all [centre]
 
-theorem negative {R : Type*} [CommRing R]
-    (f : R → ℤ) (L : R → R →ₗ[ℤ] ℤ) (Q : R → ℤ)
-    (hq : ∀ x z (n : ℤ), f (x+n • z)=f x+n*L x z+n^2*Q z)
-    (u : Rˣ) (y U : R) (hw : (↑(u^2):R)=1+4*U)
-    (hL : ∀ k : Fin 2, (8:ℤ) ∣ 4*L (-y*(↑(u^k.val):R)) ((-y*(↑(u^k.val):R))*U))
-    (hp : ∀ k : Fin 2, ¬ (8:ℤ) ∣ f (-y*(↑(u^k.val):R)))
-    (m : ℤ) : f (-(y*(↑(u^m):R)))≠0 := by
-  intro hm
-  have h := QuadraticPolynomial.phase_obstruction f L Q hq u 2 (by decide)
-    4 8 U (by norm_num; exact hw) (-y) (by norm_num) hL m (by simpa only [neg_mul] using hm)
-  exact hp ⟨(m%2).toNat,by have := Int.emod_lt_of_pos m (by norm_num : (0:ℤ)<2); omega⟩ h
-
 end Tetrahedral.NormEleven.DyadicSimple

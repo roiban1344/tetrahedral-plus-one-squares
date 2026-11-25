@@ -109,9 +109,6 @@ abbrev step : R := Direction{d}.step
 theorem step_eq : (↑(rhoU^2):R)=1+4*step := Direction{d}.step_eq
 theorem roots (m : ℤ) (hm : f (xi0*(↑(rhoU^m):R))=0) : m=0 ∨ m= -1 :=
   DyadicSimple.pair f rhoU xi0 Direction{d}.unique m hm
-theorem negative (m : ℤ) : f (-(xi0*(↑(rhoU^m):R)))≠0 :=
-  DyadicSimple.negative f Lf Qf f_expand rhoU xi0 step step_eq
-    (by decide +kernel) (by decide +kernel) m
 end Dyadic{d}
 """
 

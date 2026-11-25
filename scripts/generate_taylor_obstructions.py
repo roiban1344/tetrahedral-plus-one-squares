@@ -62,7 +62,9 @@ def vec(v):
 
 def main():
     parts = [HEADER]
+    archive = [HEADER]
     specs = [(2, 3, 8, 'Quartic2', [(1, r) for r in [1, 2, 3, 5, 6]]),
+             (66, 11, 4, 'Quartic66', [(1, 2)]),
              (66, 11, 4, 'Quartic66', [(1, 2), (-1, 1), (-1, 2), (-1, 3)])]
     for d, e, delta, quartic, cases in specs:
         ring, raw = read_ring(d)
@@ -99,15 +101,21 @@ def main():
                 raise ValueError(f'No polynomial obstruction for {d}, {sg}, {r}')
             rows.append((y, z, v, w)); ns.append(N); vs.append(f % N)
             print(d, sg, r, 'modulus', N, 'constant residue', f % N)
-        parts.append(TEMPLATE.format(d=d, quartic=quartic, count=len(rows),
+        rendered = TEMPLATE.format(d=d, quartic=quartic, count=len(rows),
             points=','.join(vec(row[0]) for row in rows),
             first=','.join(vec(row[1]) for row in rows),
             second=','.join(vec(row[2]) for row in rows),
             third=','.join(vec(row[3]) for row in rows),
             moduli=','.join(map(str, ns)), values=','.join(map(str, vs)),
-            delta=delta, halfDelta=delta**2//2, cube=delta**3, s=delta//4))
+            delta=delta, halfDelta=delta**2//2, cube=delta**3, s=delta//4)
+        if d==66 and len(cases)>1:
+            archive.append(rendered.replace("Obstruction66", "Obstruction66Signed"))
+        else:
+            parts.append(rendered)
     parts.append('\nend Tetrahedral.NormEleven\n')
     OUT.write_text(''.join(parts))
+    archive.append('\nend Tetrahedral.NormEleven\n')
+    OUT.with_name('SignedTaylorArchive.lean').write_text(''.join(archive))
 
 
 if __name__ == '__main__':

@@ -35,44 +35,73 @@ theorem roots (m : ℤ) (hm : f (xi0*(↑(rhoU^m):R))=0) : m=0 ∨ m= -4 ∨ m= 
   have hmc : m=centre c := by simpa only [ha0,mul_zero,add_zero] using he
   fin_cases c <;> simp_all [centre]
 
-abbrev shortStep : R := step
-theorem shortStep_eq : (↑(rhoU^8):R)=1+8*shortStep := step_eq
+/-- Only the second positive Euler type remains. Its two parity classes
+fail different necessary conditions, at moduli 16 and 8. -/
+abbrev shortStep : R := ⟨![20,12,3,2]⟩
+theorem shortStep_eq : (↑(rhoU^2):R)=1+2*shortStep := by
+  have h : (↑(rhoU^2):R)=1+(2:ℤ) • shortStep := by
+    ext i; fin_cases i <;> decide +kernel
+  simpa only [zsmul_eq_mul,Int.cast_ofNat] using h
 
-def bad (c : Fin 3) : R := ![-xi0,xi1,-xi1] c
-def coord : R →ₗ[ℤ] ℤ where
-  toFun x := x 0
-  map_add' x y := rfl
-  map_smul' n x := rfl
+def extraPoint : Fin 2 → R := ![xi1,⟨![44,25,5,5]⟩]
+def extraFirst : Fin 2 → R := ![⟨![280,160,44,25]⟩,⟨![3580,2068,562,323]⟩]
+def extraSecond : Fin 2 → R := ![⟨![22868,13204,3580,2068]⟩,⟨![293876,169668,46016,26568]⟩]
+def extraThird : Fin 2 → R := ![⟨![1876768,1083552,293876,169668]⟩,
+  ⟨![24117184,13924064,3776404,2180308]⟩]
+theorem extra_point : ∀ j : Fin 2, xi1*(↑(rhoU^j.val):R)=extraPoint j := by decide +kernel
+theorem extra_products : ∀ j : Fin 2,
+    extraPoint j*shortStep=extraFirst j ∧
+    extraPoint j*shortStep^2=extraSecond j ∧
+    extraPoint j*shortStep^3=extraThird j := by decide +kernel
 
-/-- Keep the original square condition: three Euler types disappear before
-any local uniqueness argument is needed. -/
-theorem exclude (c : Fin 3) (r : ℕ) (m : ℤ)
-    (hf : f (bad c*(↑(rhoU^m):R))=0)
-    (hr : (bad c*(↑(rhoU^m):R)) 0=2*(r:ℤ)^2) : False := by
-  have hLf : ∀ k : Fin 8, (32:ℤ) ∣ 8*Lf (bad c*(↑(rhoU^k.val):R))
-      ((bad c*(↑(rhoU^k.val):R))*shortStep) := by fin_cases c <;> decide +kernel
-  have hcoord : ∀ k : Fin 8, (32:ℤ) ∣ 8*coord
-      ((bad c*(↑(rhoU^k.val):R))*shortStep) := by fin_cases c <;> decide +kernel
-  have hf' := QuadraticPolynomial.phase_obstruction f Lf Qf f_expand rhoU 8 (by decide)
-    8 32 shortStep (by norm_num; exact shortStep_eq) (bad c) (by norm_num) hLf m hf
-  have hg : ∀ x z : R, ∀ n : ℤ,
-      (x+n • z) 0-2*(r:ℤ)^2=(x 0-2*(r:ℤ)^2)+n*coord z+n^2*0 := by
-    intro x z n
-    change (x+n • z) 0-2*(r:ℤ)^2=(x 0-2*(r:ℤ)^2)+n*z 0+n^2*0
-    simp only [add_apply,zsmul_apply]; ring
-  have hr' := QuadraticPolynomial.phase_obstruction (fun x : R => x 0-2*(r:ℤ)^2)
-    (fun _ => coord) (fun _ => 0) hg rhoU 8 (by decide)
-    8 32 shortStep (by norm_num; exact shortStep_eq) (bad c) (by norm_num) hcoord m (by omega)
-  have cert : ∀ k : Fin 8, ∀ s : ZMod 32,
-      ((f (bad c*(↑(rhoU^k.val):R)):ℤ):ZMod 32)≠0 ∨
-      (((bad c*(↑(rhoU^k.val):R)) 0:ℤ):ZMod 32)≠2*s^2 := by fin_cases c <;> decide +kernel
-  have hlo := Int.emod_nonneg m (by norm_num : (8:ℤ)≠0)
-  have hhi := Int.emod_lt_of_pos m (by norm_num : (0:ℤ)<8)
-  rcases cert ⟨(m%8).toNat,by omega⟩ (r:ZMod 32) with h|h
-  · exact h ((ZMod.intCast_zmod_eq_zero_iff_dvd _ 32).mpr hf')
-  · apply h
-    have hh := (ZMod.intCast_zmod_eq_zero_iff_dvd _ 32).mpr hr'
-    push_cast at hh
-    linear_combination hh
+def extraModel (j : Fin 2) (a : ℤ) (E : R) : R := ⟨fun i => extraPoint j i+
+  2*a*extraFirst j i+2*a*(a-1)*extraSecond j i+8*(extraThird j*E) i⟩
+theorem extra_expansion (j : Fin 2) (a : ℤ) :
+    ∃ E, xi1*(↑(rhoU^((j.val:ℤ)+2*a)):R)=extraModel j a E := by
+  obtain ⟨E,hE⟩ := quadratic_even_zpow_factored (rhoU^2) (1:R) shortStep
+    (by convert shortStep_eq using 1 <;> ring) a
+  refine ⟨E,?_⟩
+  simp only [one_pow,one_mul] at hE
+  rw [zpow_add,zpow_mul,zpow_ofNat,Units.val_mul,hE,← mul_assoc,zpow_natCast,extra_point j]
+  have h := extra_products j
+  have hh : extraPoint j*(1+2*((a:R)*shortStep)+
+      2*((a:R)*((a:R)-1)*shortStep^2)+8*(shortStep^3*E))=
+      extraPoint j+(2*a) • extraFirst j+(2*a*(a-1)) • extraSecond j+
+      (8:ℤ) • (extraThird j*E) := by
+    rw [← h.1,← h.2.1,← h.2.2]
+    simp only [zsmul_eq_mul]; push_cast; ring
+  calc _=extraPoint j+(2*a) • extraFirst j+(2*a*(a-1)) • extraSecond j+
+        (8:ℤ) • (extraThird j*E) := by convert hh using 1 <;> ring
+       _=extraModel j a E := by ext i; simp only [extraModel,add_apply,zsmul_apply]
+
+
+theorem extra_residue (a : ℤ) (E : R) :
+    (16:ℤ) ∣ f (extraModel 0 a E)-8 ∧
+    (8:ℤ) ∣ (extraModel 1 a E) 0-4 := by
+  constructor <;> norm_num [f,extraModel,extraPoint,extraFirst,extraSecond,extraThird,xi1,
+    mul_apply0,mul_apply1] <;> ring_nf <;> omega
+
+theorem exclude (r : ℕ) (m : ℤ)
+    (hf : f (xi1*(↑(rhoU^m):R))=0)
+    (hr : (xi1*(↑(rhoU^m):R)) 0=2*(r:ℤ)^2) : False := by
+  let j : Fin 2 := ⟨(m%2).toNat,by omega⟩
+  have he : m=(j.val:ℤ)+2*(m/2) := by dsimp [j]; omega
+  obtain ⟨E,hE⟩ := extra_expansion j (m/2)
+  rw [← he] at hE
+  rw [hE] at hf hr
+  clear he hE
+  generalize hj : j=k at hf hr
+  fin_cases k
+  · change f (extraModel 0 (m/2) E)=0 at hf
+    have h := (extra_residue (m/2) E).1
+    rw [hf] at h; omega
+  · change (extraModel 1 (m/2) E) 0=2*(r:ℤ)^2 at hr
+    have h := (extra_residue (m/2) E).2
+    rw [hr] at h
+    have hm : (4:ℤ) ∣ (r:ℤ)^2-2 := by omega
+    have := (ZMod.intCast_zmod_eq_zero_iff_dvd _ 4).mpr hm
+    push_cast at this
+    have cert : ∀ s : ZMod 4, s^2≠2 := by decide +kernel
+    exact cert r (by linear_combination this)
 
 end Tetrahedral.NormEleven.Dyadic2

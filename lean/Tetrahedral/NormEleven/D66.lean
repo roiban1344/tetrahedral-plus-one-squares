@@ -1,3 +1,4 @@
+import Tetrahedral.NormEleven.PositiveOrbitData
 import Tetrahedral.NormEleven.D66Dyadic
 import Tetrahedral.NormEleven.Certificates
 
@@ -18,9 +19,8 @@ theorem branch_complete (n r y : ℕ) (hr : n+3=66*r^2) (hy : n^2+2=11*y^2) : n=
       rw [this] at h0; omega
     · have : (xi0*(↑(rhoU^(-1:ℤ)):R)) 0=66 := by decide
       rw [this] at h0; omega
-  · rw [hc,e,neg_mul,mul_comm] at hξ h0
-    have := Dyadic66.negative j hξ; subst this
-    have : (-(xi0*(↑(rhoU^(0:ℤ)):R))) 0=0 := by decide
-    rw [this] at h0; omega
+  · rw [hc,e,neg_mul,mul_comm,neg_apply] at h0
+    have := Positive66.xi0_nonnegative j
+    omega
 
 end Tetrahedral.NormEleven.Branch66

@@ -44,19 +44,19 @@ end Obstruction2
 
 namespace Obstruction66
 open Quartic66 R
-def point : Fin 4 → R := ![⟨![5016,1513,132,38]⟩,⟨![-66,-19,0,-1]⟩,⟨![-5016,-1513,-132,-38]⟩,⟨![-390258,-117667,-10032,-3027]⟩]
-def first : Fin 4 → R := ![⟨![45920486832,13845547728,1180873122,356046643]⟩,⟨![-590338980,-177993900,-15180924,-4577221]⟩,⟨![-45920486832,-13845547728,-1180873122,-356046643]⟩,⟨![-3572000460732,-1076998661748,-91856154588,-27695672677]⟩]
-def second : Fin 4 → R := ![⟨![420306949492682604,126727313476916916,10808447689476360,3258869595652440]⟩,⟨![-5403330697038252,-1629165503662308,-138949920429276,-41894977337604]⟩,⟨![-420306949492682604,-126727313476916916,-10808447689476360,-3258869595652440]⟩,⟨![-32694266128977933612,-9857692140531371748,-840752848905794484,-253496521931171436]⟩]
-def third : Fin 4 → R := ![⟨![3847039610894866052257536,1159926085724827648172544,98928952861448114690604,29828201594925417036516]⟩,⟨![-49456301513359138602336,-14911635967136199759744,-1271798737725651273996,-383461747443963664884]⟩,⟨![-3847039610894866052257536,-1159926085724827648172544,-98928952861448114690604,-29828201594925417036516]⟩,⟨![-299248292228168800405959840,-90226754952314707057887360,-7695351020527457755789068,-2320235633197099260009972]⟩]
-def modulus : Fin 4 → ℤ := ![1024,16,64,16]
-def value : Fin 4 → ℤ := ![512,8,32,8]
-theorem first_eq : ∀ j : Fin 4, point j*Direction66.step=first j := by decide +kernel
-theorem second_eq : ∀ j : Fin 4, point j*Direction66.step^2=second j := by decide +kernel
-theorem third_eq : ∀ j : Fin 4, point j*Direction66.step^3=third j := by decide +kernel
+def point : Fin 1 → R := ![⟨![5016,1513,132,38]⟩]
+def first : Fin 1 → R := ![⟨![45920486832,13845547728,1180873122,356046643]⟩]
+def second : Fin 1 → R := ![⟨![420306949492682604,126727313476916916,10808447689476360,3258869595652440]⟩]
+def third : Fin 1 → R := ![⟨![3847039610894866052257536,1159926085724827648172544,98928952861448114690604,29828201594925417036516]⟩]
+def modulus : Fin 1 → ℤ := ![1024]
+def value : Fin 1 → ℤ := ![512]
+theorem first_eq : ∀ j : Fin 1, point j*Direction66.step=first j := by decide +kernel
+theorem second_eq : ∀ j : Fin 1, point j*Direction66.step^2=second j := by decide +kernel
+theorem third_eq : ∀ j : Fin 1, point j*Direction66.step^3=third j := by decide +kernel
 
-def model (j : Fin 4) (a : ℤ) (E : R) : R := ⟨fun i => point j i+
+def model (j : Fin 1) (a : ℤ) (E : R) : R := ⟨fun i => point j i+
   4*a*first j i+8*a*(a-1)*second j i+64*(third j*E) i⟩
-theorem model_eq (j : Fin 4) (a : ℤ) (E : R) :
+theorem model_eq (j : Fin 1) (a : ℤ) (E : R) :
     TaylorOrbit.truncation 1 Direction66.step (point j) a E=model j a E := by
   simp only [TaylorOrbit.truncation]
   rw [first_eq j,second_eq j,third_eq j]
@@ -64,12 +64,12 @@ theorem model_eq (j : Fin 4) (a : ℤ) (E : R) :
   simp only [model,add_apply,zsmul_apply]
   ring
 
-theorem residue (j : Fin 4) (a : ℤ) (E : R) :
+theorem residue (j : Fin 1) (a : ℤ) (E : R) :
     modulus j ∣ f (model j a E)-value j := by
   fin_cases j <;> norm_num [modulus,value,f,model,point,first,second,third,mul_apply0,mul_apply1]
     <;> ring_nf <;> omega
-theorem value_nonzero : ∀ j : Fin 4, ¬ modulus j ∣ value j := by decide +kernel
-theorem nonzero (j : Fin 4) (a : ℤ) (E : R) :
+theorem value_nonzero : ∀ j : Fin 1, ¬ modulus j ∣ value j := by decide +kernel
+theorem nonzero (j : Fin 1) (a : ℤ) (E : R) :
     f (TaylorOrbit.truncation 1 Direction66.step (point j) a E)≠0 := by
   rw [model_eq]
   intro h
