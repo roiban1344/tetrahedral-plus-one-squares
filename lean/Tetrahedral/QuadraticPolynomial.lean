@@ -7,21 +7,20 @@ variable {R : Type*} [CommRing R]
 
 /-- The dyadic descent also applies to a quadratic polynomial with a constant
 and a linear part. Only its expansion at the chosen zero is needed. -/
-theorem exponent_unique_constrained (f : R → ℤ) (L : R →ₗ[ℤ] ℤ) (Q : R → ℤ)
+theorem exponent_unique_from_precision (f : R → ℤ) (L : R →ₗ[ℤ] ℤ) (Q : R → ℤ)
     (y : R) (w : Rˣ) (t v : ℕ) (U : R)
-    (hw : (↑w:R)=1+2^(t+1)*U) (hy : f y=0)
+    (hy : f y=0)
     (hquad : ∀ z (n : ℤ), f (y+n • z)=f y+n*L z+n^2*Q z)
     (Good : R → Prop)
-    (hgood : ∀ k (a : ℤ) E, (↑(w^((2:ℤ)^k*a)):R)=
-      1+2^(k+t+1)*((a:R)*U+2^t*E) → Good E)
+    (hprecision : ∀ k (a : ℤ), ∃ E : R,
+      (↑(w^((2:ℤ)^k*a)):R)=1+2^(k+t+1)*((a:R)*U+2^t*E) ∧ Good E)
     (hlinear : ∀ E, Good E → (2:ℤ)^v ∣ 2^t*L (y*E))
     (hquadratic : ∀ k (a : ℤ) E, Good E → (2:ℤ)^v ∣
       2^(k+t+1)*Q (a • (y*U)+((2:ℤ)^t) • (y*E)))
     (hkernel : ∀ a : ℤ, (2:ℤ)^v ∣ a*L (y*U) → 2 ∣ a)
     (i : ℤ) (hi : f (y*(↑(w^i):R))=0) : i=0 := by
   have parity (k : ℕ) (a : ℤ) (ha : f (y*(↑(w^((2:ℤ)^k*a)):R))=0) : 2 ∣ a := by
-    obtain ⟨E,hE⟩ := dyadic_zpow_precision w t k U hw a
-    have hg := hgood k a E hE
+    obtain ⟨E,hE,hg⟩ := hprecision k a
     let V : R := a • (y*U)+((2:ℤ)^t) • (y*E)
     have hR : y*(↑(w^((2:ℤ)^k*a)):R)=y+((2:ℤ)^(k+t+1)) • V := by
       rw [hE]
@@ -50,27 +49,6 @@ theorem exponent_unique_constrained (f : R → ℤ) (L : R →ₗ[ℤ] ℤ) (Q :
       exact ⟨b,by rw [ha,hb,pow_succ];ring⟩
   apply Int.eq_zero_of_dvd_of_natAbs_lt_natAbs (hd i.natAbs)
   simpa only [Int.natAbs_pow,show (2:ℤ).natAbs=2 from rfl] using i.natAbs.lt_two_pow_self
-
-/-- Three bits of first-variation divisibility and two bits in the quadratic
-part give a uniform gain when the actual remainder lies in a smaller lattice. -/
-theorem exponent_unique_lattice (f : R → ℤ) (L : R →ₗ[ℤ] ℤ) (Q : R → ℤ)
-    (y : R) (w : Rˣ) (t : ℕ) (U : R)
-    (hw : (↑w:R)=1+2^(t+1)*U) (hy : f y=0)
-    (hquad : ∀ z (n : ℤ), f (y+n • z)=f y+n*L z+n^2*Q z)
-    (Good : R → Prop)
-    (hgood : ∀ k (a : ℤ) E, (↑(w^((2:ℤ)^k*a)):R)=
-      1+2^(k+t+1)*((a:R)*U+2^t*E) → Good E)
-    (hlinear : ∀ E, Good E → (8:ℤ) ∣ L (y*E))
-    (hquadratic : ∀ (a : ℤ) E, Good E → (4:ℤ) ∣
-      Q (a • (y*U)+((2:ℤ)^t) • (y*E)))
-    (hkernel : ∀ a : ℤ, (2:ℤ)^(t+3) ∣ a*L (y*U) → 2 ∣ a)
-    (i : ℤ) (hi : f (y*(↑(w^i):R))=0) : i=0 :=
-  exponent_unique_constrained f L Q y w t (t+3) U hw hy hquad Good hgood
-    (by intro E hE; obtain ⟨b,hb⟩ := hlinear E hE
-        exact ⟨b,by rw [hb,pow_add]; norm_num; ring⟩)
-    (by intro k a E hE; obtain ⟨b,hb⟩ := hquadratic a E hE
-        refine ⟨2^k*b,?_⟩; rw [hb]; simp only [pow_add]; ring)
-    hkernel i hi
 
 
 variable (f : R → ℤ) (L : R → R →ₗ[ℤ] ℤ) (Q : R → ℤ)
