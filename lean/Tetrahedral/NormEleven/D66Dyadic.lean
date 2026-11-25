@@ -1,5 +1,6 @@
 import Tetrahedral.Quartic.D66
 import Tetrahedral.QuadraticPolynomialSecondOrder
+import Tetrahedral.NormEleven.NormPrecisionData
 
 set_option maxRecDepth 20000
 set_option maxHeartbeats 0
@@ -7,9 +8,9 @@ set_option maxHeartbeats 0
 namespace Tetrahedral.NormEleven.Dyadic66
 open Quartic66 R
 
-def step : R := ⟨fun i => ((rho^64-1 : R) i)/64⟩
-theorem step_eq : (↑(rhoU^64):R)=1+64*step := by
-  have h : (↑(rhoU^64):R)=1+(64:ℤ) • step := by
+def step : R := ⟨fun i => ((rho^16-1 : R) i)/16⟩
+theorem step_eq : (↑(rhoU^16):R)=1+16*step := by
+  have h : (↑(rhoU^16):R)=1+(16:ℤ) • step := by
     ext i; fin_cases i <;> decide +kernel
   simpa only [zsmul_eq_mul,Int.cast_ofNat] using h
 
@@ -50,39 +51,53 @@ theorem double_equation (sg : Fin 2) (c : ℤ) (hc : c≠0) (V : R)
         (-44*c-11*c^2*(2*V 0-c*relH V))*h0
   exact (mul_eq_zero.mp h4).resolve_left (pow_ne_zero _ hc)
 
-theorem kernel_precision (sg : Fin 2) (a : ℤ) (E : R) :
-    (128:ℤ) ∣ kernel sg (a • step+(32:ℤ) • E)-a^2*kernel sg step := by
+theorem kernel_precision (sg : Fin 2) (a : ℤ) (E : R)
+    (hE : (4:ℤ) ∣ E 0 ∧ (4:ℤ) ∣ E 1) :
+    (128:ℤ) ∣ kernel sg (a • step+(8:ℤ) • E)-a^2*kernel sg step := by
   have h0 : (2:ℤ) ∣ step 0 := by decide +kernel
   have h1 : (2:ℤ) ∣ step 1 := by decide +kernel
   obtain ⟨u,hu⟩ := h0; obtain ⟨v,hv⟩ := h1
-  simp only [kernel,relH,relK,add_apply,zsmul_apply,hu,hv]
-  ring_nf
-  omega
+  obtain ⟨b,hb⟩ := hE.1; obtain ⟨d,hd⟩ := hE.2
+  simp only [kernel,relH,relK,add_apply,zsmul_apply,hu,hv,hb,hd]
+  fin_cases sg <;> simp [sign] <;> ring_nf <;> omega
 
 /-- A double zero still forces an even exponent: its second-order coefficient
 has valuation six (positive sign) or three (negative sign). -/
 theorem double_unique (sg : Fin 2) (i : ℤ)
-    (hi : phi (sign sg) ((↑((rhoU^64)^i):R) 0) ((↑((rhoU^64)^i):R) 1)=0) : i=0 := by
+    (hi : phi (sign sg) ((↑((rhoU^16)^i):R) 0) ((↑((rhoU^16)^i):R) 1)=0) : i=0 := by
+  have hrw : ∀ j : ℤ, relH (↑((rhoU^16)^j):R)=1 ∧ relK (↑((rhoU^16)^j):R)=0 := by
+    intro j; have h := rel_rho (16*j); rwa [zpow_mul,zpow_ofNat] at h
   have parity (k : ℕ) (a : ℤ)
-      (ha : phi (sign sg) ((↑((rhoU^64)^((2:ℤ)^k*a)):R) 0)
-        ((↑((rhoU^64)^((2:ℤ)^k*a)):R) 1)=0) : 2 ∣ a := by
-    obtain ⟨E,hE⟩ := dyadic_zpow_precision (rhoU^64) 5 k step (by norm_num; exact step_eq) a
-    let c : ℤ := 2^(k+6)
-    let V : R := a • step+(32:ℤ) • E
-    have hz : (↑((rhoU^64)^((2:ℤ)^k*a)):R)=1+c • V := by
+      (ha : phi (sign sg) ((↑((rhoU^16)^((2:ℤ)^k*a)):R) 0)
+        ((↑((rhoU^16)^((2:ℤ)^k*a)):R) 1)=0) : 2 ∣ a := by
+    obtain ⟨E,hE⟩ := dyadic_zpow_precision (rhoU^16) 3 k step (by norm_num; exact step_eq) a
+    have hg := Precision66.error 3 (by decide) (rhoU^16) step
+      (by norm_num; exact step_eq) hrw k a E hE
+    let c : ℤ := 2^(k+4)
+    let V : R := a • step+(8:ℤ) • E
+    have hz : (↑((rhoU^16)^((2:ℤ)^k*a)):R)=1+c • V := by
       rw [hE]; simp only [c,V,zsmul_eq_mul]; push_cast; ring
-    have hr := rel_rho (64*((2:ℤ)^k*a))
+    have hr := rel_rho (16*((2:ℤ)^k*a))
     rw [zpow_mul,zpow_ofNat,hz] at hr
     rw [hz] at ha
     have he := double_equation sg c (by dsimp [c]; positivity) V hr ha
-    have hc : (512:ℤ) ∣ c^2 := ⟨2^(2*k+3),by
-      dsimp [c]
-      rw [← pow_mul,show (512:ℤ)=2^9 by norm_num,← pow_add]
-      congr 1; omega⟩
+    have hU : (4:ℤ) ∣ step 0 ∧ (4:ℤ) ∣ step 1 := by decide +kernel
+    have hV : (4:ℤ) ∣ V 0 ∧ (4:ℤ) ∣ V 1 := by
+      simp only [V,add_apply,zsmul_apply]
+      exact ⟨(hU.1.mul_left a).add (hg.1.mul_left 8),
+        (hU.2.mul_left a).add (hg.2.mul_left 8)⟩
+    obtain ⟨hH,hK⟩ := Precision66.norm V hV
+    obtain ⟨h,hh⟩ := hH; obtain ⟨j,hj⟩ := hK
+    have hJ : (2:ℤ) ∣ 121*(relK V)^2-11*(relH V)^2 := by rw [hh,hj]; ring_nf; omega
+    obtain ⟨v,hv⟩ := hJ
+    have hc : (512:ℤ) ∣ c^2*(121*(relK V)^2-11*(relH V)^2) := ⟨2^(2*k)*v,by
+      rw [hv]; dsimp [c]
+      rw [← pow_mul,← mul_assoc,← pow_succ,show (k+4)*2+1=9+2*k by omega,pow_add]
+      norm_num; ring⟩
     have hn : (512:ℤ) ∣ 44*kernel sg V := by
-      have hh := dvd_neg.mpr (hc.mul_right (121*(relK V)^2-11*(relH V)^2))
+      have hh := dvd_neg.mpr hc
       convert hh using 1 <;> linear_combination he
-    obtain ⟨b,hb⟩ := kernel_precision sg a E
+    obtain ⟨b,hb⟩ := kernel_precision sg a E hg
     have hd : (512:ℤ) ∣ 44*(kernel sg V-a^2*kernel sg step) :=
       ⟨11*b,by rw [hb]; ring⟩
     have hmul : (512:ℤ) ∣ a^2*(44*kernel sg step) := by
@@ -114,36 +129,38 @@ def coord1 : R →ₗ[ℤ] ℤ where
   map_smul' _ _ := rfl
 
 def centre (sg : Fin 2) (c : Fin 3) : ℤ := if sg=0 then ![0,1,-1] c else 0
-def modulus (j : Fin 11) : ℤ := ![16,64,256,512,1024,2048,4096,8192,16384,32768,131072] j
+def modulus (j : Fin 7) : ℤ := ![16,64,256,512,1024,2048,8192] j
 
-theorem phase_certificate : ∀ sg : Fin 2, ∀ r : Fin 64,
-    (∃ c : Fin 3, (r.val:ℤ)=centre sg c%64) ∨
-    ∃ j : Fin 11, modulus j ∣ (262144:ℤ) ∧
-      modulus j ∣ 64*Lf (base sg*(↑(rhoU^r.val):R)) ((base sg*(↑(rhoU^r.val):R))*step)-
-        2048*Lf (base sg*(↑(rhoU^r.val):R)) ((base sg*(↑(rhoU^r.val):R))*step^2) ∧
-      modulus j ∣ 2048*Lf (base sg*(↑(rhoU^r.val):R)) ((base sg*(↑(rhoU^r.val):R))*step^2)+
-        4096*Qf ((base sg*(↑(rhoU^r.val):R))*step) ∧
+theorem phase_certificate : ∀ sg : Fin 2, ∀ r : Fin 16,
+    (∃ c : Fin 3, (r.val:ℤ)=centre sg c%16) ∨
+    ∃ j : Fin 7, modulus j ∣ (8192:ℤ) ∧
+      modulus j ∣ 16*Lf (base sg*(↑(rhoU^r.val):R)) ((base sg*(↑(rhoU^r.val):R))*step)-
+        128*Lf (base sg*(↑(rhoU^r.val):R)) ((base sg*(↑(rhoU^r.val):R))*step^2) ∧
+      modulus j ∣ 128*Lf (base sg*(↑(rhoU^r.val):R)) ((base sg*(↑(rhoU^r.val):R))*step^2)+
+        256*Qf ((base sg*(↑(rhoU^r.val):R))*step) ∧
       ¬ modulus j ∣ f (base sg*(↑(rhoU^r.val):R)) := by decide +kernel
 
 def simpleCentre (c : Fin 2) : ℤ := if c=0 then 1 else -1
 
 theorem simple_unique (c : Fin 2) (i : ℤ)
-    (hi : f ((xi0*(↑(rhoU^(simpleCentre c)):R))*(↑((rhoU^64)^i):R))=0) : i=0 := by
+    (hi : f ((xi0*(↑(rhoU^(simpleCentre c)):R))*(↑((rhoU^16)^i):R))=0) : i=0 := by
   have hz : ∀ c : Fin 2, f (xi0*(↑(rhoU^(simpleCentre c)):R))=0 := by decide +kernel
   have hk : ∀ c : Fin 2, Lf (xi0*(↑(rhoU^(simpleCentre c)):R))
       ((xi0*(↑(rhoU^(simpleCentre c)):R))*step)%64=32 := by decide +kernel
-  apply QuadraticPolynomial.exponent_unique_even f
+  have hr : ∀ j : ℤ, relH (↑((rhoU^16)^j):R)=1 ∧ relK (↑((rhoU^16)^j):R)=0 := by
+    intro j; have h := rel_rho (16*j); rwa [zpow_mul,zpow_ofNat] at h
+  have hc : simpleCentre c=Precision66.centre c := by fin_cases c <;> rfl
+  apply RelativeNormPrecision.unique Precision66.X Precision66.Y 4 f
     (Lf (xi0*(↑(rhoU^(simpleCentre c)):R))) Qf (xi0*(↑(rhoU^(simpleCentre c)):R))
-    (rhoU^64) 5 step (by norm_num; exact step_eq) (hz c) (f_expand _) ?_ ?_ i hi
-  · intro z
-    refine ⟨((xi0*(↑(rhoU^(simpleCentre c)):R)) 0-3)*z 0-
-      11*(xi0*(↑(rhoU^(simpleCentre c)):R)) 1*z 1,?_⟩
-    simp only [Lf,LinearMap.coe_mk,AddHom.coe_mk]; ring
-  · intro a ha
-    norm_num at ha
-    have h := Int.emod_eq_zero_of_dvd ha
-    rw [Int.mul_emod,hk c] at h
-    omega
+    (rhoU^16) 3 step (by norm_num; exact step_eq) (hz c) (f_expand _)
+    (Precision66.error 3 (by decide) (rhoU^16) step (by norm_num; exact step_eq) hr)
+    (by decide +kernel) (by rw [hc]; exact Precision66.linear c)
+    (Precision66.quadratic _) ?_ i hi
+  intro a ha
+  norm_num at ha
+  have h := Int.emod_eq_zero_of_dvd ha
+  rw [Int.mul_emod,hk c] at h
+  omega
 
 theorem roots (sg : Fin 2) (m : ℤ) (hm : f (base sg*(↑(rhoU^m):R))=0) :
     ∃ c : Fin 3, m=centre sg c := by
@@ -152,18 +169,18 @@ theorem roots (sg : Fin 2) (m : ℤ) (hm : f (base sg*(↑(rhoU^m):R))=0) :
       fun x z : R => Lf x z := rfl
   have hpure : QuadraticPolynomialSecondOrder.pure coord0 coord1 11=Qf := rfl
   obtain ⟨c,hc⟩ := QuadraticPolynomialSecondOrder.phase_roots coord0 coord1 11 3 2
-    rhoU 64 (by decide) 16 step (by norm_num; exact step_eq) (base sg) (centre sg) modulus
+    rhoU 16 (by decide) 4 step (by norm_num; exact step_eq) (base sg) (centre sg) modulus
     (by norm_num only [hval,hlin,hpure,Int.reducePow,Int.reduceMul,Nat.cast_ofNat]
         exact phase_certificate sg) m (by rw [hval]; exact hm)
   norm_num at hc
-  have hd : (64:ℤ) ∣ m-centre sg c := Int.dvd_of_emod_eq_zero (by
+  have hd : (16:ℤ) ∣ m-centre sg c := Int.dvd_of_emod_eq_zero (by
     rw [Int.sub_emod,hc,sub_self,Int.zero_emod])
   obtain ⟨a,ha⟩ := hd
-  have he : m=centre sg c+64*a := by omega
-  have hp : rhoU^m=rhoU^(centre sg c)*(rhoU^64)^a := by
+  have he : m=centre sg c+16*a := by omega
+  have hp : rhoU^m=rhoU^(centre sg c)*(rhoU^16)^a := by
     rw [← zpow_natCast,← zpow_mul,← zpow_add]
     norm_num; rw [← he]
-  have hb : f ((base sg*(↑(rhoU^(centre sg c)):R))*(↑((rhoU^64)^a):R))=0 := by
+  have hb : f ((base sg*(↑(rhoU^(centre sg c)):R))*(↑((rhoU^16)^a):R))=0 := by
     simpa only [hp,Units.val_mul,mul_assoc] using hm
   have ha0 : a=0 := by
     fin_cases sg

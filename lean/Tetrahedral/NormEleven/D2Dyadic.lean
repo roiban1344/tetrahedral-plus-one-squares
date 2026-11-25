@@ -1,5 +1,6 @@
 import Tetrahedral.Quartic.D2
-import Tetrahedral.QuadraticPolynomial
+import Tetrahedral.QuadraticPolynomialSecondOrder
+import Tetrahedral.NormEleven.NormPrecisionData
 
 set_option maxRecDepth 20000
 set_option maxHeartbeats 0
@@ -7,41 +8,51 @@ set_option maxHeartbeats 0
 namespace Tetrahedral.NormEleven.Dyadic2
 open Quartic2 R
 
-def step : R := ⟨fun i => ((rho^128-1 : R) i)/128⟩
-theorem step_eq : (↑(rhoU^128):R)=1+128*step := by
-  have h : (↑(rhoU^128):R)=1+(128:ℤ) • step := by
+def step : R := ⟨fun i => ((rho^32-1 : R) i)/32⟩
+theorem step_eq : (↑(rhoU^32):R)=1+32*step := by
+  have h : (↑(rhoU^32):R)=1+(32:ℤ) • step := by
     ext i; fin_cases i <;> decide +kernel
   simpa only [zsmul_eq_mul,Int.cast_ofNat] using h
 
 def centre (c : Fin 3) : ℤ := ![0,-4,-1] c
-def modulus (j : Fin 3) : ℤ := ![128,4096,8192] j
+def modulus (j : Fin 5) : ℤ := ![128,256,512,1024,2048] j
 
-theorem phase_certificate : ∀ k : Fin 128,
-    (∃ c : Fin 3, (k.val:ℤ)=centre c%128) ∨
-    ∃ j : Fin 3, modulus j ∣ (128:ℤ)^2 ∧
-      modulus j ∣ 128*Lf (xi0*(↑(rhoU^k.val):R)) ((xi0*(↑(rhoU^k.val):R))*step) ∧
-      ¬ modulus j ∣ f (xi0*(↑(rhoU^k.val):R)) := by decide +kernel
+theorem phase_certificate : ∀ r : Fin 32,
+    (∃ c : Fin 3, (r.val:ℤ)=centre c%32) ∨
+    ∃ j : Fin 5, modulus j ∣ (65536:ℤ) ∧
+      modulus j ∣ 32*Lf (xi0*(↑(rhoU^r.val):R)) ((xi0*(↑(rhoU^r.val):R))*step)-
+        512*Lf (xi0*(↑(rhoU^r.val):R)) ((xi0*(↑(rhoU^r.val):R))*step^2) ∧
+      modulus j ∣ 512*Lf (xi0*(↑(rhoU^r.val):R)) ((xi0*(↑(rhoU^r.val):R))*step^2)+
+        1024*Qf ((xi0*(↑(rhoU^r.val):R))*step) ∧
+      ¬ modulus j ∣ f (xi0*(↑(rhoU^r.val):R)) := by decide +kernel
 
 theorem roots (m : ℤ) (hm : f (xi0*(↑(rhoU^m):R))=0) : m=0 ∨ m= -4 ∨ m= -1 := by
-  obtain ⟨c,hc⟩ := QuadraticPolynomial.phase_roots f Lf Qf f_expand rhoU 128 (by decide)
-    128 step (by norm_num; exact step_eq) xi0 centre modulus phase_certificate m hm
+  have hval : QuadraticPolynomialSecondOrder.value Precision2.X Precision2.Y 3 3 2=f := rfl
+  have hlin : QuadraticPolynomialSecondOrder.linear Precision2.X Precision2.Y 3 3=
+      fun x z : R => Lf x z := rfl
+  have hpure : QuadraticPolynomialSecondOrder.pure Precision2.X Precision2.Y 3=Qf := rfl
+  obtain ⟨c,hc⟩ := QuadraticPolynomialSecondOrder.phase_roots Precision2.X Precision2.Y 3 3 2
+    rhoU 32 (by decide) 8 step (by norm_num; exact step_eq) xi0 centre modulus
+    (by norm_num only [hval,hlin,hpure,Int.reducePow,Int.reduceMul,Nat.cast_ofNat]
+        exact phase_certificate) m (by rw [hval]; exact hm)
   norm_num at hc
-  have hd : (128:ℤ) ∣ m-centre c := Int.dvd_of_emod_eq_zero (by
+  have hd : (32:ℤ) ∣ m-centre c := Int.dvd_of_emod_eq_zero (by
     rw [Int.sub_emod,hc,sub_self,Int.zero_emod])
   obtain ⟨a,ha⟩ := hd
-  have he : m=centre c+128*a := by omega
-  have hp : rhoU^m=rhoU^(centre c)*(rhoU^128)^a := by
+  have he : m=centre c+32*a := by omega
+  have hp : rhoU^m=rhoU^(centre c)*(rhoU^32)^a := by
     rw [← zpow_natCast,← zpow_mul,← zpow_add]
     norm_num; rw [← he]
   have hz : ∀ c : Fin 3, f (xi0*(↑(rhoU^(centre c)):R))=0 := by decide +kernel
   have hk : ∀ c : Fin 3, Lf (xi0*(↑(rhoU^(centre c)):R))
       ((xi0*(↑(rhoU^(centre c)):R))*step)%128 ∈ [32,64,96] := by decide +kernel
-  have ha0 := QuadraticPolynomial.exponent_unique_even f
+  have hr : ∀ j : ℤ, relH (↑((rhoU^32)^j):R)=1 ∧ relK (↑((rhoU^32)^j):R)=0 := by
+    intro j; have h := relN_rho_zpow (32*j); rwa [zpow_mul,zpow_ofNat] at h
+  have ha0 := RelativeNormPrecision.unique Precision2.X Precision2.Y 4 f
     (Lf (xi0*(↑(rhoU^(centre c)):R))) Qf (xi0*(↑(rhoU^(centre c)):R))
-    (rhoU^128) 6 step (by norm_num; exact step_eq) (hz c) (f_expand _) (by
-      intro z
-      exact ⟨((xi0*(↑(rhoU^(centre c)):R)) 0-3)*z 0-3*(xi0*(↑(rhoU^(centre c)):R)) 1*z 1,
-        by simp only [Lf,LinearMap.coe_mk,AddHom.coe_mk]; ring⟩) (by
+    (rhoU^32) 4 step (by norm_num; exact step_eq) (hz c) (f_expand _)
+    (Precision2.error 4 (by decide) (rhoU^32) step (by norm_num; exact step_eq) hr)
+    (by decide +kernel) (Precision2.linear c) (Precision2.quadratic _) (by
       intro b hb
       norm_num at hb
       have hb' := Int.emod_eq_zero_of_dvd hb

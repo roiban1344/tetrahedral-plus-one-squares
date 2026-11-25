@@ -15,7 +15,7 @@ def cross (z v : R) : ℤ := A z*A v-e*B z*B v
 remainder. This remains valid for negative integer exponents. -/
 theorem orbit_congruence (w : Rˣ) (s : ℤ) (U : R)
     (hw : (w:R)=1+4*(s:R)*U) (y : R) (a : ℤ) :
-    (64*s^3) ∣ value A B e k c (y*(↑(w^a):R))-
+    (128*s^3) ∣ value A B e k c (y*(↑(w^a):R))-
       (value A B e k c y+
         (4*s*linear A B e k y (y*U)-8*s^2*linear A B e k y (y*U^2))*a+
         (8*s^2*linear A B e k y (y*U^2)+16*s^2*pure A B e (y*U))*a^2) := by
@@ -24,18 +24,22 @@ theorem orbit_congruence (w : Rˣ) (s : ℤ) (U : R)
       (8*s^2*(a*(a-1))) • (y*U^2)+(64*s^3) • (y*E) := by
     rw [hE]; simp only [zsmul_eq_mul]; push_cast; ring
   rw [he]
-  refine ⟨a^2*(a-1)*cross A B e (y*U) (y*U^2)+
-    s*a^2*(a-1)^2*pure A B e (y*U^2)+linear A B e k y (y*E)+
-    8*s*a*cross A B e (y*U) (y*E)+
-    16*s^2*a*(a-1)*cross A B e (y*U^2) (y*E)+64*s^3*pure A B e (y*E),?_⟩
+  obtain ⟨b,hb⟩ := consecutive_product_even a
+  refine ⟨a*b*cross A B e (y*U) (y*U^2)+
+    2*s*b^2*pure A B e (y*U^2)+(A y-k)*A (y*E)-e*B y*B (y*E)+
+    4*s*a*cross A B e (y*U) (y*E)+
+    8*s^2*a*(a-1)*cross A B e (y*U^2) (y*E)+32*s^3*pure A B e (y*E),?_⟩
+  have hc := congrArg (fun z : ℤ => 64*s^3*
+    (a*cross A B e (y*U) (y*U^2)+s*(a*(a-1)+2*b)*pure A B e (y*U^2))*z) hb
   simp only [value,linear,pure,cross,map_add,map_smul,smul_eq_mul]
-  ring
+  simp only [cross,pure] at hc
+  linear_combination hc
 
 theorem phase_roots {C J : Type*} (u : Rˣ) (P : ℕ) (hP : 0<P)
     (s : ℤ) (U : R) (hw : (↑(u^P):R)=1+4*(s:R)*U) (y : R)
     (centre : C → ℤ) (modulus : J → ℤ)
     (hcert : ∀ r : Fin P, (∃ z, (r.val:ℤ)=centre z%P) ∨
-      ∃ j, modulus j ∣ 64*s^3 ∧
+      ∃ j, modulus j ∣ 128*s^3 ∧
         modulus j ∣ 4*s*linear A B e k (y*(↑(u^r.val):R)) ((y*(↑(u^r.val):R))*U)-
           8*s^2*linear A B e k (y*(↑(u^r.val):R)) ((y*(↑(u^r.val):R))*U^2) ∧
         modulus j ∣ 8*s^2*linear A B e k (y*(↑(u^r.val):R)) ((y*(↑(u^r.val):R))*U^2)+

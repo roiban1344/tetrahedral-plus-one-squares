@@ -1,54 +1,42 @@
 import Tetrahedral.QuadraticPolynomial
-import Tetrahedral.Quartic.D1
-import Tetrahedral.Quartic.D3
-import Tetrahedral.Quartic.D11
 
 namespace Tetrahedral.NormEleven.DyadicSimple
 
-def centre (c : Fin 2) : ℤ := if c=0 then 0 else -1
+def centre : Fin 2 → ℤ := ![0,-1]
 
-section
-variable {R : Type*} [CommRing R]
-variable (f : R → ℤ) (L : R → R →ₗ[ℤ] ℤ) (Q : R → ℤ)
-variable (hq : ∀ x z (n : ℤ), f (x+n • z)=f x+n*L x z+n^2*Q z)
-
-include hq
-
-/-- Two adjacent zeros, eight phases, and one dyadic descent. The period is
-for the condition, not for all four coordinates of the ring element. -/
-theorem pair (hEven : ∀ x z, (2:ℤ) ∣ L x z) (u : Rˣ) (y U : R) (hw : (↑(u^8):R)=1+16*U)
-    (hL : ∀ k : Fin 8, (128:ℤ) ∣ 16*L (y*(↑(u^k.val):R)) ((y*(↑(u^k.val):R))*U))
-    (hp : ∀ k : Fin 8, (128:ℤ) ∣ f (y*(↑(u^k.val):R)) → k.val=0 ∨ k.val=7)
-    (hz : ∀ c : Fin 2, f (y*(↑(u^(centre c)):R))=0)
-    (hk : ∀ c : Fin 2, L (y*(↑(u^(centre c)):R)) ((y*(↑(u^(centre c)):R))*U)%16=8)
+/-- Two known roots exhaust the two parity classes once uniqueness holds
+under the square of the unit. No positive-phase table is needed. -/
+theorem pair {R : Type*} [CommRing R] (f : R → ℤ) (u : Rˣ) (y : R)
+    (hu : ∀ c : Fin 2, ∀ i : ℤ,
+      f ((y*(↑(u^(centre c)):R))*(↑((u^2)^i):R))=0 → i=0)
     (m : ℤ) (hm : f (y*(↑(u^m):R))=0) : m=0 ∨ m= -1 := by
-  have h := QuadraticPolynomial.phase_obstruction f L Q hq u 8 (by decide)
-    16 128 U (by norm_num; exact hw) y (by norm_num) hL m hm
-  have hlo := Int.emod_nonneg m (by norm_num : (8:ℤ)≠0)
-  have hhi := Int.emod_lt_of_pos m (by norm_num : (0:ℤ)<8)
-  have hh := hp ⟨(m%8).toNat,by omega⟩ h
-  change (m%8).toNat=0 ∨ (m%8).toNat=7 at hh
-  obtain ⟨c,hc⟩ := QuadraticPolynomial.lift_roots f L Q hq u 8 3 U
-    (by norm_num; exact hw) y centre hz (fun c z => hEven _ z) (by
-      intro c a ha
-      norm_num at ha
-      have hmod := Int.emod_eq_zero_of_dvd ha
-      rw [Int.mul_emod,hk c] at hmod
-      omega) m hm (by
-        rcases hh with hh|hh
-        · exact ⟨0,by change m%8=0; omega⟩
-        · exact ⟨1,by change m%8=7; omega⟩)
-  fin_cases c <;> simp only [centre] at hc <;> simp_all
+  have hlo := Int.emod_nonneg m (by norm_num : (2:ℤ)≠0)
+  have hhi := Int.emod_lt_of_pos m (by norm_num : (0:ℤ)<2)
+  obtain ⟨c,hc⟩ : ∃ c : Fin 2, m%2=centre c%2 := by
+    by_cases h : m%2=0
+    · exact ⟨0,by simpa [centre] using h⟩
+    · exact ⟨1,by norm_num [centre]; omega⟩
+  have hd : (2:ℤ) ∣ m-centre c := Int.dvd_of_emod_eq_zero (by
+    rw [Int.sub_emod,hc,sub_self,Int.zero_emod])
+  obtain ⟨a,ha⟩ := hd
+  have he : m=centre c+2*a := by omega
+  have hp : u^m=u^(centre c)*(u^2)^a := by
+    rw [← zpow_natCast,← zpow_mul,← zpow_add]
+    norm_num; rw [← he]
+  have ha0 := hu c a (by simpa only [hp,Units.val_mul,mul_assoc] using hm)
+  have hmc : m=centre c := by simpa only [ha0,mul_zero,add_zero] using he
+  fin_cases c <;> simp_all [centre]
 
-theorem negative (u : Rˣ) (y U : R) (hw : (↑(u^8):R)=1+16*U)
-    (hL : ∀ k : Fin 8, (128:ℤ) ∣ 16*L (-y*(↑(u^k.val):R)) ((-y*(↑(u^k.val):R))*U))
-    (hp : ∀ k : Fin 8, ¬ (128:ℤ) ∣ f (-y*(↑(u^k.val):R)))
+theorem negative {R : Type*} [CommRing R]
+    (f : R → ℤ) (L : R → R →ₗ[ℤ] ℤ) (Q : R → ℤ)
+    (hq : ∀ x z (n : ℤ), f (x+n • z)=f x+n*L x z+n^2*Q z)
+    (u : Rˣ) (y U : R) (hw : (↑(u^2):R)=1+4*U)
+    (hL : ∀ k : Fin 2, (8:ℤ) ∣ 4*L (-y*(↑(u^k.val):R)) ((-y*(↑(u^k.val):R))*U))
+    (hp : ∀ k : Fin 2, ¬ (8:ℤ) ∣ f (-y*(↑(u^k.val):R)))
     (m : ℤ) : f (-(y*(↑(u^m):R)))≠0 := by
   intro hm
-  have h := QuadraticPolynomial.phase_obstruction f L Q hq u 8 (by decide)
-    16 128 U (by norm_num; exact hw) (-y) (by norm_num) hL m (by simpa only [neg_mul] using hm)
-  exact hp ⟨(m%8).toNat,by have := Int.emod_lt_of_pos m (by norm_num : (0:ℤ)<8); omega⟩ h
-
-end
+  have h := QuadraticPolynomial.phase_obstruction f L Q hq u 2 (by decide)
+    4 8 U (by norm_num; exact hw) (-y) (by norm_num) hL m (by simpa only [neg_mul] using hm)
+  exact hp ⟨(m%2).toNat,by have := Int.emod_lt_of_pos m (by norm_num : (0:ℤ)<2); omega⟩ h
 
 end Tetrahedral.NormEleven.DyadicSimple
