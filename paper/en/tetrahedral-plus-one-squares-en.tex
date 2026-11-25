@@ -12,6 +12,7 @@
 
 % Unicode symbols in the Lean listing (Latin Modern Mono has no glyphs for them).
 \newunicodechar{ℕ}{\ensuremath{\mathbb{N}}}
+\newunicodechar{ℚ}{\ensuremath{\mathbb{Q}}}
 \newunicodechar{∃}{\ensuremath{\exists}}
 \newunicodechar{↔}{\ensuremath{\leftrightarrow}}
 \newunicodechar{∨}{\ensuremath{\vee}}
@@ -53,9 +54,10 @@
 For a nonnegative integer $n$, the tetrahedral number $n(n+1)(n+2)/6$ plus $1$ is a square only for $n=0,5,8,22,24,63,13775$.
 This equation defines an elliptic curve. Therefore, the integral points are usually determined by a computation based on lower bounds for linear forms in elliptic logarithms.
 This paper gives a proof that does not use the theory of elliptic curves.
-The central step of the proof combines the two equations into one element of relative norm $11$.
-We divide that element by $11$ and reduce it to a power of a unit. We determine the exponent by the $2$-adic uniqueness lemma.
-The finite computations needed are limited to explicit integer identities and congruences. The whole proof is formalized in Lean~4 and Mathlib.
+The central step of the proof combines the two equations into a single equation $\xi\,\tau(\xi)=11$ for an element $\xi$ of a quartic ring, where $\tau$ is an analogue of the conjugation of a quadratic field.
+We divide $\xi$ by $11$ and reduce it to a power of a unit. We determine the exponent by the $2$-adic uniqueness lemma.
+The only numerical computations are products of particular elements and congruences modulo small numbers; no search for candidate solutions is made.
+The whole proof is formalized in Lean~4 and Mathlib.
 \end{abstract}
 
 \tableofcontents
@@ -108,7 +110,7 @@ The proof proceeds in the following order.
 \begin{enumerate}
 \item Split the equation into five systems $n+3=dr^2$, $n^2+2=ey^2$ (Section~\ref{sec:branches}).
 \item Write the solutions of the second equation in the form of a square in two integers (Section~\ref{sec:parameters}).
-\item Combine the two equations into an element $\xi$ of relative norm $11$ (Section~\ref{sec:norm11}).
+\item Combine the two equations into an element $\xi$ of relative norm $11$ (Section~\ref{sec:norm11}). The relative norm is the norm of a quadratic field, carried one extension higher.
 \item By division by $11$, write $\xi$ as the product of one of finitely many initial elements and a relative unit (Section~\ref{sec:division}).
 \item Show that the relative units are exhausted by the powers of one element $\rho$ and signs (Section~\ref{sec:units}).
 \item Remove the negative sign and the unneeded initial element (Section~\ref{sec:signs}).
@@ -123,7 +125,7 @@ Every step is formalized in Lean~4 and Mathlib.
 The final theorem has the form shown in Appendix~\ref{app:lean}, and the Lean kernel checks it.
 It depends only on the three standard axioms of Lean (\lean{propext}, \lean{Classical.choice}, \lean{Quot.sound}).
 We do not use \lean{sorry} or \lean{native\_decide}.
-The kernel checks the finite computations by \lean{decide}.
+The kernel checks the products of particular elements and the congruences modulo small numbers by \lean{decide}.
 The correspondence between the steps of the text and the Lean files is summarized in the table in Appendix~\ref{app:lean}.
 
 \subsection{Notation}
@@ -183,7 +185,7 @@ Conversely, a solution of \eqref{eq:pair} gives a solution of \eqref{eq:shift}. 
 %======================================================================
 
 In this section we express the solutions of the second equation $n^2+2=ey^2$ by quadratic forms in two integers $a,b$.
-We do not use the general theory of solutions of Pell equations. We construct the parameters by an explicit descent.
+We do not use the general theory of solutions of Pell equations. We construct the parameters by a descent: an argument that repeatedly produces a smaller solution from a given one until it reaches the smallest solution, in the manner of Fermat's infinite descent.
 
 \subsection{Descent}
 
@@ -296,6 +298,16 @@ $66$ & $-3$ & $63+19\omega$ & $10a+3b$ & $-3a-b$\\
 \section{Elements of relative norm \tsec{$11$}{11}}\label{sec:norm11}
 %======================================================================
 
+\subsection{The idea}
+
+In a quadratic field $\Q(\sqrt e)$, the product of $a+b\sqrt e$ and $a-b\sqrt e$, obtained by changing the sign of $\sqrt e$, is the norm $a^2-eb^2$.
+The elements of a fixed norm are products of a few elements and units. Section~\ref{sec:parameters} solved the second equation $n^2+2=ey^2$ in this way.
+This section uses the same idea one level higher.
+We adjoin another square root $\theta$ to $\Z[\omega]$ to get a ring $R$, and multiply an element of $R$ by the element obtained by changing only the sign of $\theta$.
+This product takes values in $\Z[\omega]$; to distinguish it from the usual norm with values in $\Z$, we call it the \textbf{relative norm}.
+The two equations \eqref{eq:pair} become one equation: the relative norm of an element $\xi\in R$ is $11$ (Proposition~\ref{prop:xi}).
+As a result, division by $11$ (Section~\ref{sec:division}) and the determination of the units (Section~\ref{sec:units}) restrict $\xi$ to products of a few elements and powers of a unit.
+
 \subsection{Five rings}
 
 In each case we define a commutative ring $R=R_d$ by putting a multiplication on $\Z^4$.
@@ -325,15 +337,15 @@ In what follows, put $s=\theta$ ($d\ne66$) and $s=\omega\theta$ ($d=66$). In eve
 \begin{definition}
 \begin{enumerate}
 \item The \textbf{relative conjugation} $\tau$ of $R$ is the ring automorphism defined by $\theta\mapsto-\theta$. In coordinates, $\tau(x)=(x_0,x_1,-x_2,-x_3)$.
-\item The \textbf{relative norm} of $x\in R$ is $\Nm(x)=x\,\tau(x)$. It belongs to $\Z[\omega]$.
+\item The relative norm of $x\in R$ is $\Nm(x)=x\,\tau(x)$. It belongs to $\Z[\omega]$.
 \item An element $x$ with $\Nm(x)=1$ is called a \textbf{relative unit}. A relative unit $x$ is invertible, and $x^{-1}=\tau(x)$.
 \item We write the first two coordinates of $x$ as $P(x)=x_0$, $Q(x)=x_1$, and put $\pi(x)=x_0+x_1\omega\in\Z[\omega]$.
 \end{enumerate}
 \end{definition}
 
 The multiplication table of each ring is determined by the relations in Table~\ref{tab:rings}.
-In Lean, these are defined as explicit multiplications on $\Z^4$, and the axioms of a commutative ring are checked.
-We do not assume that the ring is the ring of integers of a number field.
+In Lean, these are defined as multiplications on $\Z^4$, and the axioms of a commutative ring are checked.
+(Whether $R$ is the full ring of integers does not matter for the argument.)
 
 \subsection{Elements of relative norm \tsec{$11$}{11}}
 
@@ -416,8 +428,6 @@ For $d=66$, similarly, $x_0^2-756x_2^2\equiv0\pmod{11}$ and $756\equiv8$ give $1
 From this, $\xi\xi_0\in11R$ follows. Note that $\tau(\xi_0)=\xi_0$.
 \end{proof}
 
-This division is shown only for this particular $11$. We do not use class numbers or unique factorization of ideals.
-
 %======================================================================
 \section{Relative units}\label{sec:units}
 %======================================================================
@@ -438,7 +448,7 @@ We write $\alpha\mapsto\alpha'$ for the conjugation of $\Z[\omega]$ defined by $
 Write a relative unit as $v=\alpha+\gamma\theta$, where $\alpha\in\Z[\omega]$ and $\gamma\in\Z[\omega]$ ($\gamma\in\Z+\Z\,\omega/11$ for $d=11$).
 Taking the conjugate of $\Nm(v)=\alpha^2-\Delta\gamma^2=1$, we get $\alpha'^2+D_-\gamma'^2=1$. Therefore $|\gamma'|\le D_-^{-1/2}$.
 
-\begin{lemma}[Gap]\label{lem:gap}
+\begin{lemma}\label{lem:gap}
 If $\gamma\ne0$, then
 \begin{equation}\label{eq:gap}
 \bigl(|\sigma(v)|-|\sigma(v)|^{-1}\bigr)^2\ge4M,\qquad M=\nu^2D_+D_-,
@@ -458,11 +468,12 @@ Therefore
 and we get \eqref{eq:gap}.
 \end{proof}
 
+The lemma says that the real value $|\sigma(v)|$ of a relative unit $v\ne\pm1$ stays a fixed distance away from $1$.
 The values of $4M$ and of $\Lambda=\sigma(\rho)$ are given in Table~\ref{tab:gap}. For $\Lambda$, we use only the upper bound in the table and $\Lambda>1$.
 
 \begin{table}[htbp]
 \centering
-\caption{The gap constants and upper bounds for $\Lambda=\sigma(\rho)$}\label{tab:gap}
+\caption{The constant $4M$ of Lemma~\ref{lem:gap} and upper bounds for $\Lambda=\sigma(\rho)$}\label{tab:gap}
 \begin{tabular}{cccccc}
 \toprule
 $d$ & $1$ & $2$ & $3$ & $11$ & $66$\\
@@ -473,7 +484,9 @@ $\Lambda<$ & $40$ & $14$ & $100$ & $142$ & $84$\\
 \end{tabular}
 \end{table}
 
-\subsection{Reduction}
+\subsection{Proof}
+
+In the proof we multiply by a power of $\rho$ to move $|\sigma(v)|$ into the interval $[1,\Lambda)$, and show that this interval contains no relative unit other than $\pm1$.
 
 \begin{proof}[Proof of Proposition~\ref{prop:units}]
 Since $\Lambda>1$, we can multiply any relative unit $v$ by an integer power of $\rho$ so that $1\le a=|\sigma(v)|<\Lambda$.
@@ -841,26 +854,24 @@ $66$ & $1$ & $66$ & $63$\\
 \end{tabular}
 \end{table}
 
-The negative values $n=-2,-1$ contradict $n\in\N$. The remaining seven are the values in the theorem.
+The negative values $n=-2,-1$ contradict $n\in\N$. The remaining seven are the values in the theorem. The largest solution $13775$ comes from $m=-4$ in the case $d=2$.
 Conversely, substitution shows that the seven values are solutions with $m=1,6,11,45,51,209,660099$, respectively.
 \end{proof}
 
-\begin{remark}
-The value $13775$ appears because $\rho^{-4}$ times the initial element for $d=2$ is a zero of $f$, and its $0$th coordinate is $13778$.
-The proof in this paper gives no reason to predict the existence of this root.
-\end{remark}
 
 %======================================================================
 \appendix
 \section{Formalization in Lean}\label{app:lean}
 %======================================================================
 
-The final theorem has the following form. Division in $\N$ truncates, but since $6\mid n(n+1)(n+2)$, here it is the exact quotient.
+The final theorem has the following form. The division is carried out in the rationals $\Q$.
+{\small
 \begin{verbatim}
-theorem Tetrahedral.tetrahedral_classification (n : ℕ) :
-    (∃ m : ℕ, n*(n+1)*(n+2)/6+1=m^2) ↔
-      n=0 ∨ n=5 ∨ n=8 ∨ n=22 ∨ n=24 ∨ n=63 ∨ n=13775
+theorem Tetrahedral.tetrahedral_add_one_eq_sq_iff (n : ℕ) :
+    (∃ m : ℕ, (n * (n + 1) * (n + 2) / 6 + 1 : ℚ) = m ^ 2) ↔
+      n = 0 ∨ n = 5 ∨ n = 8 ∨ n = 22 ∨ n = 24 ∨ n = 63 ∨ n = 13775
 \end{verbatim}
+}
 
 The correspondence between the sections of the text and the Lean files is given in Table~\ref{tab:lean}.
 The paths in the table are relative to the directory \texttt{lean/Tetrahedral/}. The extension \texttt{.lean} is omitted.

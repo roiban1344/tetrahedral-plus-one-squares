@@ -1,4 +1,4 @@
-% 三角錐数に 1 を加えた平方数の決定
+% 三角錐数+1型の平方数
 % 組版: LuaLaTeX（lualatex を 2〜3 回）。
 \RequirePackage{fix-cm}
 \documentclass[a4paper,11pt]{ltjsarticle}
@@ -9,6 +9,7 @@
 \usepackage[hidelinks]{hyperref}
 \usepackage{newunicodechar}
 \newunicodechar{ℕ}{\ensuremath{\mathbb{N}}}
+\newunicodechar{ℚ}{\ensuremath{\mathbb{Q}}}
 
 \setlist{nosep,leftmargin=2em}
 \setlist[enumerate]{label=(\arabic*)}
@@ -40,7 +41,7 @@
 \newcommand{\tsec}[2]{\texorpdfstring{#1}{#2}}
 \newcommand{\lean}[1]{\texttt{#1}}
 
-\title{三角錐数に $1$ を加えた平方数}
+\title{三角錐数+1型の平方数}
 \author{roiban1344}
 \date{2026年11月}
 
@@ -48,12 +49,13 @@
 \maketitle
 
 \begin{abstract}
-非負整数 $n$ について、三角錐数 $n(n+1)(n+2)/6$ に $1$ を加えた数が平方数になるのは、$n=0,5,8,22,24,63,13775$ のときに限る。
-この方程式は楕円曲線を定めるので、整点の決定には通常、楕円対数の一次形式の下界に基づく計算が使われる。
+非負整数 $n$ について、三角錐数 $n(n+1)(n+2)/6$ に $1$ を足した数が平方数になるのは、$n=0,5,8,22,24,63,13775$ のときに限る。
+この方程式は楕円曲線を定めるので、整点の決定には通常、楕円対数の1次形式の下界に基づく計算が使われる。
 本稿は、楕円曲線の理論を使わない証明を与える。
-証明の中心は、二つの方程式を、相対ノルムが $11$ である一つの元にまとめることにある。
-その元を $11$ で割って単数の冪に帰着し、指数を $2$ 進の一意性補題で決める。
-必要な有限計算は、具体的な整数の恒等式と合同式に限られる。証明の全体は Lean~4 と Mathlib で形式化されている。
+証明の中心は、2つの方程式を、ある4次の環の元 $\xi$ についての1つの式 $\xi\,\tau(\xi)=11$ にまとめることにある（$\tau$ は2次体の共役の類似）。
+この $\xi$ を $11$ で割って単数の冪に帰着し、指数は $2$ 進の一意性補題により決める。
+数値計算に頼るのは、特定の元どうしの積と、小さな数を法とする合同式の確認だけであり、解の候補を探索することはしない。
+証明の全体は Lean~4 と Mathlib で形式化されている。
 \end{abstract}
 
 \tableofcontents
@@ -74,11 +76,11 @@ n\in\{0,\ 5,\ 8,\ 22,\ 24,\ 63,\ 13775\}
 のときであり、そのときに限る。対応する $m$ は順に $1,6,11,45,51,209,660099$ である。
 \end{theorem}
 
-$m$ の列は OEIS A216269「$k^2-1$ が三角錐数となる $k$」として、この七項で登録されている。
+$m$ の列は OEIS A216269「$k^2-1$ が三角錐数となる $k$」として、この7項で登録されている。
 
 \subsection{楕円曲線との関係}
 
-方程式 $T(n)+1=m^2$ を $6$ 倍すると $6m^2=n(n+1)(n+2)+6$ となる。
+方程式 $T(n)+1=m^2$ の両辺を $6$ 倍すると $6m^2=n(n+1)(n+2)+6$ となる。
 $X=6n$, $Y=36m$ と置けば、これは
 \[
 Y^2=X^3+18X^2+72X+1296
@@ -87,42 +89,42 @@ Y^2=X^3+18X^2+72X+1296
 したがって、解が有限個であることは Siegel の定理から従う。
 しかし Siegel の定理は解の大きさの上界を与えない。
 そのため、整点をすべて求めるには通常、楕円対数の方法を用いる~\cite{ST94,GPZ94}。
-この方法では、Mordell--Weil 群の基底を求め、楕円対数の一次形式の下界から係数の上界を得て、最後に格子簡約で残りを調べる。
+この方法では、Mordell--Weil 群の基底を求め、楕円対数の1次形式の下界から係数の上界を得て、最後に格子簡約で残りを調べる。
 
 本稿の証明は、このいずれも使わない。
 使うのは次のものだけである。
 \begin{itemize}
-\item 階数 $4$ の自由 $\Z$ 加群に具体的な乗法を入れた五つの環での計算。
+\item $\Z^4$ に乗法を入れた5つの環での計算。
 \item 実数の不等式。
 \item 整数の合同式と整除。
 \end{itemize}
-類数、単数定理、イデアルの一意分解、$p$ 進解析は使わない。
-単数については、具体的な一つの元がすべての相対単数を生成することを、実数の不等式で直接示す（第~\ref{sec:units} 節）。
+一方で、類数、単数定理、イデアルの一意分解、$p$ 進解析は使わない。
+単数については、1つの元がすべての相対単数を生成することを、実数の不等式で直接示す（第~\ref{sec:units} 節）。
 また指数の決定には、$p$ 進の零点の理論の代わりに、$2$ の冪による整除を繰り返す議論を用いる（第~\ref{sec:dyadic} 節）。
 
 \subsection{証明の構成}
 
 証明は次の順に進む。
 \begin{enumerate}
-\item 方程式を五つの連立方程式 $n+3=dr^2$, $n^2+2=ey^2$ に分ける（第~\ref{sec:branches} 節）。
-\item 第二式の解を、二つの整数による平方の形で表す（第~\ref{sec:parameters} 節）。
-\item 二つの式をまとめて、相対ノルムが $11$ の元 $\xi$ を作る（第~\ref{sec:norm11} 節）。
+\item 方程式を5つの連立方程式 $n+3=dr^2$, $n^2+2=ey^2$ に分ける（第~\ref{sec:branches} 節）。
+\item 第2式の解を、2つの整数による平方の形で表す（第~\ref{sec:parameters} 節）。
+\item 2つの式をまとめて、相対ノルムが $11$ の元 $\xi$ を作る（第~\ref{sec:norm11} 節）。相対ノルムは、2次体のノルムを1段上の拡大に移したものである。
 \item $11$ による割り算で、$\xi$ を有限個の初期元と相対単数の積に書く（第~\ref{sec:division} 節）。
-\item 相対単数が一つの元 $\rho$ の冪と符号で尽きることを示す（第~\ref{sec:units} 節）。
+\item 相対単数が1つの元 $\rho$ の冪と符号で尽きることを示す（第~\ref{sec:units} 節）。
 \item 負の符号と、不要な初期元を除く（第~\ref{sec:signs} 節）。
 \item $2$ 進の一意性補題で、$\rho$ の指数を決める（第~\ref{sec:dyadic} 節と第~\ref{sec:exponents} 節）。
 \item 決まった元の座標から $n$ を読む（第~\ref{sec:conclusion} 節）。
 \end{enumerate}
-最後の段では、元 $\xi$ の第 $0$ 座標がはじめから $n+3$ に等しいので、他の量を経由せずに $n$ を読める。
+最後のステップでは、元 $\xi$ の第 $0$ 座標がはじめから $n+3$ に等しいので、他の量を経由せずに $n$ を読める。
 
 \subsection{形式化}
 
-すべての段は Lean~4 と Mathlib で形式化されている。
-最終定理は付録~\ref{app:lean} に示す形をしており、Lean のカーネルが検査する。
-依存する公理は Lean の標準の三つ（\lean{propext}, \lean{Classical.choice}, \lean{Quot.sound}）だけである。
-\lean{sorry} や \lean{native\_decide} は使わない。
-有限の計算は、カーネルが \lean{decide} で確かめる。
-本文の各段と Lean のファイルの対応は、付録~\ref{app:lean} の表にまとめた。
+すべてのステップは Lean~4 と Mathlib で形式化されている。
+形式化された最終定理は付録~\ref{app:lean} に示す形をしており、Lean のカーネルが検査する。
+依存する公理は Lean の標準の3つ（\lean{propext}, \lean{Classical.choice}, \lean{Quot.sound}）だけである。
+\lean{sorry} や \lean{native\_decide} は現れない。
+特定の元どうしの積や小さな法での合同式は、カーネルが \lean{decide} で確かめる。
+本文の各ステップと Lean ファイルの対応は、付録~\ref{app:lean} の表にまとめた。
 
 \subsection{記号}
 
@@ -131,17 +133,17 @@ $\Z[\omega]=\{a+b\omega : a,b\in\Z\}$ のノルムを $\NF(a+b\omega)=a^2-eb^2$ 
 $\Z[\omega]$ の元 $\alpha$ の共役 $a-b\omega$ を $\alpha'$ と書く。
 
 %======================================================================
-\section{五つの連立方程式}\label{sec:branches}
+\section{5つの連立方程式}\label{sec:branches}
 %======================================================================
 
-$T(n)+1=m^2$ を $6$ 倍して整理すると
+$T(n)+1=m^2$ の両辺を $6$ 倍して整理すると
 \begin{equation}\label{eq:shift}
 6m^2=(n+3)(n^2+2)
 \end{equation}
 を得る。
 
 \begin{proposition}\label{prop:branches}
-$(n,m)$ が \eqref{eq:shift} の自然数解ならば、正の整数 $r,y$ と、表~\ref{tab:branches} の五つの組 $(d,e)$ のいずれかについて
+$(n,m)$ が \eqref{eq:shift} の自然数解ならば、正の整数 $r,y$ と、表~\ref{tab:branches} の5つの組 $(d,e)$ のいずれかについて
 \begin{equation}\label{eq:pair}
 n+3=dr^2,\qquad n^2+2=ey^2
 \end{equation}
@@ -150,7 +152,7 @@ n+3=dr^2,\qquad n^2+2=ey^2
 
 \begin{table}[htbp]
 \centering
-\caption{五つの場合}\label{tab:branches}
+\caption{5つのケース}\label{tab:branches}
 \begin{tabular}{c|ccccc}
 \toprule
 $d$ & $1$ & $2$ & $3$ & $11$ & $66$\\
@@ -162,7 +164,7 @@ $e$ & $6$ & $3$ & $2$ & $66$ & $11$\\
 \begin{proof}
 $n+3=dr^2$ と書き、$d$ を平方因子を持たない正の整数とする。
 まず、$n+3$ と $n^2+2$ の公約数は $11$ を割る。実際、$(n^2+2)-(n-3)(n+3)=11$ である。
-次に、\eqref{eq:shift} の両辺で素因数の指数の偶奇を比べると、$d$ は $6(n^2+2)$ を割る。
+次に、\eqref{eq:shift} の両辺で素因数の指数の偶奇を比べることにより、$d$ は $6(n^2+2)$ を割ることがわかる。
 したがって、$d$ を割る素数 $p$ が $6$ を割らなければ、$p$ は $n+3$ と $n^2+2$ の公約数であり、$p=11$ となる。
 よって $d\mid66$ である。
 
@@ -178,15 +180,16 @@ $d=33$ では $n+3=33r^2$ から $3\mid n$ である。すると $n^2+2=22y^2$ �
 逆に、\eqref{eq:pair} の解は \eqref{eq:shift} の解を与える。実際、$de=6k'^2$（$k'=1,1,1,11,11$）なので、$m=k'ry$ とすればよい。
 
 %======================================================================
-\section{二次の平方表示}\label{sec:parameters}
+\section{2次の平方表示}\label{sec:parameters}
 %======================================================================
 
-この節では、第二式 $n^2+2=ey^2$ の解を、二つの整数 $a,b$ の二次式で表す。
-Pell 方程式の解の一般論は使わず、具体的な降下でパラメータを構成する。
+この節では、第2式 $n^2+2=ey^2$ の解を、2つの整数 $a,b$ の2次式で表す。
+Pell 方程式の解の一般論は使わず、「降下」による論法でパラメータを構成する。
+ここで「降下」とは、解から、より小さい解を作る操作を繰り返し、最小の解まで戻る論法を指す（Fermat の無限降下法にならった呼び方である）。
 
 \subsection{降下}
 
-$e\ne2$ の四つの場合、$e=a_0^2+2$（$a_0=2,1,8,3$）と書ける。
+$e\ne2$ の4つのケースでは、$e=a_0^2+2$（$a_0=2,1,8,3$）と書ける。
 $c_0=a_0^2+1$ と置くと、$c_0+a_0\omega$ はノルム $1$ を持つ。
 
 \begin{lemma}\label{lem:descent}
@@ -198,7 +201,7 @@ N=c_0n-a_0ey,\qquad Z=c_0y-a_0n
 \end{lemma}
 
 \begin{proof}
-$N+Z\omega=(n+y\omega)(c_0-a_0\omega)$ なので、ノルムは保たれる。最後の二式は、$c_0+a_0\omega$ を掛けて戻したものである。
+$N+Z\omega=(n+y\omega)(c_0-a_0\omega)$ なので、ノルムは保たれる。最後の2つの式は、$c_0+a_0\omega$ を掛けて戻したものである。
 大小関係は次の順に示す。$e=c_0+1$ に注意する。
 \begin{enumerate}
 \item $a_0y<n$。そうでなければ $n^2\le a_0^2y^2=ey^2-2y^2<ey^2-2=n^2$ となる（$y>1$ を使う）。
@@ -222,20 +225,20 @@ Q_A(a,b)=1,\qquad n=A(a^2-2b^2)-4ab
 
 \begin{proof}
 $n$ についての帰納法で示す。$y=1$ のときは $n=a_0$ であり、$(A,a,b)=(a_0,1,0)$ でよい。
-$y>1$ のときは、補題~\ref{lem:descent} の $(N,Z)$ は $0\le N<n$ を満たすので、帰納法の仮定から表示を持つ。そこから次の更新で $(n,y)$ の表示を得る。
+$y>1$ のときは、補題~\ref{lem:descent} の $(N,Z)$ は $0\le N<n$ を満たすので、帰納法の仮定から表示を持つ。そこから次の変換を繰り返すことにより、$(n,y)$ の表示を得る。
 \[
 (a_0,a,b)\mapsto(-a_0,\ a,\ b-a_0a),\qquad(-a_0,a,b)\mapsto(a_0,\ a-2a_0b,\ b).
 \]
-\eqref{eq:param} が保たれることは、展開して確かめられる。
+変換により \eqref{eq:param} が保たれることは、展開して確かめられる。
 \end{proof}
 
 \subsection{符号の選択}
 
-\eqref{eq:param} の二式から $a^2-2b^2=1-2Aab$ を代入すると、
+\eqref{eq:param} の2つの式から $a^2-2b^2=1-2Aab$ を代入すると、
 \begin{equation}\label{eq:offset}
 n=A-2(A^2+2)ab
 \end{equation}
-を得る。この式と第一式 $n+3=dr^2$ を合わせると、各場合で $A$ の符号の一方が除かれる。
+を得る。この式と第1式 $n+3=dr^2$ を合わせると、各ケースで $A$ の符号の一方が除かれる。
 \begin{itemize}
 \item $d=1$, $A=2$：$Q_2(a,b)=1$ を法 $4$ で見ると $b$ は偶数である。すると $r^2=n+3=5-12ab\equiv5\pmod8$ となり、不可能である。
 \item $d=2$, $A=1$：$2r^2=4-6ab$ から $r^2\equiv2\pmod3$ となり、不可能である。
@@ -244,7 +247,7 @@ n=A-2(A^2+2)ab
 \end{itemize}
 したがって $A=-2,\,-1,\,8,\,-3$（$d=1,2,11,66$）である。
 
-\subsection{\tsec{$e=2$}{e=2} の場合}
+\subsection{\tsec{$e=2$}{e=2} のケース}
 
 $d=3$, $e=2$ では $n+3=3r^2$ から $3\mid n$ であり、さらに $n$ は偶数である（$n^2+2=2y^2$ より）。
 $n=2N$ と書くと $y^2-2N^2=1$ である。
@@ -274,8 +277,8 @@ n+y\omega=(A+\omega)\bigl(a+(A-\omega)b\bigr)^2
 \end{proof}
 
 後の環に合わせるため、既知の単数を一度掛けて固定元を取り替える。
-結果は $w=n+y\omega=\beta\eta^2$, $\eta=\eta_0+\eta_1\omega$ の形になり、各場合の $\beta,\eta_0,\eta_1$ は表~\ref{tab:beta} のとおりである。
-表の各行は $a,b$ についての二次の恒等式であり、展開で確かめられる。
+結果は $w=n+y\omega=\beta\eta^2$, $\eta=\eta_0+\eta_1\omega$ の形になり、各ケースの $\beta,\eta_0,\eta_1$ は表~\ref{tab:beta} のとおりである。
+表の各行は $a,b$ についての2次の恒等式であり、展開で確かめられる。
 
 \begin{table}[htbp]
 \centering
@@ -297,16 +300,26 @@ $66$ & $-3$ & $63+19\omega$ & $10a+3b$ & $-3a-b$\\
 \section{相対ノルムが \tsec{$11$}{11} の元}\label{sec:norm11}
 %======================================================================
 
-\subsection{五つの環}
+\subsection{考え方}
 
-各場合に、$\Z^4$ に乗法を入れた可換環 $R=R_d$ を一つ定める。
+2次体 $\Q(\sqrt e)$ では、$a+b\sqrt e$ と、$\sqrt e$ の符号を変えた $a-b\sqrt e$ との積 $a^2-eb^2$ をノルムと呼ぶ。
+ノルムが一定値になる元は、少数の元と単数の積に書ける。第~\ref{sec:parameters} 節で第2式 $n^2+2=ey^2$ を解いたのは、この考え方による。
+この節では、同じ考え方を1段上で使う。
+$\Z[\omega]$ にもう1つの平方根 $\theta$ を添加した環 $R$ を作り、$R$ の元と、$\theta$ の符号だけを変えた元との積を考える。
+この積は $\Z[\omega]$ に値を取るので、$\Z$ に値を取る通常のノルムと区別して\textbf{相対ノルム}と呼ぶ。
+2つの式 \eqref{eq:pair} は、ある元 $\xi\in R$ の相対ノルムが $11$ であるという1つの式にまとまる（命題~\ref{prop:xi}）。
+その結果、$\xi$ の候補は、$11$ による割り算（第~\ref{sec:division} 節）と単数の決定（第~\ref{sec:units} 節）により、少数の元と単数の冪の積に限られる。
+
+\subsection{5つの環}
+
+各ケースに、$\Z^4$ に乗法を入れた可換環 $R=R_d$ を1つ定める。
 $R$ は $\Z[\omega]$ を部分環として含み、$\theta^2=\Delta\in\Z[\omega]$ を満たす元 $\theta$ を持つ。
 $d\ne11$ では $R=\Z[\omega]\oplus\Z[\omega]\theta$ であり、$d=11$ では $R=\Z[\omega]\oplus(\Z+\Z\,\omega/11)\theta$ である。
 $\Delta$ と座標の意味は表~\ref{tab:rings} のとおりである。
 
 \begin{table}[htbp]
 \centering
-\caption{五つの環。$x=(x_0,x_1,x_2,x_3)$ の表す元と $\theta^2=\Delta$}\label{tab:rings}
+\caption{5つの環。$x=(x_0,x_1,x_2,x_3)$ の表す元と $\theta^2=\Delta$}\label{tab:rings}
 \begin{tabular}{cccc}
 \toprule
 $d$ & $e$ & $x$ の表す元 & $\Delta=\theta^2$\\
@@ -321,20 +334,20 @@ $66$ & $11$ & $(x_0+x_1\omega)+(x_2+x_3\omega)\theta$ & $756+228\omega$\\
 \end{table}
 
 $d=1,2,3,11$ では $\Delta=2d\beta$ である。$d=66$ では $2d\beta=11\Delta=(\omega\theta)^2$ である。
-以下、$s=\theta$（$d\ne66$）、$s=\omega\theta$（$d=66$）と置く。どの場合も $s^2=2d\beta$ である。
+以下、$s=\theta$（$d\ne66$）、$s=\omega\theta$（$d=66$）と置く。どのケースでも $s^2=2d\beta$ である。
 
 \begin{definition}
 \begin{enumerate}
 \item $R$ の\textbf{相対共役} $\tau$ を、$\theta\mapsto-\theta$ で定める環の自己同型とする。座標では $\tau(x)=(x_0,x_1,-x_2,-x_3)$ である。
-\item $x\in R$ の\textbf{相対ノルム}を $\Nm(x)=x\,\tau(x)$ とする。これは $\Z[\omega]$ に属する。
+\item $x\in R$ の相対ノルムを $\Nm(x)=x\,\tau(x)$ とする。これは $\Z[\omega]$ に属する。
 \item $\Nm(x)=1$ となる $x$ を\textbf{相対単数}と呼ぶ。相対単数 $x$ は可逆で、$x^{-1}=\tau(x)$ である。
-\item $x$ の最初の二座標を $P(x)=x_0$, $Q(x)=x_1$ と書き、$\pi(x)=x_0+x_1\omega\in\Z[\omega]$ と置く。
+\item $x$ の最初の2つの座標を $P(x)=x_0$, $Q(x)=x_1$ と書き、$\pi(x)=x_0+x_1\omega\in\Z[\omega]$ と置く。
 \end{enumerate}
 \end{definition}
 
 各環の乗法表は、表~\ref{tab:rings} の関係から決まる。
-Lean では、これらを $\Z^4$ 上の具体的な乗法として定義し、可換環の公理を確かめている。
-数体の整数環であることは仮定しない。
+Lean では、これらを $\Z^4$ 上の乗法として定義し、可換環の公理を確かめている。
+（$R$ が整数環であるかどうかは、以下の議論に関係しない。）
 
 \subsection{相対ノルムが \tsec{$11$}{11} の元}
 
@@ -360,10 +373,10 @@ $\NF(w)=n^2-ey^2=-2$ に注意すると、
 $\pi(\xi)=w+3$ なので、$P(\xi)=n+3$, $Q(\xi)=y$ であり、$f(\xi)=n^2-ey^2+2=0$ である。
 \end{proof}
 
-ここで $11=3^2+2$ である。二つの式 \eqref{eq:pair} が、一つの小さな相対ノルムにまとまる。
+ここで $11=3^2+2$ である。2つの式 \eqref{eq:pair} が、1つの小さな相対ノルムにまとまる。
 $\xi$ の座標は、$d=1,2,3$ で $(n+3,y,r\eta_0,r\eta_1)$、$d=11$ で $(n+3,y,r\eta_0,11r\eta_1)$、$d=66$ で $(n+3,y,11r\eta_1,r\eta_0)$ である。
 
-関数 $f$ は最初の二座標だけで決まる。したがって $f(\tau(x))=f(x)$, $P(\tau(x))=P(x)$ である。
+関数 $f$ は最初の2つの座標だけで決まる。したがって $f(\tau(x))=f(x)$, $P(\tau(x))=P(x)$ である。
 
 %======================================================================
 \section{\tsec{$11$}{11} による割り算}\label{sec:division}
@@ -392,44 +405,42 @@ $\Nm(\xi)=11$ ならば、ある初期元 $p$ と相対単数 $u$ があって�
 \end{proposition}
 
 \begin{proof}
-いずれの場合も、$\xi\,\tau(p)$ または $\xi\,p$ の四座標がすべて $11$ で割れることを示せばよい。
+いずれのケースでも、$\xi\,\tau(p)$ または $\xi\,p$ の4つの座標がすべて $11$ で割れることを示せばよい。
 実際、そのとき $u=\xi\tau(p)/11$ と置けば $\Nm(u)=\Nm(\xi)\Nm(p)/121=1$ であり、$\xi\,\tau(p)\,p=11\xi$ から $\xi=up$ となる。
 
-$d=1,3$ の場合、$e=6,2$ は法 $11$ で平方剰余でない。
+$d=1,3$ のケースでは、$e=6,2$ は法 $11$ で平方剰余でない。
 したがって $\Z[\omega]/(11)$ は $121$ 元の体 $\F_{121}$ である。
 $\xi_0=\alpha_0+\beta_0\theta$ と書くと、$\Nm(\xi_0)=\alpha_0^2-\Delta\beta_0^2=11$ であり、$\beta_0$ は $11$ と互いに素である。
 したがって $\Delta$ は $\F_{121}$ で平方根 $\pm\delta$（$\delta=\alpha_0/\beta_0$）を持つ。
-$\theta\mapsto\pm\delta$ で二つの環準同型 $\chi_\pm:R\to\F_{121}$ が定まり、$\chi_-=\chi_+\circ\tau$ である。
+$\theta\mapsto\pm\delta$ で2つの環準同型 $\chi_\pm:R\to\F_{121}$ が定まり、$\chi_-=\chi_+\circ\tau$ である。
 $\chi_+(\xi)\chi_-(\xi)=\chi_+(\Nm(\xi))=0$ なので、$\xi$ はどちらかで $0$ になる。
 $\xi_0$ と $\tau(\xi_0)$ はそれぞれ別の側で $0$ になるので、$\xi$ と同じ側で $0$ になる方を $p$ とすれば、$\xi\tau(p)$ は両方で $0$ になる。
 両方の核の共通部分は $11R$ である。
 
-$d=2$ の場合、$e=3$ は法 $11$ で平方剰余であり、$\Z[\omega]/(11)\cong\F_{11}\times\F_{11}$ となる。
-二つの成分のそれぞれで、$\theta$ の値の選び方が二通りある（$\Delta$ の平方根の存在は上と同様に $\xi_0$ から分かる）。
-そこで、$\xi$ が各成分でどちらの値で $0$ になるかの組を、$\xi$ の\textbf{型}と呼ぶ。型は四通りある。
-$\xi_0,\xi_1,\tau(\xi_0),\tau(\xi_1)$ がこの四つの型を一つずつ実現するので、上と同じ議論で、$\xi$ と同じ型を持つ $p$ について $\xi\tau(p)\in11R$ となる。
+$d=2$ のケースでは、$e=3$ は法 $11$ で平方剰余であり、$\Z[\omega]/(11)\cong\F_{11}\times\F_{11}$ となる。
+2つの成分のそれぞれで、$\theta$ の値の選び方が2通りある（$\Delta$ の平方根の存在は上と同様に $\xi_0$ から分かる）。
+そこで、$\xi$ が各成分でどちらの値で $0$ になるかの組を、$\xi$ の「型」と呼ぶ。型は4通りある。
+$\xi_0,\xi_1,\tau(\xi_0),\tau(\xi_1)$ がこの4つの型を1つずつ実現するので、上と同じ議論で、$\xi$ と同じ型を持つ $p$ について $\xi\tau(p)\in11R$ となる。
 
-$d=11$ の場合、相対ノルムを法 $11$ で読むと $x_0^2-96x_3^2\equiv0$ となる。
+$d=11$ のケースでは、相対ノルムを法 $11$ で読むと $x_0^2-96x_3^2\equiv0$ となる。
 $96\equiv8$ は法 $11$ で平方剰余でないので、$11\mid x_0$, $11\mid x_3$ である。
 ここから $\xi\tau(\xi_0)\in11R$ が従う。
 
-$d=66$ の場合も同様に、$x_0^2-756x_2^2\equiv0\pmod{11}$ と $756\equiv8$ から $11\mid x_0$, $11\mid x_2$ である。
+$d=66$ のケースでも同様に、$x_0^2-756x_2^2\equiv0\pmod{11}$ と $756\equiv8$ から $11\mid x_0$, $11\mid x_2$ である。
 ここから $\xi\xi_0\in11R$ が従う。$\tau(\xi_0)=\xi_0$ に注意する。
 \end{proof}
-
-この割り算は、この特定の $11$ だけについて示している。類数やイデアルの一意分解は使わない。
 
 %======================================================================
 \section{相対単数}\label{sec:units}
 %======================================================================
 
 \begin{proposition}\label{prop:units}
-各場合で、相対単数はすべて $\pm\rho^m$（$m\in\Z$）の形をしている。ここで $\rho$ は表~\ref{tab:initial} の元である。
+各ケースで、相対単数はすべて $\pm\rho^m$（$m\in\Z$）の形をしている。ここで $\rho$ は表~\ref{tab:initial} の元である。
 \end{proposition}
 
 $\rho$ が相対単数であることは直接の計算で確かめられる。示すべきは、他に相対単数がないことである。
 
-\subsection{二つの実埋め込み}
+\subsection{2つの実埋め込み}
 
 $\Delta=\Delta_0+\Delta_1\omega$ について、$\sigma(\Delta)=\Delta_0+\Delta_1\sqrt e>0$, $\sigma'(\Delta)=\Delta_0-\Delta_1\sqrt e<0$ である。
 $D_+=\sigma(\Delta)$, $D_-=-\sigma'(\Delta)$ と置く。
@@ -439,7 +450,7 @@ $\sigma:R\to\Rr$ を $\omega\mapsto\sqrt e$, $\theta\mapsto\sqrt{D_+}$ で定め
 相対単数を $v=\alpha+\gamma\theta$ と書く。ここで $\alpha\in\Z[\omega]$ であり、$\gamma\in\Z[\omega]$（$d=11$ では $\gamma\in\Z+\Z\,\omega/11$）である。
 $\Nm(v)=\alpha^2-\Delta\gamma^2=1$ に共役を取ると、$\alpha'^2+D_-\gamma'^2=1$ を得る。したがって $|\gamma'|\le D_-^{-1/2}$ である。
 
-\begin{lemma}[空隙]\label{lem:gap}
+\begin{lemma}\label{lem:gap}
 $\gamma\ne0$ ならば
 \begin{equation}\label{eq:gap}
 \bigl(|\sigma(v)|-|\sigma(v)|^{-1}\bigr)^2\ge4M,\qquad M=\nu^2D_+D_-
@@ -459,11 +470,12 @@ $d=11$ では $\gamma=c+k\omega/11$ と書くと $\NF(\gamma)=(11c^2-6k^2)/11$ �
 であり、\eqref{eq:gap} を得る。
 \end{proof}
 
+この補題は、相対単数 $v\ne\pm1$ の実数値 $|\sigma(v)|$ が $1$ から一定以上離れていることを述べている。
 $4M$ と $\Lambda=\sigma(\rho)$ の値は表~\ref{tab:gap} のとおりである。$\Lambda$ については、表の上界と $\Lambda>1$ だけを使う。
 
 \begin{table}[htbp]
 \centering
-\caption{空隙の定数と $\Lambda=\sigma(\rho)$ の上界}\label{tab:gap}
+\caption{補題~\ref{lem:gap} の定数 $4M$ と $\Lambda=\sigma(\rho)$ の上界}\label{tab:gap}
 \begin{tabular}{cccccc}
 \toprule
 $d$ & $1$ & $2$ & $3$ & $11$ & $66$\\
@@ -474,7 +486,9 @@ $\Lambda<$ & $40$ & $14$ & $100$ & $142$ & $84$\\
 \end{tabular}
 \end{table}
 
-\subsection{縮約}
+\subsection{証明}
+
+証明では、$\rho$ の冪を掛けて $|\sigma(v)|$ を区間 $[1,\Lambda)$ に移し、その区間に $\pm1$ 以外の相対単数がないことを示す。
 
 \begin{proof}[命題~\ref{prop:units} の証明]
 $\Lambda>1$ なので、任意の相対単数 $v$ に $\rho$ の整数冪を掛けて、$1\le a=|\sigma(v)|<\Lambda$ とできる。
@@ -487,7 +501,7 @@ $v'$ の $\theta$ 成分も零でない（零なら $v=\pm\rho$ となり $a=\La
 したがって $\Lambda=ab\ge4M$ である。
 $d=2,3,11,66$ では、表~\ref{tab:gap} から $\Lambda<4M$ なので矛盾する。
 
-$d=1$ では $\Lambda>32$ なので、もう一段の議論が要る。
+$d=1$ では $\Lambda>32$ なので、もう1ステップの議論が要る。
 $b^2\ge32$ から $a^2=\Lambda^2/b^2<50$ である。
 $v$ の $\Z[\omega]$ 成分 $\alpha$ について、$\sigma(\alpha)=(\sigma(v)+\sigma(v)^{-1})/2$ なので $\sigma(\alpha)^2<14$ である。
 また $\alpha'^2\le1$ である。
@@ -500,13 +514,13 @@ $(\sigma(\alpha)+2\alpha')^2\ge0$ から
 このとき $\sigma(\alpha)^2=\alpha'^2\le1$ となる。一方、$\sigma(\alpha)^2=1+D_+\sigma(\gamma)^2$ と \eqref{eq:gamma} から $\sigma(\alpha)^2\ge1+D_+D_-=9$ が従い、矛盾する。
 \end{proof}
 
-この議論は一般の単数定理を使わない。必要なのは、実数での縮約と、表~\ref{tab:gap} の有理数による上界だけである。
+この議論は一般の単数定理を使わない。使うのは、実数の不等式と、表~\ref{tab:gap} の有理数による上界だけである。
 
 %======================================================================
-\section{符号と第二の初期元}\label{sec:signs}
+\section{符号と第2の初期元}\label{sec:signs}
 %======================================================================
 
-前二節から、$\xi=\pm p\rho^m$（$p$ は初期元またはその相対共役、$m\in\Z$）と書ける。
+前の2つの節から、$\xi=\pm p\rho^m$（$p$ は初期元またはその相対共役、$m\in\Z$）と書ける。
 $\tau$ は $f$ と第 $0$ 座標を保ち、$\tau(\rho)=\rho^{-1}$ を満たす。
 したがって $\tau(\xi_i)\rho^m=\tau(\xi_i\rho^{-m})$ の形の元は、$\xi_i\rho^{-m}$ に置き換えてよい。
 以下、$\xi=\pm\xi_i\rho^m$ を調べる。
@@ -518,7 +532,7 @@ $\tau$ は $f$ と第 $0$ 座標を保ち、$\tau(\rho)=\rho^{-1}$ を満たす�
 \end{lemma}
 
 \begin{proof}
-五つの環の乗法表の係数はすべて非負である。したがって、座標がすべて非負の元の全体 $C$ は積について閉じている。$\rho$ も $C$ に属する。
+5つの環の乗法表の係数はすべて非負である。したがって、座標がすべて非負の元の全体 $C$ は積について閉じている。$\rho$ も $C$ に属する。
 
 各初期元について、$\xi_i\rho^2$ と $\tau(\xi_i)\rho^2$ が $C$ に属することを直接確かめる。
 すると $m\ge2$ では $\xi_i\rho^m=(\xi_i\rho^2)\rho^{m-2}\in C$ である。
@@ -528,15 +542,15 @@ $m\le-2$ では $\tau(\xi_i\rho^m)=\tau(\xi_i)\rho^{-m}\in C$ であり、$\tau$
 
 $P(\xi)=n+3>0$ なので、$\xi=-\xi_i\rho^m$ の形は起こらない。
 
-\subsection{\tsec{$d=2$}{d=2} の第二の初期元}
+\subsection{\tsec{$d=2$}{d=2} の第2の初期元}
 
 \begin{lemma}\label{lem:extra}
 $d=2$ で $\xi=\xi_1\rho^m$ となることはない。
 \end{lemma}
 
 \begin{proof}
-$\rho^2=(41,24,6,4)$ を掛けても、最初の二座標は法 $8$ で変わらない。このことは任意の元について乗法表から確かめられる。
-$m$ が偶数なら、$\xi_1\rho^m$ の最初の二座標は法 $8$ で $(2,3)$ であり、$f\equiv8\pmod{16}$ となって $f(\xi)=0$ に反する。
+$\rho^2=(41,24,6,4)$ を掛けても、最初の2つの座標は法 $8$ で変わらない。このことは任意の元について乗法表から確かめられる。
+$m$ が偶数なら、$\xi_1\rho^m$ の最初の2つの座標は法 $8$ で $(2,3)$ であり、$f\equiv8\pmod{16}$ となって $f(\xi)=0$ に反する。
 $m$ が奇数なら、第 $0$ 座標は法 $8$ で $4$ である。ところが $P(\xi)=2r^2$ であり、平方数は法 $4$ で $2$ にならないので、矛盾する。
 \end{proof}
 
@@ -648,8 +662,8 @@ $W=1+4jU$（$j\in\Z$, $j\ne0$）が相対単数ならば、
 \end{lemma}
 
 \begin{proof}
-$\Nm(W)=1+4j(U+\tau U)+16j^2\Nm(U)=1$ であり、$U+\tau U=2\pi(U)$ である。これで第一式を得る。
-第二式は $U^2=U(U+\tau U)-U\tau U=-4jU\Nm(U)-\Nm(U)$ による。
+$\Nm(W)=1+4j(U+\tau U)+16j^2\Nm(U)=1$ であり、$U+\tau U=2\pi(U)$ である。これで第1式を得る。
+第2式は $U^2=U(U+\tau U)-U\tau U=-4jU\Nm(U)-\Nm(U)$ による。
 \end{proof}
 
 $W=1+2qU$, $q\ge2$ はこの補題の形（$j=q/2$）をしている。
@@ -658,7 +672,7 @@ $W=1+2qU$, $q\ge2$ はこの補題の形（$j=q/2$）をしている。
 \[
 h=2\quad(d=1,3,11),\qquad h=4\quad(d=2,66).
 \]
-実際、$d\ne11$ では $\Delta$ の二係数が $h$ で割れる。$d=11$ では基底に $\omega\theta/11$ があるので、整数係数の式で直接確かめる。
+実際、$d\ne11$ では $\Delta$ の2つの係数が $h$ で割れる。$d=11$ では基底に $\omega\theta/11$ があるので、整数係数の式で直接確かめる。
 
 \begin{corollary}\label{cor:width}
 補題~\ref{lem:direction} の $W$ について、$\Nm(U)\in h\Z[\omega]$, $\pi(U)\in2h\Z[\omega]$, $U^2\in hR$ が成り立つ。
@@ -676,7 +690,7 @@ $U^2=-W\Nm(U)$ から $U^2\in hR$ である。
 
 \subsection{仮定 (3)}
 
-$h=4$ の二つの場合（$d=2,66$）では、$e=3,11$ は奇数であり、$\Delta$ は偶数係数である。
+$h=4$ の2つのケース（$d=2,66$）では、$e=3,11$ は奇数であり、$\Delta$ は偶数係数である。
 このとき $\chi(x)=x_0+x_1\bmod2$ は、$\omega\mapsto1$, $\theta\mapsto0$ という代入にほかならない。
 この代入は $\omega^2=e\equiv1$, $\theta^2=\Delta\equiv0\pmod2$ と両立するので、$\chi$ は環準同型 $R\to\F_2$ である。
 
@@ -696,11 +710,11 @@ $\Nm(U)=u+v\omega$ と置く。
 \]
 となる。したがって、括弧の中が $h^2$ の倍数であることを示せばよい。
 
-$h=2$ の場合、$e$ は偶数であり、$u,v$ も偶数である。
+$h=2$ のとき、$e$ は偶数であり、$u,v$ も偶数である。
 また \eqref{eq:root} を法 $2$ で読むと $y_0^2\equiv1$ なので、$y_0$ は奇数である。
 したがって $3y_0-11$ は偶数であり、括弧の中は $4$ の倍数である。
 
-$h=4$ の場合は、次の二つの合同式を使う。$\varsigma=-1$（$d=2$）、$\varsigma=1$（$d=66$）と置く。
+$h=4$ のときは、次の2つの合同式を使う。$\varsigma=-1$（$d=2$）、$\varsigma=1$（$d=66$）と置く。
 \begin{itemize}
 \item 軌道の合同式：すべての $m\in\Z$ について、$y=\xi_0\rho^m$ は $y_0+\varsigma y_1\equiv1\pmod4$ を満たす。
 実際、任意の $x$ について $(P+\varsigma Q)(x\rho)-(P+\varsigma Q)(x)$ は $4$ の倍数であり、$\xi_0$ での値は $1$ である。
@@ -710,9 +724,9 @@ $h=4$ の場合は、次の二つの合同式を使う。$\varsigma=-1$（$d=2$�
 $e\equiv-1\pmod4$ なので、$(3y_0-11)-3e\varsigma y_1=3(y_0+\varsigma y_1-1)-8-3\varsigma(e+1)y_1\equiv0\pmod4$ である。
 これを $v\equiv\varsigma u\pmod{16}$, $4\mid u$ と合わせると、括弧の中は $16$ の倍数である。
 
-\subsection{仮定 (5)：\tsec{$h=2$}{h=2} の場合}
+\subsection{仮定 (5)：\tsec{$h=2$}{h=2} のとき}
 
-$h=2$ の三つの場合では、(5) も一般に従う。
+$h=2$ の3つのケースでは、(5) も一般に従う。
 基点 $y$ の $\theta$ の係数を $\gamma$（$d\ne11$ では $y_2+y_3\omega$、$d=11$ では $y_2+y_3\omega/11$）と書く。
 相対ノルムが $11$ であることは $\pi(y)^2-11=\Delta\gamma^2$ と書ける。両辺の $\NF$ を取ると、表~\ref{tab:J} の整数 $J_d$ について
 \[
@@ -733,7 +747,7 @@ $y_2^2-6y_3^2$ & $3(y_2^2-2y_3^2)$ & $11y_2^2-6y_3^2$\\
 \end{tabular}
 \end{table}
 
-$h=2$ の三つの場合では $e\equiv2\pmod4$ である。
+$h=2$ の3つのケースでは $e\equiv2\pmod4$ である。
 \eqref{eq:root} を法 $4$ で読むと $y_0,y_1$ は奇数であり、$J_d\equiv y_2^2\pmod2$ なので $y_2$ も奇数である。
 また系~\ref{cor:width} から $P(U),Q(U)$ は $4$ の倍数である。
 乗法表を法 $4$ で読むと、$P(yU)\equiv0$, $Q(yU)\equiv2y_2U_2\pmod4$ となる。ここで $U_2$ は $U$ の第 $2$ 座標である。
@@ -742,9 +756,9 @@ $h=2$ の三つの場合では $e\equiv2\pmod4$ である。
 \lambda_y(yU)=2(y_0-3)P(yU)-2ey_1Q(yU)\equiv8\pmod{16}
 \]
 であり、これは $q=2$, $h=2$ の (5) にほかならない。
-実際に使う三つの方向では $U_2=9,99,57$ で、いずれも奇数である。
+実際に使う3つの方向では $U_2=9,99,57$ で、いずれも奇数である。
 
-$h=4$ の場合の (5) は、使う四つの基点で直接確かめる（表~\ref{tab:centres}）。
+$h=4$ のときの (5) は、使う4つの基点で直接確かめる（表~\ref{tab:centres}）。
 
 %======================================================================
 \section{指数の決定}\label{sec:exponents}
@@ -805,14 +819,14 @@ $m$ を $-m$ に置き換えて $m\equiv1\pmod4$ としてよい。
 基点 $\xi_0\rho$ で補題~\ref{lem:unique} を使うと $m=1$ である。
 
 \paragraph{$d=2$。}
-この場合は、近い二つの根 $0,-4$ を持つので、一段の準備が要る。
+このケースは近い2つの根 $0,-4$ を持つので、準備のステップが1つ要る。
 軌道の元 $x=\xi_0\rho^m$ はすべて $2\mid x_0$, $x_1+2x_3\equiv3\pmod4$ を満たす。
 この条件を満たす任意の $x$ について、乗法を展開すると
 \[
 f(x\rho^3)-3f(x\rho^2)+3f(x\rho)-f(x)\equiv0\pmod{128}
 \]
 が成り立つ。
-最初の三つの値と、この式による正逆両方向の帰納法から、すべての $m\in\Z$ について
+最初の3つの値と、この式による正逆両方向の帰納法から、すべての $m\in\Z$ について
 \begin{equation}\label{eq:entrance}
 f(\xi_0\rho^m)\equiv32m(m+1)\pmod{128}
 \end{equation}
@@ -826,7 +840,7 @@ $m=-1+4a$ のときは、基点 $\xi_0\rho^{-1}$ と $W=\rho^4$ で $m=-1$ を�
 %======================================================================
 
 \begin{proof}[定理~\ref{thm:main} の証明]
-以上で、$\xi$ は表~\ref{tab:values} の九つの元のいずれかである。
+以上で、$\xi$ は表~\ref{tab:values} の9つの元のいずれかである。
 $P(\xi)=n+3$ なので、第 $0$ 座標から $n$ が決まる。
 
 \begin{table}[htbp]
@@ -849,25 +863,21 @@ $66$ & $1$ & $66$ & $63$\\
 \end{tabular}
 \end{table}
 
-負の値 $n=-2,-1$ は $n\in\N$ に反する。残る七つが定理の値である。
-逆に、七つの値がそれぞれ $m=1,6,11,45,51,209,660099$ で解になることは、代入して確かめられる。
+負の値 $n=-2,-1$ は $n\in\N$ に反する。残る7つが定理の値である。最大の解 $13775$ は、$d=2$ のケースの $m=-4$ から得られる。
+逆に、7つの値がそれぞれ $m=1,6,11,45,51,209,660099$ で解になることは、代入して確かめられる。
 \end{proof}
 
-\begin{remark}
-$13775$ が現れるのは、$d=2$ の初期元の $\rho^{-4}$ 倍が $f$ の零点になり、その第 $0$ 座標が $13778$ だからである。
-本稿の証明は、この根の存在を予測する理由を与えるものではない。
-\end{remark}
 
 %======================================================================
 \appendix
 \section{Lean による形式化}\label{app:lean}
 %======================================================================
 
-最終定理は次の形をしている。$\N$ の割り算は切り捨てだが、$6\mid n(n+1)(n+2)$ なので、ここでは正確な商である。
+最終定理は次の形をしている。割り算は有理数 $\Q$ の中で行う。
 \begin{verbatim}
-theorem Tetrahedral.tetrahedral_classification (n : ℕ) :
-    (∃ m : ℕ, n*(n+1)*(n+2)/6+1=m^2) ↔
-      n=0 ∨ n=5 ∨ n=8 ∨ n=22 ∨ n=24 ∨ n=63 ∨ n=13775
+theorem Tetrahedral.tetrahedral_add_one_eq_sq_iff (n : ℕ) :
+    (∃ m : ℕ, (n * (n + 1) * (n + 2) / 6 + 1 : ℚ) = m ^ 2) ↔
+      n = 0 ∨ n = 5 ∨ n = 8 ∨ n = 22 ∨ n = 24 ∨ n = 63 ∨ n = 13775
 \end{verbatim}
 
 本文の各節と Lean のファイルの対応は表~\ref{tab:lean} のとおりである。
@@ -906,7 +916,7 @@ theorem Tetrahedral.tetrahedral_classification (n : ℕ) :
 \midrule
 $\omega=\sqrt e$ & \texttt{q}\\
 $\theta$ & \texttt{s}（$d=66$ では \texttt{t}）\\
-$\Nm(x)$ の二係数 & \texttt{relH x}, \texttt{relK x}\\
+$\Nm(x)$ の2つの係数 & \texttt{relH x}, \texttt{relK x}\\
 $\tau$ & \texttt{tau}\\
 $\sigma$ & \texttt{sig}\\
 基点 & centre\\
@@ -917,7 +927,7 @@ $\chi$ & parity character\\
 \end{tabular}
 \end{table}
 
-次の三つのファイルは、\texttt{scripts/} の Python スクリプトが生成した証明である。
+次の3つのファイルは、\texttt{scripts/} の Python スクリプトが生成した証明である。
 \begin{itemize}
 \item \texttt{NormEleven/PositiveOrbitData}
 \item \texttt{NormEleven/RelativeDirectionData}

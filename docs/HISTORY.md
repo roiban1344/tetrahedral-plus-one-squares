@@ -28,3 +28,4 @@ Commits that do not change the Lean proof are not listed.
 | 18 | 2026-11-25 | `a0c5ff1` | For h = 2, the condition on the derivative at the base points is derived from the two norm equations. | 58 | 5,551 |
 | 19 | 2026-11-25 | `baaa380` | Declarations that the final theorem does not use are removed. | 58 | 5,332 |
 | 20 | 2026-11-25 | `a0aa0dd` | The theorem is stated at the top level as `Tetrahedral.tetrahedral_classification`, and the comments are corrected. | 58 | 5,331 |
+| 21 | 2026-11-26 | `bed02d4` | The theorem is restated with the exact rational quotient and renamed `Tetrahedral.tetrahedral_add_one_eq_sq_iff`. | 58 | 5,332 |
