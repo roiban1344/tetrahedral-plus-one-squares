@@ -111,8 +111,7 @@ theorem rel_unit_trace (u : R) (hH : relH u=1) (hK : relK u=0) :
   have ht : 2*((v 0:ℝ)+(v 1:ℝ)*cR)=sig v+sig (tau v) := by
     simp only [sig,tau_apply0,tau_apply1,tau_apply2,tau_apply3]; push_cast; ring
   have hA := RelativeUnitGap.half_trace_bound (sig v) (sig (tau v))
-    ((v 0:ℝ)+(v 1:ℝ)*cR) Lam 66
-    hp ht hS hTau (by linarith [Lam_coarse])
+    ((v 0:ℝ)+(v 1:ℝ)*cR) Lam hp ht hS hTau
   have hQ := RelativeUnitGap.norm_minus_two_positive 8 1 66 (11*v 2) (v 3)
     (by norm_num) (by norm_num) (by simpa using hv0)
   have hk := hv.2
@@ -124,6 +123,6 @@ theorem rel_unit_trace (u : R) (hH : relH u=1) (hK : relK u=0) :
     exact_mod_cast hh
   have hc : 1<cR := by nlinarith [cR_sq,cR_pos]
   have hh := mul_nonneg cR_pos.le (sub_nonneg.mpr hp)
-  nlinarith only [hlo,hA,hh,hc]
+  nlinarith only [hlo,hA,Lam_coarse,hh,hc]
 
 end Tetrahedral.Quartic11

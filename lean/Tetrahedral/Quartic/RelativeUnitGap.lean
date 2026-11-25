@@ -64,8 +64,8 @@ theorem generate {R : Type*} [CommRing R]
   exact (hsmall v hvN hvC hS hT).elim
 
 /-- A reciprocal pair bounded in both directions has a small half-trace. -/
-theorem half_trace_bound (S T A L B : ℝ) (hprod : S*T=1) (htrace : 2*A=S+T)
-    (hS : S^2≤L) (hT : T^2≤L) (hL : L+3<4*B) : A^2<B := by
+theorem half_trace_bound (S T A L : ℝ) (hprod : S*T=1) (htrace : 2*A=S+T)
+    (hS : S^2≤L) (hT : T^2≤L) : 4*A^2≤L+3 := by
   have hp : S^2*T^2=1 := by rw [←mul_pow,hprod]; norm_num
   have hsq : 4*A^2=S^2+T^2+2 := by
     linear_combination (2*A+S+T)*htrace+2*hprod

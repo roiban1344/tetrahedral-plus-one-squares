@@ -115,8 +115,7 @@ theorem rel_unit_trace (u : R) (hH : relH u=1) (hK : relK u=0) :
   have ht : 2*((v 0:ℝ)+(v 1:ℝ)*cR)=sig v+sig (tau v) := by
     simp only [sig,tau_apply0,tau_apply1,tau_apply2,tau_apply3]; push_cast; ring
   have hA := RelativeUnitGap.half_trace_bound (sig v) (sig (tau v))
-    ((v 0:ℝ)+(v 1:ℝ)*cR) Lam 19
-    hp ht hS hTau (by linarith [Lam_coarse])
+    ((v 0:ℝ)+(v 1:ℝ)*cR) Lam hp ht hS hTau
   have hab : v 0*v 1=3*((v 2)^2+2*(v 3)^2) := by
     have hk := hv.2; simp only [relK] at hk; linarith
   have habR : (v 0:ℝ)*(v 1:ℝ)=3*((v 2:ℝ)^2+2*(v 3:ℝ)^2) := by exact_mod_cast hab
@@ -128,7 +127,7 @@ theorem rel_unit_trace (u : R) (hH : relH u=1) (hK : relK u=0) :
     by_contra hn
     have hge : 2≤(v 2:ℝ)^2+2*(v 3:ℝ)^2 := by linarith
     have hp := mul_nonneg (sub_nonneg.mpr hge) cR_pos.le
-    nlinarith only [hA,he,hp,hc,sq_nonneg ((v 0:ℝ)-(v 1:ℝ)*cR)]
+    nlinarith only [hA,Lam_coarse,he,hp,hc,sq_nonneg ((v 0:ℝ)-(v 1:ℝ)*cR)]
   have hCi : (v 2)^2+2*(v 3)^2<2 := by exact_mod_cast hC
   have h3 : v 3=0 := by
     by_contra hn
