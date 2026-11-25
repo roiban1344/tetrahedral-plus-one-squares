@@ -1,2 +1,8 @@
 lean/.lake/
 __pycache__/
+paper/*/*.aux
+paper/*/*.log
+paper/*/*.out
+paper/*/*.toc
+# The PDFs are committed only with a release (git add -f).
+paper/*/*.pdf
