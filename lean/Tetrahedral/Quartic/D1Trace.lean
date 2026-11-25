@@ -1,15 +1,15 @@
 import Tetrahedral.Quartic.D1Ring
 import Mathlib.NumberTheory.Zsqrtd.Basic
-import Tetrahedral.Quartic.UnitGap
+import Tetrahedral.Quartic.RelativeUnitGap
 import Mathlib.Analysis.SpecialFunctions.Pow.Real
 
 /-!
 # Relative units of `ℤ[q][s]` by one real parameter (d=1)
 
-Real place `q ↦ √6`, `s ↦ √(44+18√6)`; at the other place of `F` the relative norm is
-`A'² + (18√6−44)·B'²` with the small positive coefficient `≈ 0.0908`. If `u ≠ ±1` then the `s`-coefficient `B` is nonzero, so `|N(B)|` is bounded below and
-`(σ(u) − σ(u)⁻¹)² ≥ 4ν²|N(D)|` (`gap_x`). Applied to `u` and `ρ·τu` with `1 ≤ |σ(u)| < σ(ρ)`, this
-contradicts `σ(ρ) < 4ν²|N(D)|`, so no box of lattice points is enumerated.
+The same norm gap and companion reduction as in the other four orders apply.
+Here `Λ < 4·8` fails. Instead `Λ < 40` gives `A² < 14`, while the other
+embedding gives `A'² ≤ 1`. Weighted Cauchy forces `(A−A')² < 24`, so
+the integer coefficient of `√6` in `A` vanishes. The gap then excludes `A=±1`.
 -/
 
 namespace Tetrahedral.Quartic1
@@ -20,12 +20,14 @@ noncomputable def dR : ℝ := Real.sqrt (44+18*cR)
 
 theorem cR_sq : cR^2=6 := Real.sq_sqrt (by norm_num)
 theorem cR_pos : 0 < cR := Real.sqrt_pos.mpr (by norm_num)
-theorem cR_lo : 2.44948 < cR := (Real.lt_sqrt (by norm_num)).mpr (by norm_num)
-theorem cR_hi : cR < 2.44949 := (Real.sqrt_lt' (by norm_num)).mpr (by norm_num)
+
 theorem dR_sq : dR^2=44+18*cR := Real.sq_sqrt (by have := cR_pos; positivity)
 theorem dR_pos : 0 < dR := Real.sqrt_pos.mpr (by have := cR_pos; positivity)
-theorem dR_lo : 9.3856 < dR := (Real.lt_sqrt (by norm_num)).mpr (by have := cR_lo; nlinarith)
-theorem dR_hi : dR < 9.3857 := (Real.sqrt_lt' (by norm_num)).mpr (by have := cR_hi; nlinarith)
+
+theorem conjugate_pos : 0 < 18*cR-44 := by
+  apply pos_of_mul_pos_left (b:=(44+18*cR))
+  · nlinarith [cR_sq]
+  · have := cR_pos; positivity
 
 /-- The real embedding `q ↦ √6`, `s ↦ √(44+18√6)`. -/
 noncomputable def sig (x : R) : ℝ := (x 0:ℝ)+(x 1:ℝ)*cR+((x 2:ℝ)+(x 3:ℝ)*cR)*dR
@@ -46,7 +48,7 @@ theorem sig_tau (x : R) : sig x*sig (tau x)=(relH x:ℝ)+(relK x:ℝ)*cR := by
   simp only [sig,tau_apply0,tau_apply1,tau_apply2,tau_apply3,relH,relK]; push_cast
   linear_combination ((-44)*(x 3:ℝ)^2+(-18)*(x 3:ℝ)^2*cR+(-36)*(x 2:ℝ)*(x 3:ℝ)+(1)*(x 1:ℝ)^2)*hc+((-1)*(x 3:ℝ)^2*cR^2+(-2)*(x 2:ℝ)*(x 3:ℝ)*cR+(-1)*(x 2:ℝ)^2)*hd
 
-/-- The relative norm at the other place of `F` (`q ↦ −√2`). -/
+/-- The relative norm at the other place of `F` (`q ↦ −√6`). -/
 theorem conj_place (x : R) :
     ((x 0:ℝ)-(x 1:ℝ)*cR)^2+(18*cR-44)*((x 2:ℝ)-(x 3:ℝ)*cR)^2=(relH x:ℝ)-(relK x:ℝ)*cR := by
   have hc := cR_sq
@@ -57,8 +59,12 @@ theorem conj_place (x : R) :
 
 noncomputable def Lam : ℝ := sig rho
 theorem Lam_val : Lam=9+4*cR+2*dR := by simp [Lam,sig,rho]
-theorem Lam_lt : Lam < 37.6 := by
-  rw [Lam_val]; have := cR_hi; have := dR_hi; have := cR_pos; have := dR_pos; nlinarith
+
+theorem Lam_coarse : Lam < 40 := by
+  have hc : cR < 5/2 := by nlinarith [cR_sq,cR_pos]
+  have hd : dR < 10 := by nlinarith [dR_sq,dR_pos]
+  rw [Lam_val]; nlinarith [cR_pos,dR_pos]
+
 theorem one_lt_Lam : 1 < Lam := by
   rw [Lam_val]; have := cR_pos; have := dR_pos; nlinarith
 
@@ -74,11 +80,6 @@ theorem relN_rho_zpow (m : ℤ) : relH (↑(rhoU^m):R)=1 ∧ relK (↑(rhoU^m):R
   have := congrArg (fun z : (ℤ√6)ˣ => (z:ℤ√6)) (map_zpow (Units.map relNR) rhoU m)
   simp only [h1,one_zpow,Units.coe_map,Units.val_one] at this
   exact ⟨congrArg Zsqrtd.re this,congrArg Zsqrtd.im this⟩
-
-theorem sig_rho_zpow (m : ℤ) : sig (↑(rhoU^m):R)=Lam^m := by
-  have := congrArg (fun z : ℝˣ => (z:ℝ)) (map_zpow (Units.map sigHom) rhoU m)
-  simp only [Units.coe_map,Units.val_zpow_eq_zpow_val] at this
-  exact this
 
 /-! ## The gap -/
 
@@ -119,7 +120,7 @@ theorem gap_x (x : R) (hH : relH x=1) (hK : relK x=0) (hnz : ¬(x 2=0 ∧ x 3=0)
     4*8 ≤ (sig x-sig (tau x))^2 := by
   have hc1 : ((x 0:ℝ)-(x 1:ℝ)*cR)^2+(18*cR-44)*((x 2:ℝ)-(x 3:ℝ)*cR)^2=1 := by
     have := conj_place x; rw [hH,hK] at this; push_cast at this; linarith
-  have hDm : 0 < (18*cR-44) := by have := cR_lo; nlinarith
+  have hDm : 0 < (18*cR-44) := conjugate_pos
   have hST : sig x-sig (tau x)=2*((x 2:ℝ)+(x 3:ℝ)*cR)*dR := by
     simp only [sig,tau_apply0,tau_apply1,tau_apply2,tau_apply3]; push_cast; ring
   have := UnitGap.gap (sig x) (sig (tau x)) ((x 2:ℝ)+(x 3:ℝ)*cR) ((x 2:ℝ)-(x 3:ℝ)*cR) ((x 0:ℝ)-(x 1:ℝ)*cR) dR
@@ -130,65 +131,31 @@ theorem gap_x (x : R) (hH : relH x=1) (hK : relK x=0) (hnz : ¬(x 2=0 ∧ x 3=0)
 
 theorem rel_unit_trace (u : R) (hH : relH u=1) (hK : relK u=0) :
     ∃ m : ℤ, u=(↑(rhoU^m):R) ∨ u= -(↑(rhoU^m):R) := by
-  have hst : sig u*sig (tau u)=1 := by rw [sig_tau,hH,hK]; simp
-  have hne : sig u≠0 := by intro h; rw [h,zero_mul] at hst; exact zero_ne_one hst
-  obtain ⟨m,hm1,hm2⟩ := exists_mem_Ico_zpow (abs_pos.mpr hne) one_lt_Lam
-  have hLpos : 0 < Lam := by linarith [one_lt_Lam]
-  set v := u*(↑(rhoU^(-m)):R) with hv
-  have hsv : |sig v| = |sig u| * Lam^(-m) := by
-    rw [hv,sig_mul,sig_rho_zpow,abs_mul,abs_of_pos (zpow_pos hLpos _)]
-  have hpos : 0 < Lam^(-m) := zpow_pos hLpos _
-  have hlo : 1 ≤ |sig v| := by
-    rw [hsv]
-    have : Lam^m*Lam^(-m)=1 := by rw [← zpow_add₀ hLpos.ne']; simp
-    nlinarith
-  have hhi : |sig v| < Lam := by
-    rw [hsv]
-    have : Lam^(m+1)*Lam^(-m)=Lam := by rw [← zpow_add₀ hLpos.ne']; simp
-    nlinarith
-  obtain ⟨r1,r2⟩ := relN_rho_zpow (-m)
-  have hvH : relH v=1 := by rw [hv,relH_mul,hH,hK,r1,r2]; ring
-  have hvK : relK v=0 := by rw [hv,relK_mul,hH,hK,r1,r2]; ring
-  have hback : u=v*(↑(rhoU^m):R) := by
-    rw [hv,mul_assoc,← Units.val_mul,← zpow_add]; simp
-  by_cases hv0 : v 2=0 ∧ v 3=0
-  · rcases trivial_unit v hvH hvK hv0 with e|e
-    · exact ⟨m,Or.inl (by rw [hback,e,one_mul])⟩
-    · exact ⟨m,Or.inr (by rw [hback,e]; ring)⟩
-  exfalso
-  -- the companion `v' = ρ·τv`, with `|σ(v)|·|σ(v')| = Λ`
-  set v' := rho*tau v with hv'
-  have hrH : relH rho=1 := by decide
-  have hrK : relK rho=0 := by decide
-  have hv'H : relH v'=1 := by rw [hv',relH_mul,hrH,hrK,(tau_rel v).1,(tau_rel v).2,hvH,hvK]; ring
-  have hv'K : relK v'=0 := by rw [hv',relK_mul,hrH,hrK,(tau_rel v).1,(tau_rel v).2,hvH,hvK]; ring
-  have hsig' : sig v'=Lam*(sig v)⁻¹ := by
-    rw [hv',sig_mul,sig_tau_inv v hvH hvK,Lam]
-  set a := |sig v| with ha_def
-  set b := |sig v'| with hb_def
-  have hapos : 0 < a := by linarith
-  have hab : a*b=Lam := by
-    rw [hb_def,hsig',abs_mul,abs_of_pos hLpos,abs_inv,← ha_def,mul_left_comm,
-      mul_inv_cancel₀ hapos.ne',mul_one]
-  have hb1 : 1 ≤ b := by
-    have : b=Lam/a := eq_div_of_mul_eq hapos.ne' (by rw [mul_comm]; exact hab)
-    rw [this,le_div_iff₀ hapos]; linarith
-  have hv'0 : ¬(v' 2=0 ∧ v' 3=0) := by
-    intro h0
-    have hs1 : b=1 := by
-      rcases trivial_unit v' hv'H hv'K h0 with e|e <;> rw [hb_def,e] <;> simp [sig]
-    rw [hs1,mul_one] at hab; linarith
-  have ha : 4*8 ≤ (a-a⁻¹)^2 := by
-    have := gap_x v hvH hvK hv0
-    rw [sig_tau_inv v hvH hvK,UnitGap.sq_sub_inv_abs] at this; exact this
-  have hb : 4*8 ≤ (b-b⁻¹)^2 := by
-    have := gap_x v' hv'H hv'K hv'0
-    rw [sig_tau_inv v' hv'H hv'K,UnitGap.sq_sub_inv_abs] at this; exact this
-  -- `Λ < 4·8` fails narrowly; the `√6`-coordinate of `A` decides instead
-  obtain ⟨hA8,hA11⟩ := UnitGap.d1_bounds a b Lam hlo hb1 hab Lam_lt (by linarith) (by linarith)
+  apply RelativeUnitGap.generate sigHom tau
+    (fun x => relH x=1 ∧ relK x=0) (fun x => x 2=0 ∧ x 3=0)
+    rhoU one_lt_Lam (by change |sig (-1)|=1; simp [sig])
+    (fun x z hx hz => by
+      constructor <;> simp [relH_mul,relK_mul,hx.1,hx.2,hz.1,hz.2])
+    (fun x hx => by rw [(tau_rel x).1,(tau_rel x).2]; exact hx)
+    relN_rho_zpow
+    (fun x hx => by change sig x*sig (tau x)=1; rw [sig_tau,hx.1,hx.2]; simp)
+    (fun x hx => trivial_unit x hx.1 hx.2) ?_ u ⟨hH,hK⟩
+  intro v z hv hz hv0 hz0 hlo hb1 hab
+  change 1≤|sig v| at hlo
+  change 1≤|sig z| at hb1
+  change |sig v| * |sig z|=Lam at hab
+  have ha := RelativeUnitGap.absolute_gap (sig v) (sig (tau v)) 8
+    (by rw [sig_tau,hv.1,hv.2]; simp) (gap_x v hv.1 hv.2 hv0)
+  have hb := RelativeUnitGap.absolute_gap (sig z) (sig (tau z)) 8
+    (by rw [sig_tau,hz.1,hz.2]; simp) (gap_x z hz.1 hz.2 hz0)
+  have hA14 := RelativeUnitGap.trace_bound |sig v| |sig z| Lam hlo hb1 hab
+    (by linarith [Lam_coarse]) (by linarith)
+  have hvH := hv.1
+  have hvK := hv.2
+  let a := |sig v|
   have hc1 : ((v 0:ℝ)-(v 1:ℝ)*cR)^2+(18*cR-44)*((v 2:ℝ)-(v 3:ℝ)*cR)^2=1 := by
     have := conj_place v; rw [hvH,hvK] at this; push_cast at this; linarith
-  have hDm : 0 < 18*cR-44 := by have := cR_lo; nlinarith
+  have hDm : 0 < 18*cR-44 := conjugate_pos
   have hA'2 : ((v 0:ℝ)-(v 1:ℝ)*cR)^2 ≤ 1 := by
     have := mul_nonneg hDm.le (sq_nonneg ((v 2:ℝ)-(v 3:ℝ)*cR)); linarith
   have e2 : 2*((v 0:ℝ)+(v 1:ℝ)*cR)=sig v+(sig v)⁻¹ := by
@@ -198,15 +165,16 @@ theorem rel_unit_trace (u : R) (hH : relH u=1) (hK : relK u=0) :
     have h4 : (2*((v 0:ℝ)+(v 1:ℝ)*cR))^2=(a+a⁻¹)^2 := by rw [e2,UnitGap.sq_add_inv_abs]
     have : ((a+a⁻¹)/2)^2=(a+a⁻¹)^2/4 := by ring
     rw [this,← h4]; ring
-  rw [← hA] at hA8 hA11
+  rw [← hA] at hA14
   have hdiff : ((v 0:ℝ)+(v 1:ℝ)*cR-((v 0:ℝ)-(v 1:ℝ)*cR))^2=24*(v 1:ℝ)^2 := by
     have := cR_sq; linear_combination 4*(v 1:ℝ)^2*this
   have hpar : ((v 0:ℝ)+(v 1:ℝ)*cR-((v 0:ℝ)-(v 1:ℝ)*cR))^2 ≤
-      2*((v 0:ℝ)+(v 1:ℝ)*cR)^2+2*((v 0:ℝ)-(v 1:ℝ)*cR)^2 := by
-    nlinarith [sq_nonneg ((v 0:ℝ)+(v 1:ℝ)*cR+((v 0:ℝ)-(v 1:ℝ)*cR))]
+      (3/2)*((v 0:ℝ)+(v 1:ℝ)*cR)^2+3*((v 0:ℝ)-(v 1:ℝ)*cR)^2 := by
+    nlinarith [sq_nonneg ((v 0:ℝ)+(v 1:ℝ)*cR+2*((v 0:ℝ)-(v 1:ℝ)*cR))]
   rcases eq_or_ne (v 1) 0 with h1|h1
   · have : ((v 0:ℝ)+(v 1:ℝ)*cR)^2=((v 0:ℝ)-(v 1:ℝ)*cR)^2 := by rw [h1]; simp
-    linarith
+    have hinv : |sig v| * |sig v|⁻¹=1 := mul_inv_cancel₀ (by linarith)
+    nlinarith [hA]
   · have h1' : (1:ℝ) ≤ (v 1:ℝ)^2 := by
       have : (1:ℤ) ≤ (v 1)^2 := by have := Int.one_le_abs h1; nlinarith [sq_abs (v 1)]
       exact_mod_cast this

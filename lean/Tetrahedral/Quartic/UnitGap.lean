@@ -61,38 +61,6 @@ theorem contra (a b L M : ℝ) (ha : 1 ≤ a) (hb : 1 ≤ b) (hab : a*b=L) (hL :
   have hL2 : L^2=a^2*b^2 := by rw [← hab]; ring
   nlinarith
 
-/-- The extra step for `d = 1`, where `Λ ≈ 37.57` exceeds `4·8`: both `|σ|` lie in
-`[5.828, 6.452]`, which pins `((a+a⁻¹)/2)²` into `[8, 10.97]`. -/
-theorem low_of_gap (z : ℝ) (hz : 1 ≤ z) (hg : 32 ≤ (z-z⁻¹)^2) : 5.828 ≤ z := by
-  by_contra hlt; push_neg at hlt
-  have hzpos : 0 < z := by linarith
-  have hzi : z*z⁻¹=1 := mul_inv_cancel₀ hzpos.ne'
-  have hi : 0.1715 < z⁻¹ := by
-    have : (1:ℝ)/5.828 < z⁻¹ := by rw [one_div]; exact inv_strictAnti₀ hzpos hlt
-    norm_num at this ⊢; linarith
-  have h0 : 0 ≤ z-z⁻¹ := by
-    have : z⁻¹ ≤ 1 := inv_le_one_of_one_le₀ hz
-    linarith
-  have h1 : z-z⁻¹ < 5.6565 := by linarith
-  have : (z-z⁻¹)^2 < 5.6565^2 := by
-    have := mul_lt_mul'' h1 h1 h0 h0; nlinarith
-  norm_num at this; linarith
-
-theorem d1_bounds (a b L : ℝ) (ha : 1 ≤ a) (hb : 1 ≤ b) (hab : a*b=L) (hL : L < 37.6)
-    (hga : 32 ≤ (a-a⁻¹)^2) (hgb : 32 ≤ (b-b⁻¹)^2) :
-    8 ≤ ((a+a⁻¹)/2)^2 ∧ ((a+a⁻¹)/2)^2 ≤ 10.97 := by
-  have ha5 := low_of_gap a ha hga
-  have hb5 := low_of_gap b hb hgb
-  have hapos : 0 < a := by linarith
-  have haup : a < 6.4517 := by nlinarith
-  have hi0 : 0 < a⁻¹ := inv_pos.mpr hapos
-  have hi1 : a⁻¹ ≤ 0.1716 := by
-    have : a⁻¹ ≤ (5.828:ℝ)⁻¹ := inv_anti₀ (by norm_num) ha5
-    norm_num at this ⊢; linarith
-  have hs0 : 2.914 ≤ (a+a⁻¹)/2 := by linarith
-  have hs1 : (a+a⁻¹)/2 ≤ 3.3117 := by linarith
-  constructor <;> nlinarith
-
 /-- `a²−e·b² ≠ 0` for `(a,b) ≠ 0` when `√e` is irrational. -/
 theorem norm_ne_zero (e : ℕ) (he : Irrational (Real.sqrt (e:ℝ))) (a b : ℤ)
     (h : ¬(a=0 ∧ b=0)) : a^2-(e:ℤ)*b^2≠0 := by
