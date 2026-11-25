@@ -39,16 +39,4 @@ theorem even_of_norm_one_mod_four (a c : ℤ) (h : 4 ∣ a^2+2*c^2-1) : 2 ∣ c 
   have hp := square_sub_self_even c
   omega
 
-theorem even_pair_of_norm_zero_mod_four (a c : ℤ) (h : 4 ∣ a^2+2*c^2) :
-    2 ∣ a ∧ 2 ∣ c := by
-  have ha2 : (2:ℤ) ∣ a^2 := by omega
-  have hp := square_sub_self_even a
-  have hae : (2:ℤ) ∣ a := by omega
-  obtain ⟨k,hk⟩ := hae
-  have ha4 : (4:ℤ) ∣ a^2 := ⟨k^2,by rw [hk]; ring⟩
-  have hc2 : (2:ℤ) ∣ c^2 := by omega
-  refine ⟨⟨k,hk⟩,?_⟩
-  have hp := square_sub_self_even c
-  omega
 end Tetrahedral.IntegerParity
-

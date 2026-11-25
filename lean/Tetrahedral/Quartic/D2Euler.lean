@@ -32,11 +32,6 @@ theorem chi_norm (r δ : ℤ) (h : (r=27 ∧ δ=6) ∨ (r=94 ∧ δ=2)) (x : R) 
   rcases h with ⟨rfl,rfl⟩|⟨rfl,rfl⟩ <;> simp only [chi,relH,relK] <;> push_cast <;> ring_nf <;>
     reduce_mod_char
 
-/-- The norm modulo `121` at the place `√3 ↦ r`. -/
-theorem psi_norm (r : ℤ) (h : r=27 ∨ r=94) (x : R) :
-    (((x 0+r*x 1)^2-(20+12*r)*(x 2+r*x 3)^2 : ℤ) : ZMod 121)=((relH x+r*relK x : ℤ) : ZMod 121) := by
-  rcases h with rfl|rfl <;> simp only [relH,relK] <;> push_cast <;> ring_nf <;> reduce_mod_char
-
 instance fact11 : Fact (Nat.Prime 11) := ⟨by norm_num⟩
 
 theorem split11 (A B δ : ℤ) (hδ : δ=6 ∨ δ=2) (h1 : (11:ℤ) ∣ A+δ*B) (h2 : (11:ℤ) ∣ A+(-δ)*B) :
@@ -48,22 +43,6 @@ theorem split2 (u v : ℤ) (h1 : (11:ℤ) ∣ u+27*v) (h2 : (11:ℤ) ∣ u+94*v)
   constructor <;> omega
 
 theorem dvd11 (z : ℤ) (h : ((z:ℤ):ZMod 11)=0) : (11:ℤ) ∣ z := (ZMod.intCast_zmod_eq_zero_iff_dvd z 11).mp h
-
-/-- An element of relative norm `11` does not vanish at both values over one place. -/
-theorem not_both (r δ : ℤ) (h : (r=27 ∧ δ=6) ∨ (r=94 ∧ δ=2)) (x : R) (hH : relH x=11) (hK : relK x=0)
-    (h1 : chi r δ x=0) (h2 : chi r (-δ) x=0) : False := by
-  have hr : r=27 ∨ r=94 := by rcases h with ⟨rfl,_⟩|⟨rfl,_⟩ <;> simp
-  unfold chi at h1 h2
-  have hδ : δ=6 ∨ δ=2 := by rcases h with ⟨_,rfl⟩|⟨_,rfl⟩ <;> simp
-  obtain ⟨hA,hB⟩ := split11 _ _ δ hδ (dvd11 _ h1) (dvd11 _ h2)
-  obtain ⟨a,ha⟩ := hA; obtain ⟨b,hb⟩ := hB
-  have := psi_norm r hr x
-  rw [ha,hb,hH,hK,ZMod.intCast_eq_intCast_iff_dvd_sub] at this
-  obtain ⟨c,hc⟩ := this
-  push_cast at hc
-  have key : (11:ℤ)=121*(c+a^2-(20+12*r)*b^2) := by linear_combination hc
-  generalize c+a^2-(20+12*r)*b^2=w at key
-  omega
 
 /-- All four values vanish only on `11R`. -/
 theorem all_zero (z : R) (h1 : chi 27 6 z=0) (h2 : chi 27 (-6) z=0) (h3 : chi 94 2 z=0)

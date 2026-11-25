@@ -17,8 +17,6 @@ theorem relK_smul (k : ℤ) (x : R) : relK (k • x)=k^2*relK x := by
 
 /-! ## 3. Euler's division with two representatives -/
 
-theorem cast_zero_iff (z : ℤ) : (z:ZMod 11)=0 ↔ (11:ℤ) ∣ z := ZMod.intCast_zmod_eq_zero_iff_dvd z 11
-
 /-! ## 4. The norm condition and the 3-adic exponent -/
 
 def f (x : R) : ℤ := (x 0-3)^2-3*(x 1)^2+2
@@ -27,38 +25,11 @@ def Lf (y : R) : R →ₗ[ℤ] ℤ where
   toFun z := 2*(y 0-3)*z 0-6*y 1*z 1
   map_add' a b := by simp only [add_apply]; ring
   map_smul' c a := by simp only [zsmul_apply,smul_eq_mul,RingHom.id_apply]; ring
-def Qf (z : R) : ℤ := (z 0)^2-3*(z 1)^2
-
-theorem f_expand (y z : R) (n : ℤ) : f (y+n • z)=f y+n*Lf y z+n^2*Qf z := by
-  simp only [f,Lf,Qf,add_apply,zsmul_apply,LinearMap.coe_mk,AddHom.coe_mk]; ring
-
-theorem one_add_smul (x : R) (M : ℤ) (h : ∀ i, M ∣ (x-1) i) : ∃ V : R, x=1+M • V := by
-  refine ⟨⟨fun i => (x-1) i/M⟩,?_⟩
-  ext i
-  have := Int.mul_ediv_cancel' (h i)
-  simp only [add_apply,zsmul_apply,sub_apply] at this ⊢
-  linarith
 
 theorem val_zpow_nat (k : ℕ) : (↑(rhoU^(k:ℤ)):R)=rho^k := by
   rw [zpow_natCast,Units.val_pow_eq_pow_val]; rfl
 theorem val_zpow_neg (k : ℕ) : (↑(rhoU^(-(k:ℤ))):R)=rhoInv^k := by
   rw [zpow_neg,zpow_natCast,← inv_pow,Units.val_pow_eq_pow_val]; rfl
-
-
-theorem f_mod (M : ℕ) (x z : R) : (f (x+(M:ℤ) • z):ZMod M)=(f x:ZMod M) := by
-  simp only [f,add_apply,zsmul_apply]; push_cast; rw [ZMod.natCast_self]; ring
-
-theorem period (M : ℕ) (P : ℕ) (V : R) (hV : (↑(rhoU^P):R)=1+(M:ℤ) • V) (x : R) (t : ℤ) :
-    ∃ Z : R, x*(↑((rhoU^P)^t):R)=x+((M:ℤ)) • Z := by
-  rw [zsmul_eq_mul] at hV
-  obtain ⟨E,hE⟩ := first_order_zpow (rhoU^P) ((M:ℤ):R) V hV t
-  exact ⟨x*((t:R)*V+((M:ℤ):R)*E),by rw [hE,zsmul_eq_mul]; ring⟩
-
-theorem split_pow (m : ℤ) (P : ℕ) (hP : 0 < P) :
-    rhoU^m=rhoU^((m%P).toNat)*(rhoU^P)^(m/P) := by
-  have h0 : 0 ≤ m%P := Int.emod_nonneg m (by omega)
-  rw [← zpow_natCast rhoU P,← zpow_mul,← zpow_natCast,← zpow_add,Int.toNat_of_nonneg h0]
-  congr 1; have := Int.emod_add_mul_ediv m (P:ℤ); linarith
 
 /-! The six known zeros of the norm condition. -/
 
@@ -70,14 +41,5 @@ theorem c2_eq : (1:R)*(xi0*(↑(rhoU^(-1:ℤ)):R))=c2 := by
   rw [show ((-1:ℤ))=-((1:ℕ):ℤ) by norm_num,val_zpow_neg]; decide +kernel
 def c3 : R := ⟨![2,1,2,-1]⟩
 theorem c3_eq : (1:R)*(xi0*(↑(rhoU^(0:ℤ)):R))=c3 := by
-  rw [show ((0:ℤ))=((0:ℕ):ℤ) by norm_num,val_zpow_nat]; decide +kernel
-def c4 : R := ⟨![-16,-11,-2,-2]⟩
-theorem c4_eq : (-1:R)*(xi0*(↑(rhoU^(1:ℤ)):R))=c4 := by
-  rw [show ((1:ℤ))=((1:ℕ):ℤ) by norm_num,val_zpow_nat]; decide +kernel
-def c5 : R := ⟨![4,1,1,-1]⟩
-theorem c5_eq : (1:R)*(xi1*(↑(rhoU^(-1:ℤ)):R))=c5 := by
-  rw [show ((-1:ℤ))=-((1:ℕ):ℤ) by norm_num,val_zpow_neg]; decide +kernel
-def c6 : R := ⟨![-2,-3,-1,0]⟩
-theorem c6_eq : (-1:R)*(xi1*(↑(rhoU^(0:ℤ)):R))=c6 := by
   rw [show ((0:ℤ))=((0:ℕ):ℤ) by norm_num,val_zpow_nat]; decide +kernel
 end Tetrahedral.Quartic2

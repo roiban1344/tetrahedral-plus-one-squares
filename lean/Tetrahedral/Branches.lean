@@ -91,31 +91,4 @@ theorem five_branches {n m : ℕ} (h : Solution n m) :
   · obtain ⟨y, hy⟩ := second_factor (e := 11) (k := 6) h hr (sf66.squarefree_of_dvd (by norm_num)) (by decide) (by norm_num)
     exact ⟨66, r, 11, y, by simp, hr, hy⟩
 
-theorem branch_pair_sound {n d r e y k : ℕ}
-    (hr : n + 3 = d * r ^ 2) (hy : n ^ 2 + 2 = e * y ^ 2)
-    (hde : d * e = 6 * k ^ 2) : Solution n (k * r * y) := by
-  rw [solution_shift, hr, hy]
-  calc
-    6 * (k * r * y) ^ 2 = (6 * k ^ 2) * r ^ 2 * y ^ 2 := by ring
-    _ = (d * r ^ 2) * (e * y ^ 2) := by rw [← hde]; ring
-
-/-- An entirely elementary equivalence to five simultaneous Pell-type systems. -/
-theorem solution_iff_five_branches (n : ℕ) : (∃ m, Solution n m) ↔
-    ∃ d r e y : ℕ,
-      (d = 1 ∧ e = 6 ∨ d = 2 ∧ e = 3 ∨ d = 3 ∧ e = 2 ∨
-       d = 11 ∧ e = 66 ∨ d = 66 ∧ e = 11) ∧
-      n + 3 = d * r ^ 2 ∧ n ^ 2 + 2 = e * y ^ 2 := by
-  constructor
-  · rintro ⟨m, hm⟩; exact five_branches hm
-  · rintro ⟨d, r, e, y, hc, hr, hy⟩
-    rcases hc with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩
-    · exact ⟨_, branch_pair_sound (k := 1) hr hy (by norm_num)⟩
-    · exact ⟨_, branch_pair_sound (k := 1) hr hy (by norm_num)⟩
-    · exact ⟨_, branch_pair_sound (k := 1) hr hy (by norm_num)⟩
-    · exact ⟨_, branch_pair_sound (k := 11) hr hy (by norm_num)⟩
-    · exact ⟨_, branch_pair_sound (k := 11) hr hy (by norm_num)⟩
-
 end Tetrahedral
-
-
-

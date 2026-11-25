@@ -30,13 +30,6 @@ theorem first_order_zpow_factored (w : Rˣ) (δ u : R) (hw : (w : R) = 1+δ*u) (
     have hInv := inverse_first_order w δ u hw
     linear_combination (1-(n : R)*δ*u)*hInv
 
-
-theorem first_order_zpow (w : Rˣ) (δ u : R) (hw : (w : R) = 1+δ*u) (a : ℤ) :
-    ∃ E : R, (↑(w^a) : R) = 1+(a : R)*δ*u+δ^2*E := by
-  obtain ⟨E,hE⟩ := first_order_zpow_factored w δ u hw a
-  exact ⟨u^2*E,by simpa only [mul_assoc] using hE⟩
-
-
 /-- One unit, one integer exponent, and repeated squaring.
 No second unit or two-variable expansion is involved. -/
 theorem dyadic_zpow_precision_factored (w : Rˣ) (t k : ℕ) (U : R)
@@ -64,7 +57,6 @@ theorem dyadic_zpow_precision_factored (w : Rˣ) (t k : ℕ) (U : R)
   rw [hp,hE]
   simp only [pow_add,pow_succ]
   ring
-
 
 /-- After removing the square of the direction, the remaining error is a
 scalar modulo two. Repeated squaring preserves this stronger information. -/
@@ -94,12 +86,5 @@ theorem dyadic_zpow_precision_scalar (w : Rˣ) (t k : ℕ) (ht : 1≤t) (U : R)
   rw [hp,hE]
   push_cast; simp only [pow_add,pow_succ]; ring
 
-theorem dyadic_zpow_precision (w : Rˣ) (t k : ℕ) (U : R)
-    (hw : (w:R)=1+(2:R)^(t+1)*U) (a : ℤ) :
-    ∃ E : R, (↑(w^((2:ℤ)^k*a)):R)=1+2^(k+t+1)*((a:R)*U+2^t*E) := by
-  obtain ⟨E,hE⟩ := dyadic_zpow_precision_factored w t k U hw a
-  exact ⟨U^2*E,by simpa only [mul_assoc] using hE⟩
-
 end
 end Tetrahedral
-

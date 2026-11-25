@@ -56,20 +56,8 @@ def Lf (y : R) : R →ₗ[ℤ] ℤ where
   toFun z := 2*(y 0-3)*z 0-22*y 1*z 1
   map_add' a b := by simp only [add_apply]; ring
   map_smul' c a := by simp only [zsmul_apply,smul_eq_mul,RingHom.id_apply]; ring
-def Qf (z : R) : ℤ := (z 0)^2-11*(z 1)^2
-
-theorem f_expand (y z : R) (n : ℤ) : f (y+n • z)=f y+n*Lf y z+n^2*Qf z := by
-  simp only [f,Lf,Qf,add_apply,zsmul_apply,LinearMap.coe_mk,AddHom.coe_mk]; ring
 
 /-! ## 6. The norm condition on `±√11·x` -/
-
-/-- The norm condition on `±√11·x`, in the `F`-coordinates `c₀+c₁q` of `x`. -/
-def phi (sg c0 c1 : ℤ) : ℤ := (sg*11*c1-3)^2-11*c0^2+2
-
-theorem f_xi0 (x : R) : f (xi0*x)=phi 1 (x 0) (x 1) := by
-  simp [f,phi,xi0]
-theorem f_neg_xi0 (x : R) : f (-(xi0*x))=phi (-1) (x 0) (x 1) := by
-  simp [f,phi,xi0]
 
 theorem rel_rho (m : ℤ) : relH (↑(rhoU^m):R)=1 ∧ relK (↑(rhoU^m):R)=0 := by
   induction m using Int.induction_on with

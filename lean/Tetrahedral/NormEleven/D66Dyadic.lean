@@ -6,9 +6,6 @@ import Tetrahedral.OrbitReflection
 namespace Tetrahedral.NormEleven.Dyadic66
 open Quartic66 R
 
-abbrev step : R := Differential66.step
-theorem step_eq : (↑(rhoU^4):R)=1+4*step := Differential66.step_eq
-
 /-- The original square coordinate removes every even exponent, including
 zero, before any condition on f is used. -/
 theorem odd (r : ℤ) (hr : r≠0) (m : ℤ)

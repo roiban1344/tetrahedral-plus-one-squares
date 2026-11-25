@@ -4,8 +4,6 @@ import Tetrahedral.OrbitReflection
 
 namespace Tetrahedral.NormEleven.Dyadic11
 open Quartic11 R
-abbrev step : R := Differential11.step
-theorem step_eq : (↑(rhoU^2):R)=1+4*step := Differential11.step_eq
 
 theorem reflected (m : ℤ) : tau (xi0*(↑(rhoU^m):R))=
     xi0*(↑(rhoU^(-1-m)):R) :=

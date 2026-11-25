@@ -6,16 +6,12 @@ namespace Tetrahedral.NormEleven
 
 namespace Dyadic1
 open Quartic1 R
-abbrev step : R := Differential1.step
-theorem step_eq : (↑(rhoU^2):R)=1+4*step := Differential1.step_eq
 theorem roots (m : ℤ) (hm : f (xi0*(↑(rhoU^m):R))=0) : m=0 ∨ m= -1 :=
   DyadicSimple.pair f rhoU xi0 Differential1.unique m hm
 end Dyadic1
 
 namespace Dyadic3
 open Quartic3 R
-abbrev step : R := Differential3.step
-theorem step_eq : (↑(rhoU^2):R)=1+4*step := Differential3.step_eq
 theorem roots (m : ℤ) (hm : f (xi0*(↑(rhoU^m):R))=0) : m=0 ∨ m= -1 :=
   DyadicSimple.pair f rhoU xi0 Differential3.unique m hm
 end Dyadic3
