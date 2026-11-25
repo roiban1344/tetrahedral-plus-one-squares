@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  lean:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: leanprover/lean-action@v1
+        with:
+          lake-package-directory: lean
+          use-mathlib-cache: true
+      - name: Check the statement and its axioms
+        working-directory: lean
+        run: |
+          lake env lean Check.lean | tee check.out
+          tr -d ' \n' < check.out | grep -qx "'Tetrahedral.tetrahedral_classification'dependsonaxioms:\[propext,Classical.choice,Quot.sound\]"
+      - name: Reject sorry, native_decide and new axioms
+        run: |
+          if grep -rnwE 'sorry|native_decide|admit' lean/Tetrahedral lean/Tetrahedral.lean; then exit 1; fi
+          if grep -rnE '^\s*(axiom|opaque)\s' lean/Tetrahedral lean/Tetrahedral.lean; then exit 1; fi
+
+  generators:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Regenerate the generated Lean files
+        run: |
+          for g in scripts/generate_*.py; do python3 "$g"; done
+          git diff --exit-code
+
+  paper:
+    runs-on: ubuntu-latest
+    container: paperist/texlive-ja:latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the paper
+        run: |
+          for d in paper/en paper/ja; do
+            (cd "$d" && for f in *.tex; do
+              lualatex -interaction=nonstopmode -halt-on-error "$f" >/dev/null
+              lualatex -interaction=nonstopmode -halt-on-error "$f" >/dev/null
+              lualatex -interaction=nonstopmode -halt-on-error "$f"
+            done)
+          done
+      - uses: actions/upload-artifact@v4
+        with:
+          name: paper
+          path: paper/*/*.pdf
