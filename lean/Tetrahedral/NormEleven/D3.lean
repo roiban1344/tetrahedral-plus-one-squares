@@ -19,34 +19,32 @@ theorem tau_rho_zpow (m : ℤ) : tau (↑(rhoU^m):R)=(↑(rhoU^(-m)):R) :=
 theorem f_tau (x : R) : f (tau x)=f x := by simp only [f,tau_apply0,tau_apply1]
 
 theorem branch_complete (n r y : ℕ) (hr : n+3=3*r^2) (hy : n^2+2=2*y^2) : n=0 ∨ n=24 := by
-  obtain ⟨ξ,hH,hK,hξ,h0⟩ := Certificates.d3 n r y hr hy
+  obtain ⟨ξ,hH,hK,hξ,h0,h1⟩ := Certificates.d3 n r y hr hy
+  have hpos := (Positive3.norm_positive ξ hH hK (by
+    rw [h0,h1]; push_cast; have := cR_pos; positivity)).1
   obtain ⟨u,hu1,hu2,hcase⟩ := divide_eleven ξ hH hK
-  obtain ⟨j,hj⟩ := rel_unit_trace u hu1 hu2
-  -- reduce to `z = ±ξ₀ρ^m` with `f z = 0` and `z 0 = n+3`
+  have hup : 0<sig u := by
+    rcases hcase with hc|hc
+    · have hh := hpos
+      rw [hc,sig_mul] at hh
+      exact pos_of_mul_pos_left hh Positive3.xi0_positive.1.le
+    · have hh := hpos
+      rw [hc,sig_mul] at hh
+      exact pos_of_mul_pos_left hh Positive3.xi0_positive.2.le
+  obtain ⟨j,hj⟩ := Positive3.unit_positive u hu1 hu2 hup
   obtain ⟨z,m,hz,hzh,hz0⟩ : ∃ z : R, ∃ m : ℤ,
-      (z=xi0*(↑(rhoU^m):R) ∨ z= -(xi0*(↑(rhoU^m):R))) ∧ f z=0 ∧ z 0=(n:ℤ)+3 := by
+      z=xi0*(↑(rhoU^m):R) ∧ f z=0 ∧ z 0=(n:ℤ)+3 := by
     rcases hcase with hc|hc
     · refine ⟨ξ,j,?_,hξ,h0⟩
-      rcases hj with e|e <;> rw [hc,e]
-      · left; ring
-      · right; ring
+      rw [hc,hj]; ring
     · refine ⟨tau ξ,-j,?_,by rw [f_tau]; exact hξ,by simp [h0]⟩
       have ttau : tau (tau xi0)=xi0 := by decide
-      rcases hj with e|e <;> rw [hc,e,tau_mul,ttau]
-      · left; rw [tau_rho_zpow]; ring
-      · right
-        have hneg : tau (-(↑(rhoU^j):R))= -tau (↑(rhoU^j):R) := by
-          ext i; fin_cases i <;> simp [tau]
-        rw [hneg,tau_rho_zpow]; ring
-  rcases hz with e|e
-  · rw [e] at hzh hz0
-    rcases Dyadic3.roots m hzh with h|h <;> subst h
-    · left; have : (xi0*(↑(rhoU^(0:ℤ)):R)) 0=3 := by decide
-      rw [this] at hz0; omega
-    · right; rw [y1_eq] at hz0; have : y1 0=27 := rfl
-      rw [this] at hz0; omega
-  · rw [e,neg_apply] at hz0
-    have := Positive3.xi0_nonnegative m
-    omega
+      rw [hc,hj,tau_mul,ttau,tau_rho_zpow]; ring
+  rw [hz] at hzh hz0
+  rcases Dyadic3.roots m hzh with h|h <;> subst h
+  · left; have : (xi0*(↑(rhoU^(0:ℤ)):R)) 0=3 := by decide
+    rw [this] at hz0; omega
+  · right; rw [y1_eq] at hz0; have : y1 0=27 := rfl
+    rw [this] at hz0; omega
 
 end Tetrahedral.NormEleven.Branch3

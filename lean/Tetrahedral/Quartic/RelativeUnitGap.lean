@@ -116,4 +116,25 @@ theorem integer_trace_lower (a b : ℤ) (s e : ℝ) (hs : s^2=e)
     linear_combination (b:ℝ)^2*hs
   linarith
 
+/-- A positive norm and positive trace orient both real conjugates. -/
+theorem positive_pair (S T : ℝ) (hprod : 0<S*T) (hsum : 0<S+T) : 0<S ∧0<T := by
+  rcases mul_pos_iff.mp hprod with h|h
+  · exact h
+  · exfalso; linarith [h.1,h.2]
+
+/-- Keep the positive real orientation when choosing a generator power. -/
+theorem positive_power {R : Type*} [Ring R] (sigma : R →* ℝ) (rho : Rˣ)
+    (hneg : sigma (-1)= -1) (hrho : 0<sigma (rho:R))
+    (u : R) (hpos : 0<sigma u)
+    (hu : ∃ i : ℤ, u=(↑(rho^i):R) ∨u= -(↑(rho^i):R)) :
+    ∃ i : ℤ, u=(↑(rho^i):R) := by
+  obtain ⟨i,hi|hi⟩ := hu
+  · exact ⟨i,hi⟩
+  have hs : sigma (↑(rho^i):R)=(sigma (rho:R))^i := by
+    have hh := congrArg (fun z : ℝˣ => (z:ℝ)) (map_zpow (Units.map sigma) rho i)
+    simpa only [Units.coe_map,Units.val_zpow_eq_zpow_val] using hh
+  have hp : 0<sigma (↑(rho^i):R) := by rw [hs]; exact zpow_pos hrho _
+  rw [hi,show -(↑(rho^i):R)=(-1:R)*(↑(rho^i):R) by simp only [neg_one_mul],map_mul,hneg] at hpos
+  exfalso; linarith
+
 end Tetrahedral.RelativeUnitGap
