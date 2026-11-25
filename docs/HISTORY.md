@@ -29,3 +29,8 @@ Commits that do not change the Lean proof are not listed.
 | 19 | 2026-11-25 | `baaa380` | Declarations that the final theorem does not use are removed. | 58 | 5,332 |
 | 20 | 2026-11-25 | `a0aa0dd` | The theorem is stated at the top level as `Tetrahedral.tetrahedral_classification`, and the comments are corrected. | 58 | 5,331 |
 | 21 | 2026-11-26 | `bed02d4` | The theorem is restated with the exact rational quotient and renamed `Tetrahedral.tetrahedral_add_one_eq_sq_iff`. | 58 | 5,332 |
+| 22 | 2026-11-25 | `6857813` | For h = 4, the condition on the derivative at the base points is derived from congruences preserved along the orbit. | 58 | 5,715 |
+| 23 | 2026-11-25 | `23b22b2` | The derivative is reduced to a product of the two relative coordinates; the conditions on the directions are used only at the end. | 58 | 5,665 |
+| 24 | 2026-11-26 | `157f936` | For h = 2, the norm-square identities are replaced by the parity of one coefficient of the relative norm. | 58 | 5,650 |
+| 25 | 2026-11-26 | `e48755b` | The congruences f ≡ K ≡ 0 mod 4 are proved for the whole orbit, so the estimates no longer assume exact roots. | 58 | 5,717 |
+| 26 | 2026-11-26 | `07d608d` | The higher error terms are controlled by values modulo 2 only. | 58 | 5,714 |

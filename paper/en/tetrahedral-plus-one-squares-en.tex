@@ -54,7 +54,7 @@
 For a nonnegative integer $n$, the tetrahedral number $n(n+1)(n+2)/6$ plus $1$ is a square only for $n=0,5,8,22,24,63,13775$.
 This equation defines an elliptic curve. Therefore, the integral points are usually determined by a computation based on lower bounds for linear forms in elliptic logarithms.
 This paper gives a proof that does not use the theory of elliptic curves.
-The central step of the proof combines the two equations into a single equation $\xi\,\tau(\xi)=11$ for an element $\xi$ of a quartic ring, where $\tau$ is an analogue of the conjugation of a quadratic field.
+The central step of the proof combines the two equations into a single equation: the relative norm of an element $\xi$ of a quartic field is $11$.
 We divide $\xi$ by $11$ and reduce it to a power of a unit. We determine the exponent by the $2$-adic uniqueness lemma.
 The only numerical computations are products of particular elements and congruences modulo small numbers; no search for candidate solutions is made.
 The whole proof is formalized in Lean~4 and Mathlib.
@@ -110,7 +110,7 @@ The proof proceeds in the following order.
 \begin{enumerate}
 \item Split the equation into five systems $n+3=dr^2$, $n^2+2=ey^2$ (Section~\ref{sec:branches}).
 \item Write the solutions of the second equation in the form of a square in two integers (Section~\ref{sec:parameters}).
-\item Combine the two equations into an element $\xi$ of relative norm $11$ (Section~\ref{sec:norm11}). The relative norm is the norm of a quadratic field, carried one extension higher.
+\item Combine the two equations into an element $\xi$ of relative norm $11$ (Section~\ref{sec:norm11}).
 \item By division by $11$, write $\xi$ as the product of one of finitely many initial elements and a relative unit (Section~\ref{sec:division}).
 \item Show that the relative units are exhausted by the powers of one element $\rho$ and signs (Section~\ref{sec:units}).
 \item Remove the negative sign and the unneeded initial element (Section~\ref{sec:signs}).
@@ -300,18 +300,15 @@ $66$ & $-3$ & $63+19\omega$ & $10a+3b$ & $-3a-b$\\
 
 \subsection{The idea}
 
-In a quadratic field $\Q(\sqrt e)$, the product of $a+b\sqrt e$ and $a-b\sqrt e$, obtained by changing the sign of $\sqrt e$, is the norm $a^2-eb^2$.
-The elements of a fixed norm are products of a few elements and units. Section~\ref{sec:parameters} solved the second equation $n^2+2=ey^2$ in this way.
-This section uses the same idea one level higher.
-We adjoin another square root $\theta$ to $\Z[\omega]$ to get a ring $R$, and multiply an element of $R$ by the element obtained by changing only the sign of $\theta$.
-This product takes values in $\Z[\omega]$; to distinguish it from the usual norm with values in $\Z$, we call it the \textbf{relative norm}.
-The two equations \eqref{eq:pair} become one equation: the relative norm of an element $\xi\in R$ is $11$ (Proposition~\ref{prop:xi}).
-As a result, division by $11$ (Section~\ref{sec:division}) and the determination of the units (Section~\ref{sec:units}) restrict $\xi$ to products of a few elements and powers of a unit.
+Let $F=\Q(\omega)$ and consider a quadratic extension $L=F(\theta)$ with $\theta^2\in F$.
+The two equations \eqref{eq:pair} become one equation: the relative norm $\Nm_{L/F}(\xi)$ of an element $\xi\in L$ is $11$ (Proposition~\ref{prop:xi}).
+An element of a fixed relative norm is a product of one of a few elements and a unit of relative norm $1$.
+Sections~\ref{sec:division} and~\ref{sec:units} carry out this decomposition explicitly, as a division by $11$ and a determination of the units.
 
 \subsection{Five rings}
 
 In each case we define a commutative ring $R=R_d$ by putting a multiplication on $\Z^4$.
-The ring $R$ contains $\Z[\omega]$ as a subring and has an element $\theta$ with $\theta^2=\Delta\in\Z[\omega]$.
+The ring $R$ contains $\Z[\omega]$ as a subring and has an element $\theta$ with $\theta^2=\Delta\in\Z[\omega]$. It is a subring of $L=F(\theta)$.
 For $d\ne11$, $R=\Z[\omega]\oplus\Z[\omega]\theta$. For $d=11$, $R=\Z[\omega]\oplus(\Z+\Z\,\omega/11)\theta$.
 The value of $\Delta$ and the meaning of the coordinates are given in Table~\ref{tab:rings}.
 
@@ -336,8 +333,8 @@ In what follows, put $s=\theta$ ($d\ne66$) and $s=\omega\theta$ ($d=66$). In eve
 
 \begin{definition}
 \begin{enumerate}
-\item The \textbf{relative conjugation} $\tau$ of $R$ is the ring automorphism defined by $\theta\mapsto-\theta$. In coordinates, $\tau(x)=(x_0,x_1,-x_2,-x_3)$.
-\item The relative norm of $x\in R$ is $\Nm(x)=x\,\tau(x)$. It belongs to $\Z[\omega]$.
+\item Let $\tau$, the \textbf{relative conjugation}, be the restriction to $R$ of the conjugation of $L/F$ ($\theta\mapsto-\theta$). In coordinates, $\tau(x)=(x_0,x_1,-x_2,-x_3)$.
+\item We write $\Nm(x)=x\,\tau(x)$. This is the relative norm $\Nm_{L/F}(x)$; for $x\in R$ it lies in $\Z[\omega]$.
 \item An element $x$ with $\Nm(x)=1$ is called a \textbf{relative unit}. A relative unit $x$ is invertible, and $x^{-1}=\tau(x)$.
 \item We write the first two coordinates of $x$ as $P(x)=x_0$, $Q(x)=x_1$, and put $\pi(x)=x_0+x_1\omega\in\Z[\omega]$.
 \end{enumerate}
@@ -576,10 +573,7 @@ where
 \]
 The map $\lambda_y$ is $\Z$-linear in $z$ and depends only on $P(z),Q(z)$.
 
-Write the coordinates of a base point $y$ as $(y_0,y_1,y_2,y_3)$. Expanding $f(y)=0$, we get
-\begin{equation}\label{eq:root}
-y_0^2-ey_1^2=6y_0-11.
-\end{equation}
+In what follows, write the coordinates of $y$ as $(y_0,y_1,y_2,y_3)$.
 
 \subsection{Expansion of powers}
 
@@ -621,7 +615,7 @@ First, we show from (1) and (3) that, for every $E\in R$,
 h^2\mid\lambda_y(yU^2E).
 \end{equation}
 If $h=2$, this is clear, since $\lambda_y$ is a multiple of $2$ to begin with and $U^2=2G$.
-If $h=4$, read \eqref{eq:root} modulo $2$. A square is congruent to the number itself modulo $2$, so $P(y)-3\equiv eQ(y)\pmod2$. Therefore
+If $h=4$, use $f(y)\equiv0\pmod2$. A square is congruent to the number itself modulo $2$, so $P(y)-3\equiv eQ(y)\pmod2$. Therefore
 \[
 \lambda_y(z)/2=(P(y)-3)P(z)-eQ(y)Q(z)\equiv(P(y)-3)\chi(z)\pmod2.
 \]
@@ -642,8 +636,8 @@ On the other hand, by (2) and $U^2=hG$, $P(Z)$ and $Q(Z)$ are multiples of $h$, 
 Hence $\ell qh^2\equiv0\pmod{2qh^2}$, that is, $\ell$ is even, and $2^{k+1}\mid i$.
 \end{proof}
 
-In what follows, we show that hypotheses (2)--(4) follow in general from the arithmetic of the relative norm of the direction $U$.
-At individual base points we check only (1), and (5) when $h=4$.
+In what follows, we show that hypotheses (2)--(5) follow in general from the arithmetic of the relative norm of the direction $U$ and from congruences along the orbit.
+At individual base points we check only (1).
 
 \subsection{The relative norm of the direction}
 
@@ -692,67 +686,122 @@ By Corollary~\ref{cor:width}, $\pi(U)^2/4$ has even coefficients.
 The contribution of the products of the $\theta$-coefficients is a multiple of $\Delta/4=5+3\omega$ or $189+57\omega$.
 Both vanish under $\chi$, so $\chi(G)=0$.
 
+\subsection{Congruences along the orbit}
+
+To check hypotheses (4) and (5) we do not use that the base point $y$ is a zero of $f$.
+Instead we use congruences modulo $4$ that hold for every element of the orbit $\xi_0\rho^i$.
+Write $\Nm(x)=H(x)+K(x)\omega$ with $H(x),K(x)\in\Z$.
+
+\begin{lemma}\label{lem:orbit4}
+For every $i\in\Z$, the element $y=\xi_0\rho^i$ satisfies $f(y)\equiv0$ and $K(y)\equiv0\pmod4$.
+\end{lemma}
+
+\begin{proof}
+Reading the multiplication table of each ring modulo $4$, the products of the $\theta$-coefficients contribute only multiples of $4$ to $H$.
+Hence $H(y)\equiv y_0^2+ey_1^2\pmod4$, and
+\[
+f(y)+H(y)-11\equiv2y_0(y_0-3)\equiv0\pmod4,
+\]
+because $y_0$ and $y_0-3$ have different parities.
+Every element of the orbit satisfies $\Nm(y)=\Nm(\xi_0)\Nm(\rho)^i=11$, so $H(y)=11$ and $K(y)=0$, and the claim follows.
+\end{proof}
+
 \subsection{Hypothesis (4)}
 
-Put $\Nm(U)=u+v\omega$.
+Put $\Nm(U)=u+v\omega$. Corollary~\ref{cor:width} gives $h\mid u$ and $h\mid v$; in fact $4\mid u$ in every ring,
+because the products of the $\theta$-coefficients contribute a multiple of $4$ to the constant term.
+
 By Lemma~\ref{lem:direction}, $yU^2=-y\Nm(U)-4j(yU)\Nm(U)$.
-For the second term, the $\pi$-part is a multiple of $h^2$ by Corollary~\ref{cor:width}, so its value under $\lambda_y$ is a multiple of $8jh^2$.
-For the first term, using \eqref{eq:root} we get
+In the second term the $\pi$-part is a multiple of $h^2$ by Corollary~\ref{cor:width}, so its value under $\lambda_y$ is a multiple of $8jh^2$.
+For the first term, for every $y$,
+\begin{equation}\label{eq:scalar}
+\lambda_y(y\Nm(U))=2\bigl\{[y_0(y_0-3)-ey_1^2]u-3ey_1v\bigr\}.
+\end{equation}
+So it suffices to show that the expression in braces is a multiple of $h^2$.
+
+If $h=2$, then $4\mid u$, $2\mid v$ and $2\mid e$, so the braces are a multiple of $4$ whatever $y$ is.
+
+If $h=4$, use $y_0(y_0-3)-ey_1^2=f(y)+3y_0-11$ to rewrite \eqref{eq:scalar} as
 \[
-\lambda_y(y\Nm(U))=2\bigl\{(3y_0-11)u-3ey_1v\bigr\}.
+\lambda_y(y\Nm(U))=2\bigl\{(3y_0-11)u-3ey_1v\bigr\}+2u\,f(y).
 \]
-Therefore it suffices to show that the expression in braces is a multiple of $h^2$.
-
-If $h=2$, then $e$ is even, and $u,v$ are also even.
-Reading \eqref{eq:root} modulo $2$ gives $y_0^2\equiv1$, so $y_0$ is odd.
-Therefore $3y_0-11$ is even, and the expression in braces is a multiple of $4$.
-
-If $h=4$, we use the following two congruences. Put $\varsigma=-1$ ($d=2$) and $\varsigma=1$ ($d=66$).
+By Lemma~\ref{lem:orbit4}, $4\mid f(y)$, so the last term is a multiple of $32$.
+For the rest we use two congruences. Put $\varsigma=-1$ ($d=2$) and $\varsigma=1$ ($d=66$).
 \begin{itemize}
 \item Orbit congruence: for every $m\in\Z$, $y=\xi_0\rho^m$ satisfies $y_0+\varsigma y_1\equiv1\pmod4$.
-In fact, for every $x$, $(P+\varsigma Q)(x\rho)-(P+\varsigma Q)(x)$ is a multiple of $4$, and the value at $\xi_0$ is $1$.
-\item Direction congruence: $u-\varsigma v\equiv0\pmod{16}$ and $4\mid u$.
-This follows from $\pi(U)\in8\Z[\omega]$ and from the expansion of $\Nm(U)$ with the $\theta$-coefficient written as $c+k\omega$.
+In fact, for every $x$ the difference $(P+\varsigma Q)(x\rho)-(P+\varsigma Q)(x)$ is a multiple of $4$, and the value at $\xi_0$ is $1$.
+\item Direction congruence: $u-\varsigma v\equiv0\pmod{16}$.
+This follows from $\pi(U)\in8\Z[\omega]$ and the expansion of $\Nm(U)$ with the $\theta$-coefficient written as $c+k\omega$.
 \end{itemize}
 Since $e\equiv-1\pmod4$, we have $(3y_0-11)-3e\varsigma y_1=3(y_0+\varsigma y_1-1)-8-3\varsigma(e+1)y_1\equiv0\pmod4$.
-Combining this with $v\equiv\varsigma u\pmod{16}$ and $4\mid u$, the expression in braces is a multiple of $16$.
+Together with $v\equiv\varsigma u\pmod{16}$ and $4\mid u$, the braces are a multiple of $16$.
+Hence $32\mid\lambda_y(y\Nm(U))$ when $h=4$, and hypothesis (4) holds.
 
 \subsection{Hypothesis (5): the case \tsec{$h=2$}{h=2}}
 
-In the three cases with $h=2$, (5) also follows in general.
-Write $\gamma$ for the $\theta$-coefficient of a base point $y$ ($y_2+y_3\omega$ for $d\ne11$, and $y_2+y_3\omega/11$ for $d=11$).
-The condition that the relative norm is $11$ can be written as $\pi(y)^2-11=\Delta\gamma^2$. Taking $\NF$ of both sides, we get
+In the three cases with $h=2$ ($d=1,3,11$), the multiplication tables give
+\begin{equation}\label{eq:Kmod4}
+K(y)\equiv2(y_0y_1-y_2^2)\pmod4
+\end{equation}
+for every $y$.
+Indeed, $K(y)/2$ expands to $y_0y_1-9y_2^2-44y_2y_3-54y_3^2$, $y_0y_1-3y_2^2-6y_3^2$ and $y_0y_1-11y_2^2-16y_2y_3-6y_3^2$, and modulo $2$ only $y_0y_1-y_2^2$ remains.
+
+The congruences $f(y)\equiv K(y)\equiv0\pmod4$ of Lemma~\ref{lem:orbit4} show that $y_0,y_1,y_2$ are all odd.
+Indeed, since $e\equiv2\pmod4$, $f(y)\equiv0$ reads $(y_0-3)^2+2y_1^2\equiv2\pmod4$.
+Squares are $0$ or $1$ modulo $4$, so $y_1$ is odd and $y_0-3$ is even.
+Then \eqref{eq:Kmod4} and $K(y)\equiv0$ give $y_2^2\equiv y_0y_1\equiv1\pmod2$.
+
+By Corollary~\ref{cor:width}, $P(U)$ and $Q(U)$ are multiples of $4$.
+Reading the multiplication tables modulo $4$ gives $P(yU)\equiv0$ and $Q(yU)\equiv2y_2U_2\pmod4$, where $U_2$ is the coordinate of index $2$ of $U$.
+Hence, if $U_2$ is odd,
 \[
-\NF(\pi(y)^2-11)=-8J_d^2
+\lambda_y(yU)=2(y_0-3)P(yU)-2ey_1Q(yU)\equiv-8y_1y_2U_2\equiv8\pmod{16},
 \]
-for the integer $J_d$ in Table~\ref{tab:J}.
-On the other hand, expanding the product gives $f(y)f(-y)=\NF(\pi(y)^2-11)+8y_0^2$.
-Therefore, if $f(y)=0$, then $y_0^2=J_d^2$.
+which is hypothesis (5) for $q=2$, $h=2$.
+For the three directions used, $U_2=9,99,57$, all odd.
+
+\subsection{Hypothesis (5): the case \tsec{$h=4$}{h=4}}
+
+In the two cases with $h=4$, write $\Delta=4(k+\ell\omega)$; then $(e,k,\ell)$ is $(3,5,3)$ for $d=2$ and $(11,189,57)$ for $d=66$.
+Let $W=1+4jU$, and write the product of the $\theta$-coefficients $U_2+U_3\omega$ of $U$ and $y_2+y_3\omega$ of $y$ as $X+Y\omega$, that is,
+\[
+X=y_2U_2+ey_3U_3,\qquad Y=y_2U_3+y_3U_2.
+\]
+By the argument for hypothesis (4), the part $\pi(U)=-2j\Nm(U)$ contributes only multiples of $64j$ to $\lambda_y$.
+Computing the contribution of the $\theta$-part gives
+\begin{equation}\label{eq:pairing}
+\lambda_y(yU)\equiv8\bigl([k(y_0-3)-e\ell y_1]X+e[\ell(y_0-3)-ky_1]Y\bigr)\pmod{64j}.
+\end{equation}
+
+The coefficients on the right depend only on the residues of the coordinates of $y$ modulo small numbers.
+We therefore find the residue classes containing the base points as congruences preserved along the orbit.
+Write $\rho^4=1+4S$. By Corollary~\ref{cor:width}, the first two coordinates of $S$ are multiples of $8$, and for every $z$ the first two coordinates of $zS$ are multiples of $4$.
+Hence $z\rho^4-z=4zS$ has its first two coordinates divisible by $16$ and the other two by $4$.
+In other words, the residues of the coordinates modulo $(16,16,4,4)$ do not change under multiplication by $\rho^{\pm4}$.
+For $d=2$ and the class $m\equiv0\pmod4$, $S_3$ and $z_0$ are even, so the coordinate of index $2$ is preserved modulo $8$ as well.
+The resulting classes are given in Table~\ref{tab:phases}. The starting points are $\xi_0$, $\xi_0\rho^{-1}=(8,3,-2,0)$ ($d=2$) and $\xi_0\rho=(66,19,0,1)$ ($d=66$).
 
 \begin{table}[htbp]
 \centering
-\caption{The integer $J_d$ in $\NF(\pi(y)^2-11)=-8J_d^2$}\label{tab:J}
-\begin{tabular}{ccc}
+\caption{The residue classes containing the base points for $h=4$ ($m$ modulo $4$), and the value of \eqref{eq:pairing}}\label{tab:phases}
+\footnotesize\setlength{\tabcolsep}{2.5pt}
+\begin{tabular}{cccccc}
 \toprule
-$d=1$ & $d=3$ & $d=11$\\
+case & moduli & residue of $y$ & $W$ & $\lambda_y(yU)$ & condition\\
 \midrule
-$y_2^2-6y_3^2$ & $3(y_2^2-2y_3^2)$ & $11y_2^2-6y_3^2$\\
+$d=2$, $m\equiv0$ & $(16,16,8,4)$ & $(2,1,2,3)$ & $\rho^8$ & $16(6U_2+U_3)\bmod128$ & $6U_2+U_3\equiv4\ (8)$\\
+$d=2$, $m\equiv-1$ & $(16,16,4,4)$ & $(8,3,2,0)$ & $\rho^4$ & $32U_2\bmod64$ & $U_2$ odd\\
+$d=66$, $m\equiv1$ & $(16,16,4,4)$ & $(2,3,0,1)$ & $\rho^4$ & $-16U_3\bmod64$ & $U_3\equiv2\ (4)$\\
 \bottomrule
 \end{tabular}
 \end{table}
 
-In the three cases with $h=2$, $e\equiv2\pmod4$.
-Reading \eqref{eq:root} modulo $4$, $y_0$ and $y_1$ are odd. Since $J_d\equiv y_2^2\pmod2$, $y_2$ is also odd.
-By Corollary~\ref{cor:width}, $P(U)$ and $Q(U)$ are multiples of $4$.
-Reading the multiplication table modulo $4$, we get $P(yU)\equiv0$ and $Q(yU)\equiv2y_2U_2\pmod4$, where $U_2$ is the $2$nd coordinate of $U$.
-Therefore, if $U_2$ is odd, then
-\[
-\lambda_y(yU)=2(y_0-3)P(yU)-2ey_1Q(yU)\equiv8\pmod{16},
-\]
-which is exactly (5) for $q=2$, $h=2$.
-For the three directions actually used, $U_2=9,99,57$, and all of them are odd.
+When the condition in the last column holds, $\lambda_y(yU)$ is $64\bmod128$, $32\bmod64$ and $32\bmod64$, respectively, which is hypothesis (5).
+For the two directions of $d=2$ it suffices to check, for the short direction $S$ ($\rho^4=1+4S$), that $S_2$ is odd and $6S_2+S_3\equiv4\pmod8$.
+Indeed, the long direction is $U=(\rho^8-1)/8=S+2S^2$, and $S^2\in4R$ gives $U\equiv S\pmod8$.
 
-For $h=4$, (5) is checked directly at the four base points used (Table~\ref{tab:centres}).
+Thus hypotheses (2)--(5) all hold in general.
+The finite facts checked individually are only that $f(y)=0$ at the nine base points, the six conditions on the directions, and the coordinates of the two starting points.
 
 %======================================================================
 \section{Determination of the exponent}\label{sec:exponents}
@@ -764,16 +813,16 @@ All base points have the form $\xi_0\rho^{m_0}$, and $f(y)=0$ is checked directl
 \begin{table}[htbp]
 \centering
 \caption{The base points at which the uniqueness lemma is used}\label{tab:centres}
-\begin{tabular}{ccccccc}
+\begin{tabular}{cccccc}
 \toprule
-$d$ & exponent $m_0$ of the base point & $W$ & $q$ & $h$ & $D$ & check of (5)\\
+$d$ & exponent $m_0$ of the base point & $W$ & $q$ & $h$ & $D$\\
 \midrule
-$1$ & $0,\ -1$ & $\rho^2$ & $2$ & $2$ & $16$ & general\\
-$2$ & $0,\ -4$ & $\rho^8$ & $4$ & $4$ & $128$ & direct\\
-$2$ & $-1$ & $\rho^4$ & $2$ & $4$ & $64$ & direct\\
-$3$ & $0,\ -1$ & $\rho^2$ & $2$ & $2$ & $16$ & general\\
-$11$ & $0$ & $\rho^2$ & $2$ & $2$ & $16$ & general\\
-$66$ & $1$ & $\rho^4$ & $2$ & $4$ & $64$ & direct\\
+$1$ & $0,\ -1$ & $\rho^2$ & $2$ & $2$ & $16$\\
+$2$ & $0,\ -4$ & $\rho^8$ & $4$ & $4$ & $128$\\
+$2$ & $-1$ & $\rho^4$ & $2$ & $4$ & $64$\\
+$3$ & $0,\ -1$ & $\rho^2$ & $2$ & $2$ & $16$\\
+$11$ & $0$ & $\rho^2$ & $2$ & $2$ & $16$\\
+$66$ & $1$ & $\rho^4$ & $2$ & $4$ & $64$\\
 \bottomrule
 \end{tabular}
 \end{table}

@@ -47,7 +47,7 @@ It needs no class numbers, no unit theorem, no unique factorization of ideals an
 
 1. Split the equation into five systems $n+3=dr^2,\ n^2+2=ey^2$, where $(d,e)$ is $(1,6)$, $(2,3)$, $(3,2)$, $(11,66)$ or $(66,11)$.
 2. Write $n+y\sqrt e$ as a fixed element times a square, by a descent (an argument that repeatedly produces a smaller solution from a given one) instead of the general theory of Pell equations.
-3. Combine the two equations into one equation $\xi\,\tau(\xi)=11$ for an element $\xi$ of a quartic ring ($11=3^2+2$). Here $\tau$ changes the sign of one square root in $\xi$, an analogue of the conjugation of a quadratic field; the product $\xi\,\tau(\xi)$ is called the relative norm. The first coordinate of $\xi$ is $n+3$.
+3. Combine the two equations into an element $\xi$ of a quartic field $L=\mathbb Q(\sqrt e,\theta)$ whose relative norm to $\mathbb Q(\sqrt e)$ is $11=3^2+2$. The first coordinate of $\xi$ is $n+3$.
 4. Divide by 11: $\xi$ is an initial element times a relative unit.
 5. Show by real inequalities that every relative unit (an element of relative norm 1) is $\pm\rho^m$ for one explicit unit $\rho$.
 6. Exclude the negative sign by the nonnegativity of coordinates, and exclude a second initial element for $d=2$.

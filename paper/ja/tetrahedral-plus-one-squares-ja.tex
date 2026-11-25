@@ -52,7 +52,7 @@
 非負整数 $n$ について、三角錐数 $n(n+1)(n+2)/6$ に $1$ を足した数が平方数になるのは、$n=0,5,8,22,24,63,13775$ のときに限る。
 この方程式は楕円曲線を定めるので、整点の決定には通常、楕円対数の1次形式の下界に基づく計算が使われる。
 本稿は、楕円曲線の理論を使わない証明を与える。
-証明の中心は、2つの方程式を、ある4次の環の元 $\xi$ についての1つの式 $\xi\,\tau(\xi)=11$ にまとめることにある（$\tau$ は2次体の共役の類似）。
+証明の中心は、2つの方程式を、4次体の元 $\xi$ の相対ノルムが $11$ であるという1つの式にまとめることにある。
 この $\xi$ を $11$ で割って単数の冪に帰着し、指数は $2$ 進の一意性補題により決める。
 数値計算に頼るのは、特定の元どうしの積と、小さな数を法とする合同式の確認だけであり、解の候補を探索することはしない。
 証明の全体は Lean~4 と Mathlib で形式化されている。
@@ -108,7 +108,7 @@ Y^2=X^3+18X^2+72X+1296
 \begin{enumerate}
 \item 方程式を5つの連立方程式 $n+3=dr^2$, $n^2+2=ey^2$ に分ける（第~\ref{sec:branches} 節）。
 \item 第2式の解を、2つの整数による平方の形で表す（第~\ref{sec:parameters} 節）。
-\item 2つの式をまとめて、相対ノルムが $11$ の元 $\xi$ を作る（第~\ref{sec:norm11} 節）。相対ノルムは、2次体のノルムを1段上の拡大に移したものである。
+\item 2つの式をまとめて、相対ノルムが $11$ の元 $\xi$ を作る（第~\ref{sec:norm11} 節）。
 \item $11$ による割り算で、$\xi$ を有限個の初期元と相対単数の積に書く（第~\ref{sec:division} 節）。
 \item 相対単数が1つの元 $\rho$ の冪と符号で尽きることを示す（第~\ref{sec:units} 節）。
 \item 負の符号と、不要な初期元を除く（第~\ref{sec:signs} 節）。
@@ -302,18 +302,15 @@ $66$ & $-3$ & $63+19\omega$ & $10a+3b$ & $-3a-b$\\
 
 \subsection{考え方}
 
-2次体 $\Q(\sqrt e)$ では、$a+b\sqrt e$ と、$\sqrt e$ の符号を変えた $a-b\sqrt e$ との積 $a^2-eb^2$ をノルムと呼ぶ。
-ノルムが一定値になる元は、少数の元と単数の積に書ける。第~\ref{sec:parameters} 節で第2式 $n^2+2=ey^2$ を解いたのは、この考え方による。
-この節では、同じ考え方を1段上で使う。
-$\Z[\omega]$ にもう1つの平方根 $\theta$ を添加した環 $R$ を作り、$R$ の元と、$\theta$ の符号だけを変えた元との積を考える。
-この積は $\Z[\omega]$ に値を取るので、$\Z$ に値を取る通常のノルムと区別して\textbf{相対ノルム}と呼ぶ。
-2つの式 \eqref{eq:pair} は、ある元 $\xi\in R$ の相対ノルムが $11$ であるという1つの式にまとまる（命題~\ref{prop:xi}）。
-その結果、$\xi$ の候補は、$11$ による割り算（第~\ref{sec:division} 節）と単数の決定（第~\ref{sec:units} 節）により、少数の元と単数の冪の積に限られる。
+$F=\Q(\omega)$ とし、その2次拡大 $L=F(\theta)$（$\theta^2\in F$）を考える。
+2つの式 \eqref{eq:pair} は、ある元 $\xi\in L$ の相対ノルム $\Nm_{L/F}(\xi)$ が $11$ であるという1つの式にまとまる（命題~\ref{prop:xi}）。
+相対ノルムが一定値の元は、少数の元と、相対ノルムが $1$ の単数との積に書ける。
+第~\ref{sec:division} 節と第~\ref{sec:units} 節では、この分解を、$11$ による割り算と単数の決定として具体的に行う。
 
 \subsection{5つの環}
 
 各ケースに、$\Z^4$ に乗法を入れた可換環 $R=R_d$ を1つ定める。
-$R$ は $\Z[\omega]$ を部分環として含み、$\theta^2=\Delta\in\Z[\omega]$ を満たす元 $\theta$ を持つ。
+$R$ は $\Z[\omega]$ を部分環として含み、$\theta^2=\Delta\in\Z[\omega]$ を満たす元 $\theta$ を持つ。$R$ は $L=F(\theta)$ の部分環である。
 $d\ne11$ では $R=\Z[\omega]\oplus\Z[\omega]\theta$ であり、$d=11$ では $R=\Z[\omega]\oplus(\Z+\Z\,\omega/11)\theta$ である。
 $\Delta$ と座標の意味は表~\ref{tab:rings} のとおりである。
 
@@ -338,8 +335,8 @@ $d=1,2,3,11$ では $\Delta=2d\beta$ である。$d=66$ では $2d\beta=11\Delta
 
 \begin{definition}
 \begin{enumerate}
-\item $R$ の\textbf{相対共役} $\tau$ を、$\theta\mapsto-\theta$ で定める環の自己同型とする。座標では $\tau(x)=(x_0,x_1,-x_2,-x_3)$ である。
-\item $x\in R$ の相対ノルムを $\Nm(x)=x\,\tau(x)$ とする。これは $\Z[\omega]$ に属する。
+\item $\tau$ を $L/F$ の共役（$\theta\mapsto-\theta$）の $R$ への制限とし、\textbf{相対共役}と呼ぶ。座標では $\tau(x)=(x_0,x_1,-x_2,-x_3)$ である。
+\item $\Nm(x)=x\,\tau(x)$ と書く。これは相対ノルム $\Nm_{L/F}(x)$ であり、$x\in R$ なら $\Z[\omega]$ に属する。
 \item $\Nm(x)=1$ となる $x$ を\textbf{相対単数}と呼ぶ。相対単数 $x$ は可逆で、$x^{-1}=\tau(x)$ である。
 \item $x$ の最初の2つの座標を $P(x)=x_0$, $Q(x)=x_1$ と書き、$\pi(x)=x_0+x_1\omega\in\Z[\omega]$ と置く。
 \end{enumerate}
@@ -579,11 +576,7 @@ f(y+cz)=f(y)+c\lambda_y(z)+c^2H(z)
 \]
 である。$\lambda_y$ は $z$ について $\Z$ 線形であり、$P(z),Q(z)$ だけで決まる。
 
-基点 $y$ の座標を $(y_0,y_1,y_2,y_3)$ と書く。$f(y)=0$ を展開すると
-\begin{equation}\label{eq:root}
-y_0^2-ey_1^2=6y_0-11
-\end{equation}
-を得る。
+以下、$y$ の座標を $(y_0,y_1,y_2,y_3)$ と書く。
 
 \subsection{冪の展開}
 
@@ -626,7 +619,7 @@ h^2\mid\lambda_y(yU^2E)
 \end{equation}
 が成り立つことを示す。
 $h=2$ のときは、$\lambda_y$ がそもそも $2$ の倍数であり、$U^2=2G$ なので明らかである。
-$h=4$ のときは、\eqref{eq:root} を法 $2$ で読む。平方は法 $2$ で元の数に等しいので、$P(y)-3\equiv eQ(y)\pmod2$ である。したがって
+$h=4$ のときは、$f(y)\equiv0\pmod2$ を使う。平方は法 $2$ で元の数に等しいので、$P(y)-3\equiv eQ(y)\pmod2$ である。したがって
 \[
 \lambda_y(z)/2=(P(y)-3)P(z)-eQ(y)Q(z)\equiv(P(y)-3)\chi(z)\pmod2
 \]
@@ -648,8 +641,8 @@ $i=2^k\ell$ と書く。補題~\ref{lem:power} (2) から、$yW^i=y+cZ$, $c=2^{k
 以上から $\ell qh^2\equiv0\pmod{2qh^2}$、すなわち $\ell$ は偶数であり、$2^{k+1}\mid i$ となる。
 \end{proof}
 
-以下では、仮定 (2)〜(4) が方向 $U$ の相対ノルムの算術から一般に従うことを示す。
-個々の基点で確かめるのは、(1) と、$h=4$ のときの (5) だけである。
+以下では、仮定 (2)〜(5) が、方向 $U$ の相対ノルムの算術と軌道の合同式から一般に従うことを示す。
+個々の基点で確かめるのは (1) だけである。
 
 \subsection{方向の相対ノルム}
 
@@ -699,66 +692,123 @@ $\pi(U)^2/4$ は、系~\ref{cor:width} から偶数係数である。
 また $\theta$ の係数どうしの寄与は、$\Delta/4=5+3\omega$ または $189+57\omega$ の倍数である。
 どちらも $\chi$ で $0$ になるので、$\chi(G)=0$ である。
 
+\subsection{軌道の合同式}
+
+仮定 (4)(5) の確認には、基点 $y$ が $f$ の零点であることは使わない。
+代わりに、軌道 $\xi_0\rho^i$ のすべての元が満たす、法 $4$ の合同式を使う。
+$\Nm(x)=H(x)+K(x)\omega$（$H(x),K(x)\in\Z$）と書く。
+
+\begin{lemma}\label{lem:orbit4}
+すべての $i\in\Z$ について、$y=\xi_0\rho^i$ は $f(y)\equiv0$, $K(y)\equiv0\pmod4$ を満たす。
+\end{lemma}
+
+\begin{proof}
+各環の乗法表を法 $4$ で読むと、$\theta$ の係数どうしの寄与は $H$ に $4$ の倍数しか与えない。
+したがって $H(y)\equiv y_0^2+ey_1^2\pmod4$ であり、
+\[
+f(y)+H(y)-11\equiv2y_0(y_0-3)\equiv0\pmod4
+\]
+となる。$y_0$ と $y_0-3$ は偶奇が異なるので、右辺は $4$ の倍数である。
+軌道の元は $\Nm(y)=\Nm(\xi_0)\Nm(\rho)^i=11$ を満たすので、$H(y)=11$, $K(y)=0$ であり、主張が従う。
+\end{proof}
+
 \subsection{仮定 (4)}
 
-$\Nm(U)=u+v\omega$ と置く。
+$\Nm(U)=u+v\omega$ と置く。系~\ref{cor:width} から $h\mid u$, $h\mid v$ であるが、どの環でも実際には $4\mid u$ が成り立つ。
+これは、$\theta$ の係数どうしの寄与の定数項が、各環で $4$ の倍数になることによる。
+
 補題~\ref{lem:direction} から $yU^2=-y\Nm(U)-4j(yU)\Nm(U)$ である。
 後半の項は、系~\ref{cor:width} から $\pi$ 部分が $h^2$ の倍数なので、$\lambda_y$ の値は $8jh^2$ の倍数である。
-前半の項については、\eqref{eq:root} を使うと
-\[
-\lambda_y(y\Nm(U))=2\bigl\{(3y_0-11)u-3ey_1v\bigr\}
-\]
+前半の項は、任意の $y$ について
+\begin{equation}\label{eq:scalar}
+\lambda_y(y\Nm(U))=2\bigl\{[y_0(y_0-3)-ey_1^2]u-3ey_1v\bigr\}
+\end{equation}
 となる。したがって、括弧の中が $h^2$ の倍数であることを示せばよい。
 
-$h=2$ のとき、$e$ は偶数であり、$u,v$ も偶数である。
-また \eqref{eq:root} を法 $2$ で読むと $y_0^2\equiv1$ なので、$y_0$ は奇数である。
-したがって $3y_0-11$ は偶数であり、括弧の中は $4$ の倍数である。
+$h=2$ のときは、$4\mid u$, $2\mid v$, $2\mid e$ なので、括弧の中は $y$ によらず $4$ の倍数である。
 
-$h=4$ のときは、次の2つの合同式を使う。$\varsigma=-1$（$d=2$）、$\varsigma=1$（$d=66$）と置く。
+$h=4$ のときは、$y_0(y_0-3)-ey_1^2=f(y)+3y_0-11$ を使って、\eqref{eq:scalar} を
+\[
+\lambda_y(y\Nm(U))=2\bigl\{(3y_0-11)u-3ey_1v\bigr\}+2u\,f(y)
+\]
+と書き直す。補題~\ref{lem:orbit4} から $4\mid f(y)$ なので、最後の項は $32$ の倍数である。
+残りの項には、次の2つの合同式を使う。$\varsigma=-1$（$d=2$）、$\varsigma=1$（$d=66$）と置く。
 \begin{itemize}
 \item 軌道の合同式：すべての $m\in\Z$ について、$y=\xi_0\rho^m$ は $y_0+\varsigma y_1\equiv1\pmod4$ を満たす。
 実際、任意の $x$ について $(P+\varsigma Q)(x\rho)-(P+\varsigma Q)(x)$ は $4$ の倍数であり、$\xi_0$ での値は $1$ である。
-\item 方向の合同式：$u-\varsigma v\equiv0\pmod{16}$ かつ $4\mid u$。
+\item 方向の合同式：$u-\varsigma v\equiv0\pmod{16}$。
 これは $\pi(U)\in8\Z[\omega]$ と、$\theta$ の係数を $c+k\omega$ と置いたときの $\Nm(U)$ の展開から従う。
 \end{itemize}
 $e\equiv-1\pmod4$ なので、$(3y_0-11)-3e\varsigma y_1=3(y_0+\varsigma y_1-1)-8-3\varsigma(e+1)y_1\equiv0\pmod4$ である。
 これを $v\equiv\varsigma u\pmod{16}$, $4\mid u$ と合わせると、括弧の中は $16$ の倍数である。
+以上で、$h=4$ のとき $32\mid\lambda_y(y\Nm(U))$ であり、仮定 (4) が成り立つ。
 
 \subsection{仮定 (5)：\tsec{$h=2$}{h=2} のとき}
 
-$h=2$ の3つのケースでは、(5) も一般に従う。
-基点 $y$ の $\theta$ の係数を $\gamma$（$d\ne11$ では $y_2+y_3\omega$、$d=11$ では $y_2+y_3\omega/11$）と書く。
-相対ノルムが $11$ であることは $\pi(y)^2-11=\Delta\gamma^2$ と書ける。両辺の $\NF$ を取ると、表~\ref{tab:J} の整数 $J_d$ について
-\[
-\NF(\pi(y)^2-11)=-8J_d^2
-\]
-となる。他方、展開により $f(y)f(-y)=\NF(\pi(y)^2-11)+8y_0^2$ である。
-したがって $f(y)=0$ ならば $y_0^2=J_d^2$ である。
+$h=2$ の3つのケース（$d=1,3,11$）では、乗法表から
+\begin{equation}\label{eq:Kmod4}
+K(y)\equiv2(y_0y_1-y_2^2)\pmod4
+\end{equation}
+が任意の $y$ について成り立つ。
+実際、$K(y)/2$ を展開すると、順に $y_0y_1-9y_2^2-44y_2y_3-54y_3^2$, $y_0y_1-3y_2^2-6y_3^2$, $y_0y_1-11y_2^2-16y_2y_3-6y_3^2$ であり、法 $2$ で残るのは $y_0y_1-y_2^2$ である。
 
-\begin{table}[htbp]
-\centering
-\caption{$\NF(\pi(y)^2-11)=-8J_d^2$ の $J_d$}\label{tab:J}
-\begin{tabular}{ccc}
-\toprule
-$d=1$ & $d=3$ & $d=11$\\
-\midrule
-$y_2^2-6y_3^2$ & $3(y_2^2-2y_3^2)$ & $11y_2^2-6y_3^2$\\
-\bottomrule
-\end{tabular}
-\end{table}
+補題~\ref{lem:orbit4} の $f(y)\equiv K(y)\equiv0\pmod4$ から、$y_0,y_1,y_2$ がすべて奇数であることがわかる。
+実際、$e\equiv2\pmod4$ なので $f(y)\equiv0$ は $(y_0-3)^2+2y_1^2\equiv2\pmod4$ となる。
+平方数は法 $4$ で $0$ か $1$ なので、$y_1$ は奇数、$y_0-3$ は偶数である。
+すると \eqref{eq:Kmod4} と $K(y)\equiv0$ から $y_2^2\equiv y_0y_1\equiv1\pmod2$ となる。
 
-$h=2$ の3つのケースでは $e\equiv2\pmod4$ である。
-\eqref{eq:root} を法 $4$ で読むと $y_0,y_1$ は奇数であり、$J_d\equiv y_2^2\pmod2$ なので $y_2$ も奇数である。
 また系~\ref{cor:width} から $P(U),Q(U)$ は $4$ の倍数である。
 乗法表を法 $4$ で読むと、$P(yU)\equiv0$, $Q(yU)\equiv2y_2U_2\pmod4$ となる。ここで $U_2$ は $U$ の第 $2$ 座標である。
 したがって $U_2$ が奇数ならば
 \[
-\lambda_y(yU)=2(y_0-3)P(yU)-2ey_1Q(yU)\equiv8\pmod{16}
+\lambda_y(yU)=2(y_0-3)P(yU)-2ey_1Q(yU)\equiv-8y_1y_2U_2\equiv8\pmod{16}
 \]
 であり、これは $q=2$, $h=2$ の (5) にほかならない。
 実際に使う3つの方向では $U_2=9,99,57$ で、いずれも奇数である。
 
-$h=4$ のときの (5) は、使う4つの基点で直接確かめる（表~\ref{tab:centres}）。
+\subsection{仮定 (5)：\tsec{$h=4$}{h=4} のとき}
+
+$h=4$ の2つのケースでは、$\Delta=4(k+\ell\omega)$ と書く。$(e,k,\ell)$ は $d=2$ で $(3,5,3)$、$d=66$ で $(11,189,57)$ である。
+$W=1+4jU$ とし、$U$ の $\theta$ の係数 $U_2+U_3\omega$ と $y$ の $\theta$ の係数 $y_2+y_3\omega$ の積を $X+Y\omega$ と書く。すなわち
+\[
+X=y_2U_2+ey_3U_3,\qquad Y=y_2U_3+y_3U_2
+\]
+である。$\pi(U)=-2j\Nm(U)$ の寄与は、仮定 (4) の議論から $\lambda_y$ に $64j$ の倍数しか与えない。
+残る $\theta$ の部分の寄与を計算すると、
+\begin{equation}\label{eq:pairing}
+\lambda_y(yU)\equiv8\bigl([k(y_0-3)-e\ell y_1]X+e[\ell(y_0-3)-ky_1]Y\bigr)\pmod{64j}
+\end{equation}
+を得る。
+
+右辺の係数は、$y$ の座標の小さな法での剰余だけで決まる。
+そこで、基点を含む剰余類を、軌道で保たれる合同式として求める。
+$\rho^4=1+4S$ と書くと、系~\ref{cor:width} から $S$ の最初の2つの座標は $8$ の倍数、任意の $z$ について $zS$ の最初の2つの座標は $4$ の倍数である。
+したがって $z\rho^4-z=4zS$ は、最初の2つの座標が $16$ の倍数、残る2つの座標が $4$ の倍数である。
+すなわち、座標を法 $(16,16,4,4)$ で見た剰余類は、$\rho^{\pm4}$ を掛けても変わらない。
+$d=2$ で $m\equiv0\pmod4$ の類では、$S_3$ と $z_0$ が偶数なので、第 $2$ 座標は法 $8$ でも保たれる。
+こうして得る剰余類は表~\ref{tab:phases} のとおりである。出発点は $\xi_0$, $\xi_0\rho^{-1}=(8,3,-2,0)$（$d=2$）、$\xi_0\rho=(66,19,0,1)$（$d=66$）である。
+
+\begin{table}[htbp]
+\centering
+\caption{$h=4$ の基点を含む剰余類と、\eqref{eq:pairing} の値}\label{tab:phases}
+\small\setlength{\tabcolsep}{3pt}
+\begin{tabular}{cccccc}
+\toprule
+ケース & 座標の法 & $y$ の剰余 & $W$ & $\lambda_y(yU)$ & 方向の条件\\
+\midrule
+$d=2$, $m\equiv0\ (4)$ & $(16,16,8,4)$ & $(2,1,2,3)$ & $\rho^8$ & $16(6U_2+U_3)\bmod128$ & $6U_2+U_3\equiv4\ (8)$\\
+$d=2$, $m\equiv-1\ (4)$ & $(16,16,4,4)$ & $(8,3,2,0)$ & $\rho^4$ & $32U_2\bmod64$ & $U_2$ は奇数\\
+$d=66$, $m\equiv1\ (4)$ & $(16,16,4,4)$ & $(2,3,0,1)$ & $\rho^4$ & $-16U_3\bmod64$ & $U_3\equiv2\ (4)$\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+表の右端の条件が成り立つと、$\lambda_y(yU)$ はそれぞれ $64\bmod128$, $32\bmod64$, $32\bmod64$ となり、(5) が成り立つ。
+$d=2$ の2つの方向の条件は、短い方向 $S$（$\rho^4=1+4S$）について $S_2$ が奇数、$6S_2+S_3\equiv4\pmod8$ を確かめれば足りる。
+長い方向は $U=(\rho^8-1)/8=S+2S^2$ であり、$S^2\in4R$ から $U\equiv S\pmod8$ となるからである。
+
+以上で、仮定 (2)〜(5) はすべて一般に従う。
+個々に確かめる有限の事実は、9つの基点で $f(y)=0$ であること、方向の6つの条件、2つの出発点の座標だけである。
 
 %======================================================================
 \section{指数の決定}\label{sec:exponents}
@@ -770,16 +820,16 @@ $h=4$ のときの (5) は、使う4つの基点で直接確かめる（表~\ref
 \begin{table}[htbp]
 \centering
 \caption{一意性補題を使う基点}\label{tab:centres}
-\begin{tabular}{ccccccc}
+\begin{tabular}{cccccc}
 \toprule
-$d$ & 基点の指数 $m_0$ & $W$ & $q$ & $h$ & $D$ & (5) の確認\\
+$d$ & 基点の指数 $m_0$ & $W$ & $q$ & $h$ & $D$\\
 \midrule
-$1$ & $0,\ -1$ & $\rho^2$ & $2$ & $2$ & $16$ & 一般\\
-$2$ & $0,\ -4$ & $\rho^8$ & $4$ & $4$ & $128$ & 直接\\
-$2$ & $-1$ & $\rho^4$ & $2$ & $4$ & $64$ & 直接\\
-$3$ & $0,\ -1$ & $\rho^2$ & $2$ & $2$ & $16$ & 一般\\
-$11$ & $0$ & $\rho^2$ & $2$ & $2$ & $16$ & 一般\\
-$66$ & $1$ & $\rho^4$ & $2$ & $4$ & $64$ & 直接\\
+$1$ & $0,\ -1$ & $\rho^2$ & $2$ & $2$ & $16$\\
+$2$ & $0,\ -4$ & $\rho^8$ & $4$ & $4$ & $128$\\
+$2$ & $-1$ & $\rho^4$ & $2$ & $4$ & $64$\\
+$3$ & $0,\ -1$ & $\rho^2$ & $2$ & $2$ & $16$\\
+$11$ & $0$ & $\rho^2$ & $2$ & $2$ & $16$\\
+$66$ & $1$ & $\rho^4$ & $2$ & $4$ & $64$\\
 \bottomrule
 \end{tabular}
 \end{table}
