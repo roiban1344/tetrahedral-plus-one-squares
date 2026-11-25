@@ -120,29 +120,21 @@ theorem scalar (y U : R) (q : ℤ) (hq : q≠0)
       ((y*U) 0) ((y*U) 1) (relH U) (relK U) 2
       ((direction U q hq hH hK).1 y).1
       ((direction U q hq hH hK).1 y).2 hN0 hN1
-/-- Two norms at a shifted-norm root give a square of an integral quadratic norm. -/
-theorem coordinate_square (y : R) (hH : relH y=11) (hK : relK y=0) (hy : f y=0) :
-    (y 0)^2=((y 2)^2-6*(y 3)^2)^2 := by
-  have hid : f y*f (-y)=8*((y 0)^2-((y 2)^2-6*(y 3)^2)^2)+
-      (relH y-11)*(2*(y 0)^2+2*6*(y 1)^2-relH y-11)-
-      6*relK y*(4*y 0*y 1-relK y) := by
-    simp only [f,neg_apply,relH,relK]; ring
-  rw [hy,hH,hK] at hid
-  nlinarith only [hid]
+/-- The nonconstant norm coefficient detects the relative-coordinate parity. -/
+theorem norm_parity (y : R) :
+    (4:ℤ) ∣ relK y-2*(y 0*y 1-(y 2)^2) := by
+  simp only [relK]; ring_nf; omega
 
-/-- The two norm equations and the shifted root force odd off-base
-coordinate; a primitive direction therefore has derivative 8 modulo 16. -/
+/-- Two congruences modulo four force the three odd coordinates needed
+for a primitive direction to have derivative 8 modulo 16. -/
 theorem derivative (y U : R) (q : ℤ) (hq : q≠0)
     (hH : relH (1+(4*q) • U)=1) (hK : relK (1+(4*q) • U)=0)
-    (hyH : relH y=11) (hyK : relK y=0) (hy : f y=0)
+    (hyK : (4:ℤ) ∣ relK y) (hy : (4:ℤ) ∣ f y)
     (hprimitive : (2:ℤ) ∣ U 2-1) :
     (16:ℤ) ∣ Lf y (y*U)-8 := by
   obtain ⟨ha,hb⟩ := RelativeDirection.root_two (y 0) (y 1) 6 (by decide) hy
-  have hs := coordinate_square y hyH hyK hy
-  have hp0 := IntegerParity.square_sub_self_even (y 0)
-  have hpN := IntegerParity.square_sub_self_even ((y 2)^2-6*(y 3)^2)
-  have hp2 := IntegerParity.square_sub_self_even (y 2)
-  have hc : (2:ℤ) ∣ y 2-1 := by omega
+  have hparity := norm_parity y
+  have hc := RelativeDirection.odd_of_product_square (y 0) (y 1) (y 2) ha hb (by omega)
   obtain ⟨hA,hB,hN0,hN1⟩ := trace_norm U q hq hH hK
   obtain ⟨a,haN⟩ := hN0; obtain ⟨b,hbN⟩ := hN1
   have hu0 : U 0=4*(-q*a) := by rw [hA,haN]; ring
@@ -154,11 +146,13 @@ theorem derivative (y U : R) (q : ℤ) (hq : q≠0)
   exact RelativeDirection.derivative_two (y 0) (y 1) (y 2) (U 2)
     ((y*U) 0) ((y*U) 1) 6 (by decide) ha hb hc hprimitive hF0 hF1
 
-theorem orbit_norm (i : ℤ) :
-    relH (xi0*(↑(rhoU^i):R))=11 ∧ relK (xi0*(↑(rhoU^i):R))=0 := by
+/-- Only the required congruence is passed to the local derivative proof. -/
+theorem orbit_coefficient (i : ℤ) :
+    (4:ℤ) ∣ relK (xi0*(↑(rhoU^i):R)) := by
   obtain ⟨hH,hK⟩ := relN_rho_zpow i
-  simpa only [relH_mul,relK_mul,hH,hK,mul_zero,zero_mul,mul_one,add_zero,zero_add]
-    using (show relH xi0=11 ∧ relK xi0=0 by decide +kernel)
+  rw [relK_mul,hH,hK]
+  norm_num [relK,xi0]
+
 
 
 end Tetrahedral.NormEleven.NormProjection1
@@ -523,29 +517,21 @@ theorem scalar (y U : R) (q : ℤ) (hq : q≠0)
       ((y*U) 0) ((y*U) 1) (relH U) (relK U) 2
       ((direction U q hq hH hK).1 y).1
       ((direction U q hq hH hK).1 y).2 hN0 hN1
-/-- Two norms at a shifted-norm root give a square of an integral quadratic norm. -/
-theorem coordinate_square (y : R) (hH : relH y=11) (hK : relK y=0) (hy : f y=0) :
-    (y 0)^2=(3*((y 2)^2-2*(y 3)^2))^2 := by
-  have hid : f y*f (-y)=8*((y 0)^2-(3*((y 2)^2-2*(y 3)^2))^2)+
-      (relH y-11)*(2*(y 0)^2+2*2*(y 1)^2-relH y-11)-
-      2*relK y*(4*y 0*y 1-relK y) := by
-    simp only [f,neg_apply,relH,relK]; ring
-  rw [hy,hH,hK] at hid
-  nlinarith only [hid]
+/-- The nonconstant norm coefficient detects the relative-coordinate parity. -/
+theorem norm_parity (y : R) :
+    (4:ℤ) ∣ relK y-2*(y 0*y 1-(y 2)^2) := by
+  simp only [relK]; ring_nf; omega
 
-/-- The two norm equations and the shifted root force odd off-base
-coordinate; a primitive direction therefore has derivative 8 modulo 16. -/
+/-- Two congruences modulo four force the three odd coordinates needed
+for a primitive direction to have derivative 8 modulo 16. -/
 theorem derivative (y U : R) (q : ℤ) (hq : q≠0)
     (hH : relH (1+(4*q) • U)=1) (hK : relK (1+(4*q) • U)=0)
-    (hyH : relH y=11) (hyK : relK y=0) (hy : f y=0)
+    (hyK : (4:ℤ) ∣ relK y) (hy : (4:ℤ) ∣ f y)
     (hprimitive : (2:ℤ) ∣ U 2-1) :
     (16:ℤ) ∣ Lf y (y*U)-8 := by
   obtain ⟨ha,hb⟩ := RelativeDirection.root_two (y 0) (y 1) 2 (by decide) hy
-  have hs := coordinate_square y hyH hyK hy
-  have hp0 := IntegerParity.square_sub_self_even (y 0)
-  have hpN := IntegerParity.square_sub_self_even (3*((y 2)^2-2*(y 3)^2))
-  have hp2 := IntegerParity.square_sub_self_even (y 2)
-  have hc : (2:ℤ) ∣ y 2-1 := by omega
+  have hparity := norm_parity y
+  have hc := RelativeDirection.odd_of_product_square (y 0) (y 1) (y 2) ha hb (by omega)
   obtain ⟨hA,hB,hN0,hN1⟩ := trace_norm U q hq hH hK
   obtain ⟨a,haN⟩ := hN0; obtain ⟨b,hbN⟩ := hN1
   have hu0 : U 0=4*(-q*a) := by rw [hA,haN]; ring
@@ -557,11 +543,13 @@ theorem derivative (y U : R) (q : ℤ) (hq : q≠0)
   exact RelativeDirection.derivative_two (y 0) (y 1) (y 2) (U 2)
     ((y*U) 0) ((y*U) 1) 2 (by decide) ha hb hc hprimitive hF0 hF1
 
-theorem orbit_norm (i : ℤ) :
-    relH (xi0*(↑(rhoU^i):R))=11 ∧ relK (xi0*(↑(rhoU^i):R))=0 := by
+/-- Only the required congruence is passed to the local derivative proof. -/
+theorem orbit_coefficient (i : ℤ) :
+    (4:ℤ) ∣ relK (xi0*(↑(rhoU^i):R)) := by
   obtain ⟨hH,hK⟩ := relN_rho_zpow i
-  simpa only [relH_mul,relK_mul,hH,hK,mul_zero,zero_mul,mul_one,add_zero,zero_add]
-    using (show relH xi0=11 ∧ relK xi0=0 by decide +kernel)
+  rw [relK_mul,hH,hK]
+  norm_num [relK,xi0]
+
 
 
 end Tetrahedral.NormEleven.NormProjection3
@@ -678,29 +666,21 @@ theorem scalar (y U : R) (q : ℤ) (hq : q≠0)
       ((y*U) 0) ((y*U) 1) (relH U) (relK U) 2
       ((direction U q hq hH hK).1 y).1
       ((direction U q hq hH hK).1 y).2 hN0 hN1
-/-- Two norms at a shifted-norm root give a square of an integral quadratic norm. -/
-theorem coordinate_square (y : R) (hH : relH y=11) (hK : relK y=0) (hy : f y=0) :
-    (y 0)^2=(11*(y 2)^2-6*(y 3)^2)^2 := by
-  have hid : f y*f (-y)=8*((y 0)^2-(11*(y 2)^2-6*(y 3)^2)^2)+
-      (relH y-11)*(2*(y 0)^2+2*66*(y 1)^2-relH y-11)-
-      66*relK y*(4*y 0*y 1-relK y) := by
-    simp only [f,neg_apply,relH,relK]; ring
-  rw [hy,hH,hK] at hid
-  nlinarith only [hid]
+/-- The nonconstant norm coefficient detects the relative-coordinate parity. -/
+theorem norm_parity (y : R) :
+    (4:ℤ) ∣ relK y-2*(y 0*y 1-(y 2)^2) := by
+  simp only [relK]; ring_nf; omega
 
-/-- The two norm equations and the shifted root force odd off-base
-coordinate; a primitive direction therefore has derivative 8 modulo 16. -/
+/-- Two congruences modulo four force the three odd coordinates needed
+for a primitive direction to have derivative 8 modulo 16. -/
 theorem derivative (y U : R) (q : ℤ) (hq : q≠0)
     (hH : relH (1+(4*q) • U)=1) (hK : relK (1+(4*q) • U)=0)
-    (hyH : relH y=11) (hyK : relK y=0) (hy : f y=0)
+    (hyK : (4:ℤ) ∣ relK y) (hy : (4:ℤ) ∣ f y)
     (hprimitive : (2:ℤ) ∣ U 2-1) :
     (16:ℤ) ∣ Lf y (y*U)-8 := by
   obtain ⟨ha,hb⟩ := RelativeDirection.root_two (y 0) (y 1) 66 (by decide) hy
-  have hs := coordinate_square y hyH hyK hy
-  have hp0 := IntegerParity.square_sub_self_even (y 0)
-  have hpN := IntegerParity.square_sub_self_even (11*(y 2)^2-6*(y 3)^2)
-  have hp2 := IntegerParity.square_sub_self_even (y 2)
-  have hc : (2:ℤ) ∣ y 2-1 := by omega
+  have hparity := norm_parity y
+  have hc := RelativeDirection.odd_of_product_square (y 0) (y 1) (y 2) ha hb (by omega)
   obtain ⟨hA,hB,hN0,hN1⟩ := trace_norm U q hq hH hK
   obtain ⟨a,haN⟩ := hN0; obtain ⟨b,hbN⟩ := hN1
   have hu0 : U 0=4*(-q*a) := by rw [hA,haN]; ring
@@ -712,11 +692,13 @@ theorem derivative (y U : R) (q : ℤ) (hq : q≠0)
   exact RelativeDirection.derivative_two (y 0) (y 1) (y 2) (U 2)
     ((y*U) 0) ((y*U) 1) 66 (by decide) ha hb hc hprimitive hF0 hF1
 
-theorem orbit_norm (i : ℤ) :
-    relH (xi0*(↑(rhoU^i):R))=11 ∧ relK (xi0*(↑(rhoU^i):R))=0 := by
+/-- Only the required congruence is passed to the local derivative proof. -/
+theorem orbit_coefficient (i : ℤ) :
+    (4:ℤ) ∣ relK (xi0*(↑(rhoU^i):R)) := by
   obtain ⟨hH,hK⟩ := relN_rho_zpow i
-  simpa only [relH_mul,relK_mul,hH,hK,mul_zero,zero_mul,mul_one,add_zero,zero_add]
-    using (show relH xi0=11 ∧ relK xi0=0 by decide +kernel)
+  rw [relK_mul,hH,hK]
+  norm_num [relK,xi0]
+
 
 
 end Tetrahedral.NormEleven.NormProjection11

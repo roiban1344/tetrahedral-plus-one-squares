@@ -90,20 +90,26 @@ theorem scalar_of_norm {R : Type*} [CommRing R] (L : R →ₗ[ℤ] ℤ)
   exact (dvd_neg.mpr hN).sub (herror.mul_left c)
 
 
-/-- For e=2 modulo four, the shifted norm root has two odd base coordinates. -/
-theorem root_two (a b e : ℤ) (he : 4 ∣ e-2) (hy : (a-3)^2-e*b^2+2=0) :
-    2 ∣ a-1 ∧ 2 ∣ b-1 := by
-  obtain ⟨k,hk⟩ := he
-  have hee : e=2+4*k := by omega
-  have hs : (2:ℤ) ∣ (a-3)^2 := ⟨(1+2*k)*b^2-1,by rw [hee] at hy; nlinarith only [hy]⟩
+/-- For e=2 modulo four, a shifted norm vanishing modulo four
+already forces two odd base coordinates. -/
+theorem root_two (a b e : ℤ) (he : 4 ∣ e-2)
+    (hy : 4 ∣ (a-3)^2-e*b^2+2) : 2 ∣ a-1 ∧ 2 ∣ b-1 := by
+  have hs : (4:ℤ) ∣ (a-3)^2-2*b^2+2 := by
+    convert hy.add (he.mul_right (b^2)) using 1; ring
+  have hn2 : (2:ℤ) ∣ (a-3)^2 := by omega
+  have hn4 : (4:ℤ) ∣ (a-3)^2 := by
+    simpa using IntegerParity.square_difference_four (a-3) 0 (by simpa using hn2)
   have hpa := IntegerParity.square_sub_self_even (a-3)
-  have ha : (2:ℤ) ∣ a-1 := by omega
-  obtain ⟨u,hu⟩ := ha
-  have haa : a=1+2*u := by omega
-  have hb : (2:ℤ) ∣ b^2-1 :=
-    ⟨(u-1)^2-k*b^2,by rw [hee,haa] at hy; nlinarith only [hy]⟩
   have hpb := IntegerParity.square_sub_self_even b
-  exact ⟨⟨u,hu⟩,by omega⟩
+  exact ⟨by omega,by omega⟩
+
+/-- An odd product congruent to a square forces its square root to be odd. -/
+theorem odd_of_product_square (a b c : ℤ)
+    (ha : 2 ∣ a-1) (hb : 2 ∣ b-1) (h : 2 ∣ a*b-c^2) : 2 ∣ c-1 := by
+  have hp : (2:ℤ) ∣ a*b-1 := by
+    convert (ha.mul_right b).add hb using 1; ring
+  have hs := IntegerParity.square_sub_self_even c
+  omega
 
 /-- Primitive off-base direction and odd root coordinates force the
 normalized derivative to be odd. -/

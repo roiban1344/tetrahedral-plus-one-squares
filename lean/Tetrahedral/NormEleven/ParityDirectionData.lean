@@ -52,9 +52,8 @@ theorem primitive : (2:ℤ) ∣ step 2-1 := by decide +kernel
 theorem root : ∀ c : Fin 2, f (point c)=0 := by decide +kernel
 
 theorem derivative_at (c : Fin 2) : 16 ∣ Lf (point c) (first c)-8 := by
-  obtain ⟨hH,hK⟩ := orbit_norm (centre c)
   exact derivative (point c) step 1 (by decide) norm_step.1 norm_step.2
-    hH hK (root c) primitive
+    (orbit_coefficient (centre c)) (by rw [root c]; exact dvd_zero _) primitive
 
 
 /-- The scalar bit is a consequence of the norm and the orbit, not a certificate. -/
@@ -317,9 +316,8 @@ theorem primitive : (2:ℤ) ∣ step 2-1 := by decide +kernel
 theorem root : ∀ c : Fin 2, f (point c)=0 := by decide +kernel
 
 theorem derivative_at (c : Fin 2) : 16 ∣ Lf (point c) (first c)-8 := by
-  obtain ⟨hH,hK⟩ := orbit_norm (centre c)
   exact derivative (point c) step 1 (by decide) norm_step.1 norm_step.2
-    hH hK (root c) primitive
+    (orbit_coefficient (centre c)) (by rw [root c]; exact dvd_zero _) primitive
 
 
 /-- The scalar bit is a consequence of the norm and the orbit, not a certificate. -/
@@ -379,9 +377,8 @@ theorem primitive : (2:ℤ) ∣ step 2-1 := by decide +kernel
 theorem root : ∀ c : Fin 1, f (point c)=0 := by decide +kernel
 
 theorem derivative_at (c : Fin 1) : 16 ∣ Lf (point c) (first c)-8 := by
-  obtain ⟨hH,hK⟩ := orbit_norm (centre c)
   exact derivative (point c) step 1 (by decide) norm_step.1 norm_step.2
-    hH hK (root c) primitive
+    (orbit_coefficient (centre c)) (by rw [root c]; exact dvd_zero _) primitive
 
 
 /-- The scalar bit is a consequence of the norm and the orbit, not a certificate. -/
