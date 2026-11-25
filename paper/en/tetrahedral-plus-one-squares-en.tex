@@ -1,0 +1,927 @@
+% Tetrahedral numbers plus one that are squares
+% Typesetting: LuaLaTeX (run lualatex two or three times).
+\RequirePackage{fix-cm}
+\documentclass[a4paper,11pt]{article}
+
+\usepackage{fontspec}
+\usepackage{newunicodechar}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{booktabs,array}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+
+% Unicode symbols in the Lean listing (Latin Modern Mono has no glyphs for them).
+\newunicodechar{ℕ}{\ensuremath{\mathbb{N}}}
+\newunicodechar{∃}{\ensuremath{\exists}}
+\newunicodechar{↔}{\ensuremath{\leftrightarrow}}
+\newunicodechar{∨}{\ensuremath{\vee}}
+
+\setlist{nosep,leftmargin=2em}
+\setlist[enumerate]{label=(\arabic*)}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+\numberwithin{equation}{section}
+\numberwithin{table}{section}
+
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\F}{\mathbb{F}}
+\newcommand{\Rr}{\mathbb{R}}
+\newcommand{\Nm}{\operatorname{N}}
+\newcommand{\NF}{\operatorname{N}_F}
+\newcommand{\tsec}[2]{\texorpdfstring{#1}{#2}}
+\newcommand{\lean}[1]{\texttt{#1}}
+
+\title{Tetrahedral numbers plus one that are squares}
+\author{roiban1344}
+\date{November 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+For a nonnegative integer $n$, the tetrahedral number $n(n+1)(n+2)/6$ plus $1$ is a square only for $n=0,5,8,22,24,63,13775$.
+This equation defines an elliptic curve. Therefore, the integral points are usually determined by a computation based on lower bounds for linear forms in elliptic logarithms.
+This paper gives a proof that does not use the theory of elliptic curves.
+The central step of the proof combines the two equations into one element of relative norm $11$.
+We divide that element by $11$ and reduce it to a power of a unit. We determine the exponent by the $2$-adic uniqueness lemma.
+The finite computations needed are limited to explicit integer identities and congruences. The whole proof is formalized in Lean~4 and Mathlib.
+\end{abstract}
+
+\tableofcontents
+
+%======================================================================
+\section{Introduction}
+%======================================================================
+
+\subsection{Main theorem}
+
+Throughout, $\N=\{0,1,2,\dots\}$, and $T(n)=n(n+1)(n+2)/6$ is the tetrahedral number (OEIS A000292).
+
+\begin{theorem}\label{thm:main}
+For $n\in\N$, there is $m\in\N$ with $T(n)+1=m^2$ if and only if
+\[
+n\in\{0,\ 5,\ 8,\ 22,\ 24,\ 63,\ 13775\}.
+\]
+The corresponding values of $m$ are $1,6,11,45,51,209,660099$, in this order.
+\end{theorem}
+
+The sequence of the $m$ is registered in the OEIS as A216269, ``$k$ such that $k^2-1$ is a tetrahedral number'', with these seven terms.
+
+\subsection{Relation to elliptic curves}
+
+Multiplying the equation $T(n)+1=m^2$ by $6$ gives $6m^2=n(n+1)(n+2)+6$.
+With $X=6n$ and $Y=36m$, this becomes
+\[
+Y^2=X^3+18X^2+72X+1296.
+\]
+This is a problem about the integral points of an elliptic curve.
+Hence the finiteness of the set of solutions follows from Siegel's theorem.
+However, Siegel's theorem gives no upper bound for the size of the solutions.
+Therefore, to find all the integral points, one usually uses the elliptic logarithm method~\cite{ST94,GPZ94}.
+In this method, one finds a basis of the Mordell--Weil group, obtains an upper bound for the coefficients from a lower bound for linear forms in elliptic logarithms, and finally examines the remaining range by lattice reduction.
+
+The proof in this paper uses none of these.
+It uses only the following.
+\begin{itemize}
+\item Computations in five rings, each a free $\Z$-module of rank $4$ with an explicit multiplication.
+\item Inequalities between real numbers.
+\item Congruences and divisibility of integers.
+\end{itemize}
+We do not use class numbers, the unit theorem, unique factorization of ideals, or $p$-adic analysis.
+For the units, we show directly by real inequalities that one explicit element generates all relative units (Section~\ref{sec:units}).
+To determine the exponent, we use an argument by repeated divisibility by powers of $2$ instead of the theory of $p$-adic zeros (Section~\ref{sec:dyadic}).
+
+\subsection{Structure of the proof}
+
+The proof proceeds in the following order.
+\begin{enumerate}
+\item Split the equation into five systems $n+3=dr^2$, $n^2+2=ey^2$ (Section~\ref{sec:branches}).
+\item Write the solutions of the second equation in the form of a square in two integers (Section~\ref{sec:parameters}).
+\item Combine the two equations into an element $\xi$ of relative norm $11$ (Section~\ref{sec:norm11}).
+\item By division by $11$, write $\xi$ as the product of one of finitely many initial elements and a relative unit (Section~\ref{sec:division}).
+\item Show that the relative units are exhausted by the powers of one element $\rho$ and signs (Section~\ref{sec:units}).
+\item Remove the negative sign and the unneeded initial element (Section~\ref{sec:signs}).
+\item Determine the exponent of $\rho$ by the $2$-adic uniqueness lemma (Sections~\ref{sec:dyadic} and~\ref{sec:exponents}).
+\item Read off $n$ from the coordinates of the resulting element (Section~\ref{sec:conclusion}).
+\end{enumerate}
+In the last step, the $0$th coordinate of $\xi$ equals $n+3$ from the start. Therefore we can read off $n$ without passing through other quantities.
+
+\subsection{Formalization}
+
+Every step is formalized in Lean~4 and Mathlib.
+The final theorem has the form shown in Appendix~\ref{app:lean}, and the Lean kernel checks it.
+It depends only on the three standard axioms of Lean (\lean{propext}, \lean{Classical.choice}, \lean{Quot.sound}).
+We do not use \lean{sorry} or \lean{native\_decide}.
+The kernel checks the finite computations by \lean{decide}.
+The correspondence between the steps of the text and the Lean files is summarized in the table in Appendix~\ref{app:lean}.
+
+\subsection{Notation}
+
+Let $e$ be a positive integer that is not a square, and write $\omega=\sqrt e$.
+The norm on $\Z[\omega]=\{a+b\omega : a,b\in\Z\}$ is $\NF(a+b\omega)=a^2-eb^2$.
+For an element $\alpha$ of $\Z[\omega]$, we write $\alpha'$ for its conjugate $a-b\omega$.
+
+%======================================================================
+\section{Five systems of equations}\label{sec:branches}
+%======================================================================
+
+Multiplying $T(n)+1=m^2$ by $6$ and rearranging, we get
+\begin{equation}\label{eq:shift}
+6m^2=(n+3)(n^2+2).
+\end{equation}
+
+\begin{proposition}\label{prop:branches}
+If $(n,m)$ is a solution of \eqref{eq:shift} in natural numbers, then there are positive integers $r,y$ such that
+\begin{equation}\label{eq:pair}
+n+3=dr^2,\qquad n^2+2=ey^2
+\end{equation}
+holds for one of the five pairs $(d,e)$ in Table~\ref{tab:branches}.
+\end{proposition}
+
+\begin{table}[htbp]
+\centering
+\caption{The five cases}\label{tab:branches}
+\begin{tabular}{c|ccccc}
+\toprule
+$d$ & $1$ & $2$ & $3$ & $11$ & $66$\\
+$e$ & $6$ & $3$ & $2$ & $66$ & $11$\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{proof}
+Write $n+3=dr^2$ with $d$ a squarefree positive integer.
+First, every common divisor of $n+3$ and $n^2+2$ divides $11$. In fact, $(n^2+2)-(n-3)(n+3)=11$.
+Next, comparing the parity of the exponents of the prime factors on both sides of \eqref{eq:shift}, we see that $d$ divides $6(n^2+2)$.
+Therefore, if a prime $p$ dividing $d$ does not divide $6$, then $p$ is a common divisor of $n+3$ and $n^2+2$, and so $p=11$.
+Hence $d\mid66$.
+
+Also, by \eqref{eq:shift}, $6d(n^2+2)$ is a square.
+Write $6d=k^2e$ with $e$ squarefree. Then $e(n^2+2)$ is also a square, and we get $n^2+2=ey^2$.
+For $d=1,2,3,6,11,22,33,66$ we have $e=6,3,2,1,66,33,22,11$.
+
+It remains to exclude $d=6,22,33$.
+For $d=6,22$ we have $e=1,33$. In both cases $e\equiv1\pmod4$, so $n^2+2\equiv y^2\pmod4$. Squares are $0$ or $1$ modulo $4$, so this is impossible.
+For $d=33$, $n+3=33r^2$ gives $3\mid n$. Then $n^2+2=22y^2$ gives $22y^2\equiv2\pmod3$, that is, $y^2\equiv2\pmod3$. This is also impossible.
+\end{proof}
+
+Conversely, a solution of \eqref{eq:pair} gives a solution of \eqref{eq:shift}. In fact, $de=6k'^2$ ($k'=1,1,1,11,11$), so we may take $m=k'ry$.
+
+%======================================================================
+\section{Quadratic square representations}\label{sec:parameters}
+%======================================================================
+
+In this section we express the solutions of the second equation $n^2+2=ey^2$ by quadratic forms in two integers $a,b$.
+We do not use the general theory of solutions of Pell equations. We construct the parameters by an explicit descent.
+
+\subsection{Descent}
+
+In the four cases with $e\ne2$, we can write $e=a_0^2+2$ ($a_0=2,1,8,3$).
+Put $c_0=a_0^2+1$. Then $c_0+a_0\omega$ has norm $1$.
+
+\begin{lemma}\label{lem:descent}
+Suppose that $n\ge0$ and $y>1$ satisfy $n^2+2=ey^2$. Then
+\[
+N=c_0n-a_0ey,\qquad Z=c_0y-a_0n
+\]
+satisfy $0\le N<n$, $Z>0$ and $N^2+2=eZ^2$. Moreover, $n=c_0N+a_0eZ$ and $y=c_0Z+a_0N$.
+\end{lemma}
+
+\begin{proof}
+We have $N+Z\omega=(n+y\omega)(c_0-a_0\omega)$, so the norm is preserved. The last two equations come from multiplying back by $c_0+a_0\omega$.
+We show the inequalities in the following order. Note that $e=c_0+1$.
+\begin{enumerate}
+\item $a_0y<n$. Otherwise $n^2\le a_0^2y^2=ey^2-2y^2<ey^2-2=n^2$ (using $y>1$).
+\item $Z>0$. This follows from the identity $(c_0y)^2-(a_0n)^2=y^2+2a_0^2>0$.
+\item $|N|<n$. The inequality $N>-n$ is equivalent to $(c_0+1)n>a_0ey$, that is, to $n>a_0y$. The inequality $N<n$ is equivalent to $a_0n<ey$, and by (2) we have $a_0n<c_0y<ey$.
+\item $a_0Z\le|N|$. Apply the same argument as in (1) to $(|N|,Z)$ (using $Z\ge1$).
+\item $N\ge0$. Suppose $N<0$. Then $n=c_0N+a_0eZ=a_0eZ-c_0|N|\le a_0eZ-c_0a_0Z=a_0Z\le|N|<n$, a contradiction.
+\end{enumerate}
+\end{proof}
+
+This descent stops at $y=1$, and then $n=a_0$.
+
+\begin{proposition}\label{prop:parameters}
+Let $e=A^2+2$, and put $Q_A(a,b)=a^2-2b^2+2Aab$.
+If $n\ge0$ and $y>0$ satisfy $n^2+2=ey^2$, then there are $A=a_0$ or $A=-a_0$ and integers $a,b$ such that
+\begin{equation}\label{eq:param}
+Q_A(a,b)=1,\qquad n=A(a^2-2b^2)-4ab.
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+We use induction on $n$. If $y=1$, then $n=a_0$, and $(A,a,b)=(a_0,1,0)$ works.
+If $y>1$, the pair $(N,Z)$ of Lemma~\ref{lem:descent} satisfies $0\le N<n$, so it has a representation by the induction hypothesis. From it, the following update gives a representation of $(n,y)$:
+\[
+(a_0,a,b)\mapsto(-a_0,\ a,\ b-a_0a),\qquad(-a_0,a,b)\mapsto(a_0,\ a-2a_0b,\ b).
+\]
+One checks by expansion that \eqref{eq:param} is preserved.
+\end{proof}
+
+\subsection{Choice of sign}
+
+Substituting $a^2-2b^2=1-2Aab$ from the first equation of \eqref{eq:param} into the second, we get
+\begin{equation}\label{eq:offset}
+n=A-2(A^2+2)ab.
+\end{equation}
+Combining this with the first equation $n+3=dr^2$, one of the two signs of $A$ is excluded in each case.
+\begin{itemize}
+\item $d=1$, $A=2$: reading $Q_2(a,b)=1$ modulo $4$, $b$ is even. Then $r^2=n+3=5-12ab\equiv5\pmod8$, which is impossible.
+\item $d=2$, $A=1$: $2r^2=4-6ab$ gives $r^2\equiv2\pmod3$, which is impossible.
+\item $d=11$, $A=-8$: $11r^2=-5-132ab$ gives $11\mid5$, which is impossible.
+\item $d=66$, $A=3$: $66r^2=6-22ab$ gives $11\mid6$, which is impossible.
+\end{itemize}
+Therefore $A=-2,\,-1,\,8,\,-3$ (for $d=1,2,11,66$).
+
+\subsection{The case \tsec{$e=2$}{e=2}}
+
+For $d=3$, $e=2$, the equation $n+3=3r^2$ gives $3\mid n$. Moreover, $n$ is even (by $n^2+2=2y^2$).
+Write $n=2N$. Then $y^2-2N^2=1$.
+Modulo $4$, $y$ is odd and $N$ is even.
+The product of the coprime consecutive integers $(y-1)/2$ and $(y+1)/2$ equals $N^2/2$. Hence each factor is a square or twice a square.
+From this we get an element $a+b\sqrt2$ of norm $\pm1$ with $y+N\sqrt2=(a+b\sqrt2)^2$.
+Then $n=2N=4ab$.
+If the norm were $-1$, then $a^2+b^2\equiv2\pmod3$ would give $3\nmid ab$, contrary to $3\mid n$.
+Therefore the norm is $1$, and changing the sign of $b$ gives the representation \eqref{eq:param} with $A=0$.
+
+\subsection{Square representation}
+
+\begin{proposition}\label{prop:square}
+If $n^2+2=ey^2$, $y>0$, and \eqref{eq:param} holds, then $y=a^2+2b^2$ and
+\[
+n+y\omega=(A+\omega)\bigl(a+(A-\omega)b\bigr)^2.
+\]
+\end{proposition}
+
+\begin{proof}
+Substituting \eqref{eq:param} into the identity
+\[
+\bigl(A(a^2-2b^2)-4ab\bigr)^2+2Q_A(a,b)^2=(A^2+2)(a^2+2b^2)^2,
+\]
+we get $n^2+2=e(a^2+2b^2)^2$. Comparing with $y>0$, we get $y=a^2+2b^2$. The second part follows by expansion.
+\end{proof}
+
+To match the rings used later, we multiply once by a known unit and replace the fixed element.
+The result has the form $w=n+y\omega=\beta\eta^2$ with $\eta=\eta_0+\eta_1\omega$. The values of $\beta,\eta_0,\eta_1$ in each case are given in Table~\ref{tab:beta}.
+Each row of the table is a quadratic identity in $a,b$ and can be checked by expansion.
+
+\begin{table}[htbp]
+\centering
+\caption{The square representation $n+y\omega=\beta(\eta_0+\eta_1\omega)^2$}\label{tab:beta}
+\begin{tabular}{ccccc}
+\toprule
+$d$ & $A$ & $\beta$ & $\eta_0$ & $\eta_1$\\
+\midrule
+$1$ & $-2$ & $22+9\omega$ & $5a+2b$ & $-2a-b$\\
+$2$ & $-1$ & $5+3\omega$ & $2a+b$ & $-a-b$\\
+$3$ & $0$ & $\omega$ & $a$ & $-b$\\
+$11$ & $8$ & $8+\omega$ & $a+8b$ & $-b$\\
+$66$ & $-3$ & $63+19\omega$ & $10a+3b$ & $-3a-b$\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+%======================================================================
+\section{Elements of relative norm \tsec{$11$}{11}}\label{sec:norm11}
+%======================================================================
+
+\subsection{Five rings}
+
+In each case we define a commutative ring $R=R_d$ by putting a multiplication on $\Z^4$.
+The ring $R$ contains $\Z[\omega]$ as a subring and has an element $\theta$ with $\theta^2=\Delta\in\Z[\omega]$.
+For $d\ne11$, $R=\Z[\omega]\oplus\Z[\omega]\theta$. For $d=11$, $R=\Z[\omega]\oplus(\Z+\Z\,\omega/11)\theta$.
+The value of $\Delta$ and the meaning of the coordinates are given in Table~\ref{tab:rings}.
+
+\begin{table}[htbp]
+\centering
+\caption{The five rings. The element represented by $x=(x_0,x_1,x_2,x_3)$, and $\theta^2=\Delta$}\label{tab:rings}
+\begin{tabular}{cccc}
+\toprule
+$d$ & $e$ & element represented by $x$ & $\Delta=\theta^2$\\
+\midrule
+$1$ & $6$ & $(x_0+x_1\omega)+(x_2+x_3\omega)\theta$ & $44+18\omega$\\
+$2$ & $3$ & same as above & $20+12\omega$\\
+$3$ & $2$ & same as above & $6\omega$\\
+$11$ & $66$ & $(x_0+x_1\omega)+(x_2+x_3\omega/11)\theta$ & $176+22\omega$\\
+$66$ & $11$ & $(x_0+x_1\omega)+(x_2+x_3\omega)\theta$ & $756+228\omega$\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+For $d=1,2,3,11$ we have $\Delta=2d\beta$. For $d=66$ we have $2d\beta=11\Delta=(\omega\theta)^2$.
+In what follows, put $s=\theta$ ($d\ne66$) and $s=\omega\theta$ ($d=66$). In every case $s^2=2d\beta$.
+
+\begin{definition}
+\begin{enumerate}
+\item The \textbf{relative conjugation} $\tau$ of $R$ is the ring automorphism defined by $\theta\mapsto-\theta$. In coordinates, $\tau(x)=(x_0,x_1,-x_2,-x_3)$.
+\item The \textbf{relative norm} of $x\in R$ is $\Nm(x)=x\,\tau(x)$. It belongs to $\Z[\omega]$.
+\item An element $x$ with $\Nm(x)=1$ is called a \textbf{relative unit}. A relative unit $x$ is invertible, and $x^{-1}=\tau(x)$.
+\item We write the first two coordinates of $x$ as $P(x)=x_0$, $Q(x)=x_1$, and put $\pi(x)=x_0+x_1\omega\in\Z[\omega]$.
+\end{enumerate}
+\end{definition}
+
+The multiplication table of each ring is determined by the relations in Table~\ref{tab:rings}.
+In Lean, these are defined as explicit multiplications on $\Z^4$, and the axioms of a commutative ring are checked.
+We do not assume that the ring is the ring of integers of a number field.
+
+\subsection{Elements of relative norm \tsec{$11$}{11}}
+
+\begin{proposition}\label{prop:xi}
+For a solution of \eqref{eq:pair}, put $\xi=w+3+r\eta s\in R$, where $w=n+y\omega$. Then
+\begin{equation}\label{eq:norm11}
+\Nm(\xi)=11.
+\end{equation}
+Moreover,
+\begin{equation}\label{eq:f}
+f(\xi)=0,\qquad P(\xi)=n+3=dr^2,
+\end{equation}
+where $f(x)=(P(x)-3)^2-eQ(x)^2+2$.
+\end{proposition}
+
+\begin{proof}
+Note that $\NF(w)=n^2-ey^2=-2$. Then
+\begin{align*}
+\xi\,\tau(\xi)&=(w+3)^2-r^2\eta^2s^2=(w+3)^2-2dr^2\beta\eta^2\\
+&=(w+3)^2-2(n+3)w=w^2-2nw+9.
+\end{align*}
+Moreover, $w+w'=2n$ and $ww'=-2$, so $w^2-2nw=-ww'=2$. Hence $\Nm(\xi)=11$.
+Since $\pi(\xi)=w+3$, we have $P(\xi)=n+3$ and $Q(\xi)=y$, and $f(\xi)=n^2-ey^2+2=0$.
+\end{proof}
+
+Here $11=3^2+2$. The two equations \eqref{eq:pair} combine into one small relative norm.
+The coordinates of $\xi$ are $(n+3,y,r\eta_0,r\eta_1)$ for $d=1,2,3$, $(n+3,y,r\eta_0,11r\eta_1)$ for $d=11$, and $(n+3,y,11r\eta_1,r\eta_0)$ for $d=66$.
+
+The function $f$ depends only on the first two coordinates. Therefore $f(\tau(x))=f(x)$ and $P(\tau(x))=P(x)$.
+
+%======================================================================
+\section{Division by \tsec{$11$}{11}}\label{sec:division}
+%======================================================================
+
+We call the elements in Table~\ref{tab:initial} the \textbf{initial elements}. Each of them has relative norm $11$.
+
+\begin{table}[htbp]
+\centering
+\caption{The initial elements and the relative unit $\rho$}\label{tab:initial}
+\begin{tabular}{cccc}
+\toprule
+$d$ & $\xi_0$ & $\xi_1$ & $\rho$\\
+\midrule
+$1$ & $(1,1,5,-2)$ & --- & $(9,4,2,0)$\\
+$2$ & $(2,1,2,-1)$ & $(2,3,1,0)$ & $(3,2,1,0)$\\
+$3$ & $(3,1,1,0)$ & --- & $(17,12,6,4)$\\
+$11$ & $(11,1,1,0)$ & --- & $(33,4,2,2)$\\
+$66$ & $(0,1,0,0)$ & --- & $(19,6,1,0)$\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{proposition}\label{prop:division}
+If $\Nm(\xi)=11$, then there are an initial element $p$ and a relative unit $u$ such that $\xi=u\,p$ or $\xi=u\,\tau(p)$.
+\end{proposition}
+
+\begin{proof}
+In each case it suffices to show that all four coordinates of $\xi\,\tau(p)$ or of $\xi\,p$ are divisible by $11$.
+In fact, if so, put $u=\xi\tau(p)/11$. Then $\Nm(u)=\Nm(\xi)\Nm(p)/121=1$, and $\xi\,\tau(p)\,p=11\xi$ gives $\xi=up$.
+
+For $d=1,3$, $e=6,2$ is not a quadratic residue modulo $11$.
+Therefore $\Z[\omega]/(11)$ is the field $\F_{121}$ with $121$ elements.
+Write $\xi_0=\alpha_0+\beta_0\theta$. Then $\Nm(\xi_0)=\alpha_0^2-\Delta\beta_0^2=11$, and $\beta_0$ is coprime to $11$.
+Therefore $\Delta$ has square roots $\pm\delta$ in $\F_{121}$ ($\delta=\alpha_0/\beta_0$).
+Then $\theta\mapsto\pm\delta$ defines two ring homomorphisms $\chi_\pm:R\to\F_{121}$, and $\chi_-=\chi_+\circ\tau$.
+Since $\chi_+(\xi)\chi_-(\xi)=\chi_+(\Nm(\xi))=0$, $\xi$ vanishes under one of them.
+The elements $\xi_0$ and $\tau(\xi_0)$ vanish on different sides. Let $p$ be the one that vanishes on the same side as $\xi$. Then $\xi\tau(p)$ vanishes on both sides.
+The intersection of the two kernels is $11R$.
+
+For $d=2$, $e=3$ is a quadratic residue modulo $11$, and $\Z[\omega]/(11)\cong\F_{11}\times\F_{11}$.
+In each of the two components there are two choices for the value of $\theta$ (the existence of square roots of $\Delta$ follows from $\xi_0$ as above).
+We call the pair recording, in each component, the value at which $\xi$ vanishes the \textbf{type} of $\xi$. There are four types.
+The elements $\xi_0,\xi_1,\tau(\xi_0),\tau(\xi_1)$ realize these four types, one each. Hence, by the same argument as above, $\xi\tau(p)\in11R$ for the $p$ with the same type as $\xi$.
+
+For $d=11$, reading the relative norm modulo $11$ gives $x_0^2-96x_3^2\equiv0$.
+Since $96\equiv8$ is not a quadratic residue modulo $11$, we get $11\mid x_0$ and $11\mid x_3$.
+From this, $\xi\tau(\xi_0)\in11R$ follows.
+
+For $d=66$, similarly, $x_0^2-756x_2^2\equiv0\pmod{11}$ and $756\equiv8$ give $11\mid x_0$ and $11\mid x_2$.
+From this, $\xi\xi_0\in11R$ follows. Note that $\tau(\xi_0)=\xi_0$.
+\end{proof}
+
+This division is shown only for this particular $11$. We do not use class numbers or unique factorization of ideals.
+
+%======================================================================
+\section{Relative units}\label{sec:units}
+%======================================================================
+
+\begin{proposition}\label{prop:units}
+In each case, every relative unit has the form $\pm\rho^m$ ($m\in\Z$), where $\rho$ is the element in Table~\ref{tab:initial}.
+\end{proposition}
+
+A direct computation shows that $\rho$ is a relative unit. What we must show is that there are no other relative units.
+
+\subsection{Two real embeddings}
+
+For $\Delta=\Delta_0+\Delta_1\omega$, we have $\sigma(\Delta)=\Delta_0+\Delta_1\sqrt e>0$ and $\sigma'(\Delta)=\Delta_0-\Delta_1\sqrt e<0$.
+Put $D_+=\sigma(\Delta)$ and $D_-=-\sigma'(\Delta)$.
+Define $\sigma:R\to\Rr$ by $\omega\mapsto\sqrt e$, $\theta\mapsto\sqrt{D_+}$.
+We write $\alpha\mapsto\alpha'$ for the conjugation of $\Z[\omega]$ defined by $\omega\mapsto-\sqrt e$.
+
+Write a relative unit as $v=\alpha+\gamma\theta$, where $\alpha\in\Z[\omega]$ and $\gamma\in\Z[\omega]$ ($\gamma\in\Z+\Z\,\omega/11$ for $d=11$).
+Taking the conjugate of $\Nm(v)=\alpha^2-\Delta\gamma^2=1$, we get $\alpha'^2+D_-\gamma'^2=1$. Therefore $|\gamma'|\le D_-^{-1/2}$.
+
+\begin{lemma}[Gap]\label{lem:gap}
+If $\gamma\ne0$, then
+\begin{equation}\label{eq:gap}
+\bigl(|\sigma(v)|-|\sigma(v)|^{-1}\bigr)^2\ge4M,\qquad M=\nu^2D_+D_-,
+\end{equation}
+where $\nu=1$ ($d\ne11$) and $\nu=3/11$ ($d=11$).
+\end{lemma}
+
+\begin{proof}
+Since $\sigma(\tau(v))=\sigma(v)^{-1}$, we have $\sigma(v)-\sigma(v)^{-1}=2\sigma(\gamma)\sqrt{D_+}$.
+If $\gamma\ne0$, then $|\sigma(\gamma)\gamma'|=|\NF(\gamma)|\ge\nu$.
+In fact, for $d\ne11$, $\NF(\gamma)$ is a nonzero integer.
+For $d=11$, write $\gamma=c+k\omega/11$. Then $\NF(\gamma)=(11c^2-6k^2)/11$, and the cases where the numerator has absolute value $1$ or $2$ are excluded modulo $3$ and modulo $11$.
+Therefore
+\begin{equation}\label{eq:gamma}
+\sigma(\gamma)^2\ge\nu^2/\gamma'^2\ge\nu^2D_-,
+\end{equation}
+and we get \eqref{eq:gap}.
+\end{proof}
+
+The values of $4M$ and of $\Lambda=\sigma(\rho)$ are given in Table~\ref{tab:gap}. For $\Lambda$, we use only the upper bound in the table and $\Lambda>1$.
+
+\begin{table}[htbp]
+\centering
+\caption{The gap constants and upper bounds for $\Lambda=\sigma(\rho)$}\label{tab:gap}
+\begin{tabular}{cccccc}
+\toprule
+$d$ & $1$ & $2$ & $3$ & $11$ & $66$\\
+\midrule
+$4M$ & $32$ & $128$ & $288$ & $288$ & $1152$\\
+$\Lambda<$ & $40$ & $14$ & $100$ & $142$ & $84$\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Reduction}
+
+\begin{proof}[Proof of Proposition~\ref{prop:units}]
+Since $\Lambda>1$, we can multiply any relative unit $v$ by an integer power of $\rho$ so that $1\le a=|\sigma(v)|<\Lambda$.
+If $\gamma=0$, then $\alpha^2=1$, and $\alpha\in\Z[\omega]$ gives $v=\pm1$.
+Assume $\gamma\ne0$. We derive a contradiction.
+
+Put $v'=\rho\,\tau(v)$. Then $b=|\sigma(v')|=\Lambda/a$, so $b>1$ and $ab=\Lambda$.
+The $\theta$-component of $v'$ is also nonzero (if it were zero, then $v=\pm\rho$, contrary to $a<\Lambda$).
+Apply Lemma~\ref{lem:gap} to $v$ and $v'$. Combined with $(a-a^{-1})^2\le a^2$, which holds for $a,b\ge1$, this gives $a^2\ge4M$ and $b^2\ge4M$.
+Therefore $\Lambda=ab\ge4M$.
+For $d=2,3,11,66$, Table~\ref{tab:gap} gives $\Lambda<4M$, a contradiction.
+
+For $d=1$, $\Lambda>32$, so one more step is needed.
+From $b^2\ge32$ we get $a^2=\Lambda^2/b^2<50$.
+For the $\Z[\omega]$-component $\alpha$ of $v$, we have $\sigma(\alpha)=(\sigma(v)+\sigma(v)^{-1})/2$, so $\sigma(\alpha)^2<14$.
+Also $\alpha'^2\le1$.
+From $(\sigma(\alpha)+2\alpha')^2\ge0$ we get
+\[
+(\sigma(\alpha)-\alpha')^2\le\tfrac32\sigma(\alpha)^2+3\alpha'^2<24.
+\]
+On the other hand, writing $\alpha=h+c\sqrt6$, the left-hand side is $24c^2$. Therefore $c=0$.
+Then $\sigma(\alpha)^2=\alpha'^2\le1$. On the other hand, $\sigma(\alpha)^2=1+D_+\sigma(\gamma)^2$ and \eqref{eq:gamma} give $\sigma(\alpha)^2\ge1+D_+D_-=9$, a contradiction.
+\end{proof}
+
+This argument does not use the general unit theorem. It needs only the reduction in the real numbers and the rational upper bounds in Table~\ref{tab:gap}.
+
+%======================================================================
+\section{Signs and the second initial element}\label{sec:signs}
+%======================================================================
+
+By the previous two sections, we can write $\xi=\pm p\rho^m$, where $p$ is an initial element or its relative conjugate and $m\in\Z$.
+The map $\tau$ preserves $f$ and the $0$th coordinate, and satisfies $\tau(\rho)=\rho^{-1}$.
+Therefore an element of the form $\tau(\xi_i)\rho^m=\tau(\xi_i\rho^{-m})$ may be replaced by $\xi_i\rho^{-m}$.
+In what follows we examine $\xi=\pm\xi_i\rho^m$.
+
+\subsection{Nonnegativity}
+
+\begin{lemma}\label{lem:positive}
+For each initial element $\xi_i$ and every $m\in\Z$, $P(\xi_i\rho^m)\ge0$.
+\end{lemma}
+
+\begin{proof}
+All coefficients of the multiplication tables of the five rings are nonnegative. Therefore the set $C$ of elements whose coordinates are all nonnegative is closed under multiplication. The element $\rho$ also belongs to $C$.
+
+For each initial element, we check directly that $\xi_i\rho^2$ and $\tau(\xi_i)\rho^2$ belong to $C$.
+Then for $m\ge2$, $\xi_i\rho^m=(\xi_i\rho^2)\rho^{m-2}\in C$.
+For $m\le-2$, $\tau(\xi_i\rho^m)=\tau(\xi_i)\rho^{-m}\in C$, and $\tau$ preserves the $0$th coordinate.
+The remaining cases $m=-1,0,1$ are checked directly.
+\end{proof}
+
+Since $P(\xi)=n+3>0$, the form $\xi=-\xi_i\rho^m$ does not occur.
+
+\subsection{The second initial element for \tsec{$d=2$}{d=2}}
+
+\begin{lemma}\label{lem:extra}
+For $d=2$, $\xi=\xi_1\rho^m$ does not occur.
+\end{lemma}
+
+\begin{proof}
+Multiplication by $\rho^2=(41,24,6,4)$ does not change the first two coordinates modulo $8$. This can be checked for an arbitrary element from the multiplication table.
+If $m$ is even, the first two coordinates of $\xi_1\rho^m$ are $(2,3)$ modulo $8$. Then $f\equiv8\pmod{16}$, contrary to $f(\xi)=0$.
+If $m$ is odd, the $0$th coordinate is $4$ modulo $8$. But $P(\xi)=2r^2$, and a square is never $2$ modulo $4$. This is a contradiction.
+\end{proof}
+
+Thus the only elements left to examine are $\xi_0\rho^m$ ($m\in\Z$).
+
+%======================================================================
+\section{The \tsec{$2$}{2}-adic uniqueness lemma}\label{sec:dyadic}
+%======================================================================
+
+In this section we prove a general lemma that derives $i=0$ from $f(y\,W^i)=0$.
+Here $y$ is a zero of $f$, and $W$ is an invertible element that is $2$-adically close to $1$.
+We do not use the zero theorems of $p$-adic analysis. We prove the lemma by repeated divisibility by powers of $2$.
+
+In what follows, a zero $y$ of $f$ to which we apply this lemma is called a \textbf{base point}.
+When we write $W=1+2qU$, we call $U$ the \textbf{direction} of $W$.
+
+\subsection{Expansion}
+
+For $y,z\in R$ and $c\in\Z$,
+\begin{equation}\label{eq:expand}
+f(y+cz)=f(y)+c\lambda_y(z)+c^2H(z),
+\end{equation}
+where
+\[
+\lambda_y(z)=2\bigl\{(P(y)-3)P(z)-eQ(y)Q(z)\bigr\},\qquad H(z)=P(z)^2-eQ(z)^2.
+\]
+The map $\lambda_y$ is $\Z$-linear in $z$ and depends only on $P(z),Q(z)$.
+
+Write the coordinates of a base point $y$ as $(y_0,y_1,y_2,y_3)$. Expanding $f(y)=0$, we get
+\begin{equation}\label{eq:root}
+y_0^2-ey_1^2=6y_0-11.
+\end{equation}
+
+\subsection{Expansion of powers}
+
+\begin{lemma}\label{lem:power}
+Let $t\ge0$, and suppose that $W=1+2^{t+1}U$ is invertible. Then for every $k\ge0$ and $\ell\in\Z$ the following hold.
+\begin{enumerate}
+\item There is $E\in R$ such that $W^{2^k\ell}=1+2^{k+t+1}\bigl\{\ell U+2^tU^2E\bigr\}$.
+\item If $t\ge1$, there are $b\in\Z$ and $E\in R$ such that $W^{2^k\ell}=1+2^{k+t+1}\bigl\{\ell U+2^tU^2(b+2E)\bigr\}$.
+\end{enumerate}
+\end{lemma}
+
+\begin{proof}
+First, we expand $W^{2^k}$ by repeated squaring, by induction on $k$.
+Next, for $\ell\ge0$ we expand the powers of $W^{2^k}$ by the binomial theorem, and for $\ell<0$ we use the expansion of the same form for the inverse $W^{-2^k}$.
+In (2), we not only keep the error term as a multiple of $U^2$, but also keep the integer part $b$ of its coefficient separate.
+In this way, the form $b+2E$ survives repeated squaring.
+\end{proof}
+
+In what follows, put $q=2^t$. The form in (2) can be written as $W^{2^k\ell}=1+2^{k+1}q\{\ell U+qU^2(b+2E)\}$.
+
+\subsection{The uniqueness lemma}
+
+\begin{lemma}[$2$-adic uniqueness lemma]\label{lem:unique}
+Let $q=2^t$ ($t\ge1$), let $W=1+2qU$ be an invertible element, and let $y\in R$.
+Let $U^2=hG$ with $h\in\{2,4\}$ and $G\in R$, and put $D=2qh^2$. Assume the following.
+\begin{enumerate}
+\item $f(y)=0$.
+\item $h\mid P(yU)$ and $h\mid Q(yU)$.
+\item Either $h=2$, or $h=4$ and $\chi(x)=P(x)+Q(x)\bmod2$ is a multiplicative map $R\to\F_2$ with $\chi(G)=0$.
+\item $2h^2\mid\lambda_y(yU^2)$.
+\item $\lambda_y(yU)\equiv qh^2\pmod D$.
+\end{enumerate}
+Then, for $i\in\Z$, $f(yW^i)=0$ implies $i=0$.
+\end{lemma}
+
+\begin{proof}
+First, we show from (1) and (3) that, for every $E\in R$,
+\begin{equation}\label{eq:anyerror}
+h^2\mid\lambda_y(yU^2E).
+\end{equation}
+If $h=2$, this is clear, since $\lambda_y$ is a multiple of $2$ to begin with and $U^2=2G$.
+If $h=4$, read \eqref{eq:root} modulo $2$. A square is congruent to the number itself modulo $2$, so $P(y)-3\equiv eQ(y)\pmod2$. Therefore
+\[
+\lambda_y(z)/2=(P(y)-3)P(z)-eQ(y)Q(z)\equiv(P(y)-3)\chi(z)\pmod2.
+\]
+From $\chi(yGE)=\chi(y)\chi(G)\chi(E)=0$ we get $4\mid\lambda_y(yGE)$. Together with $U^2=4G$, this gives \eqref{eq:anyerror}.
+
+Next, we show for $k\ge0$ that $2^k\mid i$ implies $2^{k+1}\mid i$.
+Once this is shown, $i$ is divisible by every power of $2$, so $i=0$.
+
+Write $i=2^k\ell$. By Lemma~\ref{lem:power}~(2), $yW^i=y+cZ$ with $c=2^{k+1}q$ and $Z=y\{\ell U+qU^2(b+2E)\}$.
+By \eqref{eq:expand} and $f(y)=0$, we have $0=f(yW^i)=c\{\lambda_y(Z)+cH(Z)\}$, and so $\lambda_y(Z)+cH(Z)=0$.
+
+Here $\lambda_y(Z)=\ell\lambda_y(yU)+qb\,\lambda_y(yU^2)+2q\lambda_y(yU^2E)$.
+By \eqref{eq:anyerror} and (4), (5),
+\[
+\lambda_y(Z)\equiv\ell qh^2\pmod{2qh^2}.
+\]
+On the other hand, by (2) and $U^2=hG$, $P(Z)$ and $Q(Z)$ are multiples of $h$, and $H(Z)$ is a multiple of $h^2$. Since $c$ is a multiple of $2q$, $cH(Z)\equiv0\pmod{2qh^2}$.
+Hence $\ell qh^2\equiv0\pmod{2qh^2}$, that is, $\ell$ is even, and $2^{k+1}\mid i$.
+\end{proof}
+
+In what follows, we show that hypotheses (2)--(4) follow in general from the arithmetic of the relative norm of the direction $U$.
+At individual base points we check only (1), and (5) when $h=4$.
+
+\subsection{The relative norm of the direction}
+
+\begin{lemma}\label{lem:direction}
+If $W=1+4jU$ ($j\in\Z$, $j\ne0$) is a relative unit, then
+\[
+\pi(U)=-2j\Nm(U),\qquad U^2=-W\Nm(U).
+\]
+\end{lemma}
+
+\begin{proof}
+We have $\Nm(W)=1+4j(U+\tau U)+16j^2\Nm(U)=1$ and $U+\tau U=2\pi(U)$. This gives the first equation.
+The second follows from $U^2=U(U+\tau U)-U\tau U=-4jU\Nm(U)-\Nm(U)$.
+\end{proof}
+
+An element $W=1+2qU$ with $q\ge2$ has the form of this lemma ($j=q/2$).
+
+In each ring, the contribution of the products of the $\theta$-coefficients to $\pi$ is a multiple of $h$, where $h$ takes the following values:
+\[
+h=2\quad(d=1,3,11),\qquad h=4\quad(d=2,66).
+\]
+In fact, for $d\ne11$ both coefficients of $\Delta$ are divisible by $h$. For $d=11$ the basis contains $\omega\theta/11$, so we check this directly with formulas with integer coefficients.
+
+\begin{corollary}\label{cor:width}
+For $W$ as in Lemma~\ref{lem:direction}, we have $\Nm(U)\in h\Z[\omega]$, $\pi(U)\in2h\Z[\omega]$ and $U^2\in hR$.
+Moreover, for every $y\in R$, $P(yU)$ and $Q(yU)$ are multiples of $h$.
+\end{corollary}
+
+\begin{proof}
+Since $\pi(U)=-2j\Nm(U)$ has even coefficients, $\pi(U)^2\in4\Z[\omega]$.
+The relative norm $\Nm(U)$ is the sum of $\pi(U)^2$ and the contribution of the products of the $\theta$-coefficients, so $\Nm(U)\in h\Z[\omega]$. Then $\pi(U)=-2j\Nm(U)\in2h\Z[\omega]$.
+From $U^2=-W\Nm(U)$ we get $U^2\in hR$.
+Finally, $\pi(yU)$ is the sum of $\pi(y)\pi(U)$ and the contribution of the products of the $\theta$-coefficients, so it is a multiple of $h$.
+\end{proof}
+
+This gives (2) of Lemma~\ref{lem:unique}, and determines $G=U^2/h$.
+
+\subsection{Hypothesis (3)}
+
+In the two cases with $h=4$ ($d=2,66$), $e=3,11$ is odd and $\Delta$ has even coefficients.
+Then $\chi(x)=x_0+x_1\bmod2$ is nothing but the substitution $\omega\mapsto1$, $\theta\mapsto0$.
+This substitution is compatible with $\omega^2=e\equiv1$ and $\theta^2=\Delta\equiv0\pmod2$, so $\chi$ is a ring homomorphism $R\to\F_2$.
+
+Next, we show $\chi(G)=0$. Since $\chi$ depends only on the $\pi$-part, it suffices to read the $\pi$-part of $G=U^2/4$.
+By Corollary~\ref{cor:width}, $\pi(U)^2/4$ has even coefficients.
+The contribution of the products of the $\theta$-coefficients is a multiple of $\Delta/4=5+3\omega$ or $189+57\omega$.
+Both vanish under $\chi$, so $\chi(G)=0$.
+
+\subsection{Hypothesis (4)}
+
+Put $\Nm(U)=u+v\omega$.
+By Lemma~\ref{lem:direction}, $yU^2=-y\Nm(U)-4j(yU)\Nm(U)$.
+For the second term, the $\pi$-part is a multiple of $h^2$ by Corollary~\ref{cor:width}, so its value under $\lambda_y$ is a multiple of $8jh^2$.
+For the first term, using \eqref{eq:root} we get
+\[
+\lambda_y(y\Nm(U))=2\bigl\{(3y_0-11)u-3ey_1v\bigr\}.
+\]
+Therefore it suffices to show that the expression in braces is a multiple of $h^2$.
+
+If $h=2$, then $e$ is even, and $u,v$ are also even.
+Reading \eqref{eq:root} modulo $2$ gives $y_0^2\equiv1$, so $y_0$ is odd.
+Therefore $3y_0-11$ is even, and the expression in braces is a multiple of $4$.
+
+If $h=4$, we use the following two congruences. Put $\varsigma=-1$ ($d=2$) and $\varsigma=1$ ($d=66$).
+\begin{itemize}
+\item Orbit congruence: for every $m\in\Z$, $y=\xi_0\rho^m$ satisfies $y_0+\varsigma y_1\equiv1\pmod4$.
+In fact, for every $x$, $(P+\varsigma Q)(x\rho)-(P+\varsigma Q)(x)$ is a multiple of $4$, and the value at $\xi_0$ is $1$.
+\item Direction congruence: $u-\varsigma v\equiv0\pmod{16}$ and $4\mid u$.
+This follows from $\pi(U)\in8\Z[\omega]$ and from the expansion of $\Nm(U)$ with the $\theta$-coefficient written as $c+k\omega$.
+\end{itemize}
+Since $e\equiv-1\pmod4$, we have $(3y_0-11)-3e\varsigma y_1=3(y_0+\varsigma y_1-1)-8-3\varsigma(e+1)y_1\equiv0\pmod4$.
+Combining this with $v\equiv\varsigma u\pmod{16}$ and $4\mid u$, the expression in braces is a multiple of $16$.
+
+\subsection{Hypothesis (5): the case \tsec{$h=2$}{h=2}}
+
+In the three cases with $h=2$, (5) also follows in general.
+Write $\gamma$ for the $\theta$-coefficient of a base point $y$ ($y_2+y_3\omega$ for $d\ne11$, and $y_2+y_3\omega/11$ for $d=11$).
+The condition that the relative norm is $11$ can be written as $\pi(y)^2-11=\Delta\gamma^2$. Taking $\NF$ of both sides, we get
+\[
+\NF(\pi(y)^2-11)=-8J_d^2
+\]
+for the integer $J_d$ in Table~\ref{tab:J}.
+On the other hand, expanding the product gives $f(y)f(-y)=\NF(\pi(y)^2-11)+8y_0^2$.
+Therefore, if $f(y)=0$, then $y_0^2=J_d^2$.
+
+\begin{table}[htbp]
+\centering
+\caption{The integer $J_d$ in $\NF(\pi(y)^2-11)=-8J_d^2$}\label{tab:J}
+\begin{tabular}{ccc}
+\toprule
+$d=1$ & $d=3$ & $d=11$\\
+\midrule
+$y_2^2-6y_3^2$ & $3(y_2^2-2y_3^2)$ & $11y_2^2-6y_3^2$\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+In the three cases with $h=2$, $e\equiv2\pmod4$.
+Reading \eqref{eq:root} modulo $4$, $y_0$ and $y_1$ are odd. Since $J_d\equiv y_2^2\pmod2$, $y_2$ is also odd.
+By Corollary~\ref{cor:width}, $P(U)$ and $Q(U)$ are multiples of $4$.
+Reading the multiplication table modulo $4$, we get $P(yU)\equiv0$ and $Q(yU)\equiv2y_2U_2\pmod4$, where $U_2$ is the $2$nd coordinate of $U$.
+Therefore, if $U_2$ is odd, then
+\[
+\lambda_y(yU)=2(y_0-3)P(yU)-2ey_1Q(yU)\equiv8\pmod{16},
+\]
+which is exactly (5) for $q=2$, $h=2$.
+For the three directions actually used, $U_2=9,99,57$, and all of them are odd.
+
+For $h=4$, (5) is checked directly at the four base points used (Table~\ref{tab:centres}).
+
+%======================================================================
+\section{Determination of the exponent}\label{sec:exponents}
+%======================================================================
+
+The base points $y$ and the units $W$ at which we use Lemma~\ref{lem:unique} are given in Table~\ref{tab:centres}.
+All base points have the form $\xi_0\rho^{m_0}$, and $f(y)=0$ is checked directly.
+
+\begin{table}[htbp]
+\centering
+\caption{The base points at which the uniqueness lemma is used}\label{tab:centres}
+\begin{tabular}{ccccccc}
+\toprule
+$d$ & exponent $m_0$ of the base point & $W$ & $q$ & $h$ & $D$ & check of (5)\\
+\midrule
+$1$ & $0,\ -1$ & $\rho^2$ & $2$ & $2$ & $16$ & general\\
+$2$ & $0,\ -4$ & $\rho^8$ & $4$ & $4$ & $128$ & direct\\
+$2$ & $-1$ & $\rho^4$ & $2$ & $4$ & $64$ & direct\\
+$3$ & $0,\ -1$ & $\rho^2$ & $2$ & $2$ & $16$ & general\\
+$11$ & $0$ & $\rho^2$ & $2$ & $2$ & $16$ & general\\
+$66$ & $1$ & $\rho^4$ & $2$ & $4$ & $64$ & direct\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+That $W$ has the form $1+2qU$ follows from the behaviour of $\rho$ modulo $4$.
+For $d=1,3,11$, $\rho\equiv1\pmod2$, so $\rho^2\equiv1\pmod4$.
+For $d=2,66$, $\rho^2\equiv1+2\theta\pmod4$, and its square $\rho^4$ is $\equiv1\pmod4$.
+Moreover, if $\rho^4=1+4U'$, then $\rho^8=1+8(U'+2U'^2)$, so $\rho^8$ for $d=2$ has the form with $q=4$.
+
+In what follows, we determine the $m$ with $f(\xi_0\rho^m)=0$.
+
+\paragraph{$d=1,3$.}
+Write $m=2a$ if $m$ is even and $m=-1+2a$ if $m$ is odd, and use Lemma~\ref{lem:unique} at the base points $\xi_0$ and $\xi_0\rho^{-1}$, respectively.
+Therefore $m=0$ or $m=-1$.
+
+\paragraph{$d=11$.}
+Since $\tau(\xi_0)=\xi_0\rho^{-1}$, we have $\tau(\xi_0\rho^m)=\xi_0\rho^{-1-m}$.
+Since $\tau$ preserves $f$ and the $0$th coordinate, we may replace $m$ by $-1-m$ and assume that $m$ is even.
+Using Lemma~\ref{lem:unique} at the base point $\xi_0$, we get $m=0$.
+
+\paragraph{$d=66$.}
+First, we show from the original square condition that $m$ is odd. This step does not use $f$.
+Since $\xi_0=\omega$, if $m=2i$, then $P(\xi)=11\,Q(\rho^{2i})=66r^2$, that is, $Q(\rho^{2i})=6r^2$.
+Write $\rho^2=1+2S$ with $S=(756,228,19,6)$, and let $i=2^ka$.
+Applying Lemma~\ref{lem:power}~(1) to $W=\rho^2$, $t=0$, we get $\rho^{2i}=1+cV$ with $c=2^{k+1}$ and $V=aS+S^2E$.
+Compare the $\omega$-coefficients of $\Nm(\rho^{2i})=1$, and use that the $\omega$-coefficient of the relative norm of $V$ is congruent to $12a^2$ modulo $48$. Then we get an integer $g$ with
+\[
+r^2=-c^2(a^2+4g).
+\]
+Since $c^2\mid r^2$, we can write $r=cs$. Then $s^2+a^2\equiv0\pmod4$, so $a$ is even.
+Repeating this argument for $k=0,1,2,\dots$, $i$ is divisible by every power of $2$. Hence $i=0$, and $Q(\rho^0)=0=6r^2$ contradicts $r>0$.
+Therefore $m$ is odd.
+
+Next, since $\tau(\xi_0)=\xi_0$, we have $\tau(\xi_0\rho^m)=\xi_0\rho^{-m}$.
+Replacing $m$ by $-m$, we may assume $m\equiv1\pmod4$.
+Using Lemma~\ref{lem:unique} at the base point $\xi_0\rho$, we get $m=1$.
+
+\paragraph{$d=2$.}
+This case has two close roots $0$ and $-4$, so one preparatory step is needed.
+Every element $x=\xi_0\rho^m$ of the orbit satisfies $2\mid x_0$ and $x_1+2x_3\equiv3\pmod4$.
+For every $x$ satisfying this condition, expanding the multiplication gives
+\[
+f(x\rho^3)-3f(x\rho^2)+3f(x\rho)-f(x)\equiv0\pmod{128}.
+\]
+From the first three values and induction in both directions using this relation, we get, for every $m\in\Z$,
+\begin{equation}\label{eq:entrance}
+f(\xi_0\rho^m)\equiv32m(m+1)\pmod{128}.
+\end{equation}
+Therefore, if $f(\xi_0\rho^m)=0$, then $m\equiv0$ or $m\equiv-1\pmod4$.
+If $m=4a$, we split by the parity of $a$ and use Lemma~\ref{lem:unique} at the base points $\xi_0$ and $\xi_0\rho^{-4}$ with $W=\rho^8$. We get $m=0$ or $m=-4$.
+If $m=-1+4a$, we use the base point $\xi_0\rho^{-1}$ with $W=\rho^4$ and get $m=-1$.
+
+%======================================================================
+\section{Proof of the main theorem}\label{sec:conclusion}
+%======================================================================
+
+\begin{proof}[Proof of Theorem~\ref{thm:main}]
+By the above, $\xi$ is one of the nine elements in Table~\ref{tab:values}.
+Since $P(\xi)=n+3$, the $0$th coordinate determines $n$.
+
+\begin{table}[htbp]
+\centering
+\caption{The remaining elements and $n$}\label{tab:values}
+\begin{tabular}{cccc}
+\toprule
+$d$ & $m$ & $P(\xi_0\rho^m)$ & $n$\\
+\midrule
+$1$ & $0$ & $1$ & $-2$\\
+$1$ & $-1$ & $25$ & $22$\\
+$2$ & $0$ & $2$ & $-1$\\
+$2$ & $-4$ & $13778$ & $13775$\\
+$2$ & $-1$ & $8$ & $5$\\
+$3$ & $0$ & $3$ & $0$\\
+$3$ & $-1$ & $27$ & $24$\\
+$11$ & $0$ & $11$ & $8$\\
+$66$ & $1$ & $66$ & $63$\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The negative values $n=-2,-1$ contradict $n\in\N$. The remaining seven are the values in the theorem.
+Conversely, substitution shows that the seven values are solutions with $m=1,6,11,45,51,209,660099$, respectively.
+\end{proof}
+
+\begin{remark}
+The value $13775$ appears because $\rho^{-4}$ times the initial element for $d=2$ is a zero of $f$, and its $0$th coordinate is $13778$.
+The proof in this paper gives no reason to predict the existence of this root.
+\end{remark}
+
+%======================================================================
+\appendix
+\section{Formalization in Lean}\label{app:lean}
+%======================================================================
+
+The final theorem has the following form. Division in $\N$ truncates, but since $6\mid n(n+1)(n+2)$, here it is the exact quotient.
+\begin{verbatim}
+theorem Tetrahedral.tetrahedral_classification (n : ℕ) :
+    (∃ m : ℕ, n*(n+1)*(n+2)/6+1=m^2) ↔
+      n=0 ∨ n=5 ∨ n=8 ∨ n=22 ∨ n=24 ∨ n=63 ∨ n=13775
+\end{verbatim}
+
+The correspondence between the sections of the text and the Lean files is given in Table~\ref{tab:lean}.
+The paths in the table are relative to the directory \texttt{lean/Tetrahedral/}. The extension \texttt{.lean} is omitted.
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{Correspondence between the text and Lean}\label{tab:lean}
+\begin{tabular}{lL{10.4cm}}
+\toprule
+Section & Files\\
+\midrule
+\ref{sec:branches} & \texttt{Basic}, \texttt{Squarefree}, \texttt{IntegerParity}, \texttt{IntegerSquareObstructions}, \texttt{Branches}\\
+\ref{sec:parameters} & \texttt{SpecialPell}, \texttt{QuadraticParameters}, \texttt{SelectedParameters}, \texttt{SquareFactor}, \texttt{D3Parameters}, \texttt{NormEleven/Parameters}\\
+\ref{sec:norm11} & \texttt{Quartic/D*Ring}, \texttt{Quartic/D1}, \texttt{D2}, \texttt{D3}, \texttt{D11}, \texttt{D66}, \texttt{NormEleven/Certificates}\\
+\ref{sec:division} & \texttt{Quartic/D1Division}, \texttt{Quartic/D2Division}, \texttt{Quartic/D3Division}, \texttt{Quartic/D11}, \texttt{Quartic/D66}\\
+\ref{sec:units} & \texttt{Quartic/UnitGap}, \texttt{Quartic/RelativeUnitGap}, \texttt{Quartic/D*Trace}\\
+\ref{sec:signs} & \texttt{PositiveOrbit}, \texttt{OrbitCongruence}, \texttt{NormEleven/PositiveOrbitData}, \texttt{NormEleven/D2Congruences}\\
+\ref{sec:dyadic} & \texttt{Binomial}, \texttt{QuadraticPolynomial}, \texttt{FactoredExponent}, \texttt{NormDerivative}, \texttt{RelativeDirection}, \texttt{NormEleven/RelativeDirectionData}, \texttt{NormEleven/ParityDirectionData}\\
+\ref{sec:exponents} & \texttt{OrbitReflection}, \texttt{FiniteDifference}, \texttt{NormEleven/DyadicSimple}, \texttt{NormEleven/DyadicCertificates}, \texttt{NormEleven/D2Entrance}, \texttt{NormEleven/D2Dyadic}, \texttt{NormEleven/D11Dyadic}, \texttt{NormEleven/D66Square}, \texttt{NormEleven/D66Dyadic}\\
+\ref{sec:conclusion} & \texttt{NormEleven/D1}, \texttt{D2}, \texttt{D3}, \texttt{D11}, \texttt{D66}, \texttt{Classification}\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Some symbols and names differ between the text and Lean. The main ones are listed in Table~\ref{tab:names}.
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{Symbols in the text and in Lean}\label{tab:names}
+\begin{tabular}{ll}
+\toprule
+Text & Lean\\
+\midrule
+$\omega=\sqrt e$ & \texttt{q}\\
+$\theta$ & \texttt{s} (\texttt{t} for $d=66$)\\
+the two coefficients of $\Nm(x)$ & \texttt{relH x}, \texttt{relK x}\\
+$\tau$ & \texttt{tau}\\
+$\sigma$ & \texttt{sig}\\
+base point & centre\\
+direction $U$ & \texttt{step}\\
+$h$ & width\\
+$\chi$ & parity character\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The following three files are proofs generated by the Python scripts in \texttt{scripts/}.
+\begin{itemize}
+\item \texttt{NormEleven/PositiveOrbitData}
+\item \texttt{NormEleven/RelativeDirectionData}
+\item \texttt{NormEleven/ParityDirectionData}
+\end{itemize}
+The generated files are also ordinary Lean proofs, and the kernel checks them.
+The scripts are kept so that one can check that the same files are regenerated.
+
+\begin{thebibliography}{9}
+\bibitem{GPZ94} J.~Gebel, A.~Peth\H{o}, H.~G.~Zimmer, Computing integral points on elliptic curves, \emph{Acta Arith.} \textbf{68} (1994), 171--192.
+\bibitem{ST94} R.~J.~Stroeker, N.~Tzanakis, Solving elliptic diophantine equations by estimating linear forms in elliptic logarithms, \emph{Acta Arith.} \textbf{67} (1994), 177--196.
+\bibitem{OEIS} The On-Line Encyclopedia of Integer Sequences, A000292 and A216269, \url{https://oeis.org}.
+\end{thebibliography}
+
+\end{document}
