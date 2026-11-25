@@ -1,4 +1,5 @@
 import Tetrahedral.FactoredExponent
+import Tetrahedral.IntegerParity
 
 namespace Tetrahedral.NormDerivative
 section
@@ -16,15 +17,11 @@ theorem expansion (A B : R →ₗ[ℤ] ℤ) (e : ℤ) (y z : R) (n : ℤ) :
   simp only [value,norm,differential,map_add,map_smul,smul_eq_mul,
     LinearMap.coe_mk,AddHom.coe_mk]; ring
 
-/-- The two coefficients of the norm differential have the same parity at a root. -/
-theorem root_parity (e a b : ℤ) (h : a^2-e*b^2+2=0) : (2:ℤ) ∣ a-e*b := by
-  have hh := congrArg (fun n : ℤ => (n:ZMod 2)) h
-  push_cast at hh
-  have hs : ∀ z : ZMod 2, z^2=z := by decide +kernel
-  simp only [hs,show (2:ZMod 2)=0 by decide,add_zero] at hh
-  apply (ZMod.intCast_zmod_eq_zero_iff_dvd (a-e*b) 2).mp
-  push_cast
-  exact hh
+/-- A value vanishing modulo two suffices for differential-coefficient parity. -/
+theorem root_parity (e a b : ℤ) (h : (2:ℤ) ∣ a^2-e*b^2+2) : (2:ℤ) ∣ a-e*b := by
+  have ha := IntegerParity.square_sub_self_even a
+  have hb := (IntegerParity.square_sub_self_even b).mul_left e
+  convert ((h.sub ha).add hb).sub (dvd_refl (2:ℤ)) using 1; ring
 
 /-- Width two needs only the factor two in a quadratic differential. -/
 theorem image_two (A B : R →ₗ[ℤ] ℤ) (e : ℤ) (y G E : R) :
@@ -36,9 +33,9 @@ theorem image_two (A B : R →ₗ[ℤ] ℤ) (e : ℤ) (y G E : R) :
   exact ⟨(A y-3)*A (y*G*E)-e*B y*B (y*G*E),by ring⟩
 
 /-- At width four the extra bit comes from the parity character A+B.
-A root supplies the coefficient parity. -/
+A value vanishing modulo two supplies the coefficient parity. -/
 theorem image_four (A B : R →ₗ[ℤ] ℤ) (e : ℤ) (y G E : R)
-    (hy : value A B e y=0)
+    (hy : (2:ℤ) ∣ value A B e y)
     (hmul : ∀ x z, (2:ℤ) ∣ A (x*z)+B (x*z)-(A x+B x)*(A z+B z))
     (hG : (2:ℤ) ∣ A G+B G) :
     (16:ℤ) ∣ differential A B e y ((y*((4:ℤ) • G))*E) := by
@@ -77,7 +74,7 @@ theorem unique (A B : R →ₗ[ℤ] ℤ) (e : ℤ)
   have image (E : R) : h^2 ∣ L (T*E) := by
     rcases hgood with rfl|⟨rfl,hmul,hG⟩
     · simpa only [L,T,hsquare,show (2:ℤ)^2=4 by norm_num] using image_two A B e y G E
-    · simpa only [L,T,hsquare,show (4:ℤ)^2=16 by norm_num] using image_four A B e y G E hy hmul hG
+    · simpa only [L,T,hsquare,show (4:ℤ)^2=16 by norm_num] using image_four A B e y G E (by rw [hy]; exact dvd_zero _) hmul hG
   have coord (P : R →ₗ[ℤ] ℤ) (E : R) : h ∣ P (T*E) := by
     rw [hTm,smul_mul_assoc,map_smul,smul_eq_mul]
     exact dvd_mul_right _ _
