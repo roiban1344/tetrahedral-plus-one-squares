@@ -108,8 +108,9 @@ def main():
             third=','.join(vec(row[3]) for row in rows),
             moduli=','.join(map(str, ns)), values=','.join(map(str, vs)),
             delta=delta, halfDelta=delta**2//2, cube=delta**3, s=delta//4)
-        if d==66 and len(cases)>1:
-            archive.append(rendered.replace("Obstruction66", "Obstruction66Signed"))
+        if d==66:
+            archive.append(rendered.replace("Obstruction66", "Obstruction66Signed")
+                           if len(cases)>1 else rendered)
         else:
             parts.append(rendered)
     parts.append('\nend Tetrahedral.NormEleven\n')

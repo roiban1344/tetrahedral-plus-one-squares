@@ -42,40 +42,4 @@ theorem nonzero (j : Fin 5) (a : ℤ) (E : R) :
   exact value_nonzero j (dvd_neg.mp hd)
 end Obstruction2
 
-namespace Obstruction66
-open Quartic66 R
-def point : Fin 1 → R := ![⟨![5016,1513,132,38]⟩]
-def first : Fin 1 → R := ![⟨![45920486832,13845547728,1180873122,356046643]⟩]
-def second : Fin 1 → R := ![⟨![420306949492682604,126727313476916916,10808447689476360,3258869595652440]⟩]
-def third : Fin 1 → R := ![⟨![3847039610894866052257536,1159926085724827648172544,98928952861448114690604,29828201594925417036516]⟩]
-def modulus : Fin 1 → ℤ := ![1024]
-def value : Fin 1 → ℤ := ![512]
-theorem first_eq : ∀ j : Fin 1, point j*Direction66.step=first j := by decide +kernel
-theorem second_eq : ∀ j : Fin 1, point j*Direction66.step^2=second j := by decide +kernel
-theorem third_eq : ∀ j : Fin 1, point j*Direction66.step^3=third j := by decide +kernel
-
-def model (j : Fin 1) (a : ℤ) (E : R) : R := ⟨fun i => point j i+
-  4*a*first j i+8*a*(a-1)*second j i+64*(third j*E) i⟩
-theorem model_eq (j : Fin 1) (a : ℤ) (E : R) :
-    TaylorOrbit.truncation 1 Direction66.step (point j) a E=model j a E := by
-  simp only [TaylorOrbit.truncation]
-  rw [first_eq j,second_eq j,third_eq j]
-  ext i
-  simp only [model,add_apply,zsmul_apply]
-  ring
-
-theorem residue (j : Fin 1) (a : ℤ) (E : R) :
-    modulus j ∣ f (model j a E)-value j := by
-  fin_cases j <;> norm_num [modulus,value,f,model,point,first,second,third,mul_apply0,mul_apply1]
-    <;> ring_nf <;> omega
-theorem value_nonzero : ∀ j : Fin 1, ¬ modulus j ∣ value j := by decide +kernel
-theorem nonzero (j : Fin 1) (a : ℤ) (E : R) :
-    f (TaylorOrbit.truncation 1 Direction66.step (point j) a E)≠0 := by
-  rw [model_eq]
-  intro h
-  have hd := residue j a E
-  rw [h,zero_sub] at hd
-  exact value_nonzero j (dvd_neg.mp hd)
-end Obstruction66
-
 end Tetrahedral.NormEleven

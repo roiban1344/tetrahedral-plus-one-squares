@@ -12,9 +12,9 @@ theorem branch_complete (n r y : ℕ) (hr : n+3=66*r^2) (hy : n^2+2=11*y^2) : n=
   obtain ⟨j,hj⟩ := rel_unit_trace u hu1 hu2
   rcases hj with e|e
   · rw [hc,e,mul_comm] at hξ h0
-    rcases Dyadic66.positive j hξ with h|h|h <;> subst h
-    · have : (xi0*(↑(rhoU^(0:ℤ)):R)) 0=0 := by decide
-      rw [this] at h0; omega
+    have hrZ : (n:ℤ)+3=66*(r:ℤ)^2 := by exact_mod_cast hr
+    have hr0 : (r:ℤ)≠0 := by intro h; rw [h] at hrZ; norm_num at hrZ; omega
+    rcases Dyadic66.roots r hr0 j (h0.trans hrZ) hξ with h|h <;> subst h
     · have : (xi0*(↑(rhoU^(1:ℤ)):R)) 0=66 := by decide
       rw [this] at h0; omega
     · have : (xi0*(↑(rhoU^(-1:ℤ)):R)) 0=66 := by decide
