@@ -102,22 +102,31 @@ SCALAR = """theorem base_mul (x : R) (H K : ℤ) :
   constructor <;> simp only [mul_apply0,mul_apply1] <;> norm_num{finish}
 
 {phase}
+/-- At a root, the base-field norm contributes the extra scalar bit. -/
+theorem scalar_base (y U : R) (q : ℤ) (hq : q≠0)
+    (hH : relH (1+(4*q) • U)=1) (hK : relK (1+(4*q) • U)=0)
+    (hy : f y=0){phasearg} :
+    ({scalar}:ℤ) ∣ Lf y (y*(⟨![relH U,relK U,0,0]⟩:R)) := by
+  obtain ⟨hA,hB,hN0,hN1⟩ := trace_norm U q hq hH hK
+  have hy' : (y 0-3)^2-{e}*(y 1)^2+2=0 := hy
+  change ({scalar}:ℤ) ∣
+    2*(y 0-3)*(y*(⟨![relH U,relK U,0,0]⟩:R)) 0-
+      2*{e}*y 1*(y*(⟨![relH U,relK U,0,0]⟩:R)) 1
+  rw [(base_mul y _ _).1,(base_mul y _ _).2,
+    RelativeDirection.at_root (y 0) (y 1) (relH U) (relK U) {e} hy']
+{scalarproof}
+
 /-- Root parity, and at width four the preserved orbit character,
 supply the scalar bit for every relative unit direction. -/
 theorem scalar (y U : R) (q : ℤ) (hq : q≠0)
     (hH : relH (1+(4*q) • U)=1) (hK : relK (1+(4*q) • U)=0)
     (hy : f y=0){phasearg} :
     ({scalar}:ℤ) ∣ Lf y (y*U^2) := by
-  obtain ⟨hA,hB,hN0,hN1⟩ := trace_norm U q hq hH hK
+  obtain ⟨_,_,hN0,hN1⟩ := trace_norm U q hq hH hK
   let N : R := ⟨![relH U,relK U,0,0]⟩
-  have hy' : (y 0-3)^2-{e}*(y 1)^2+2=0 := hy
   apply RelativeDirection.scalar_of_norm (Lf y) y U N (4*q) {m}
     (direction_square U q hq hH hK)
-  · change ({scalar}:ℤ) ∣
-      2*(y 0-3)*(y*N) 0-2*{e}*y 1*(y*N) 1
-    rw [(base_mul y _ _).1,(base_mul y _ _).2,
-      RelativeDirection.at_root (y 0) (y 1) (relH U) (relK U) {e} hy']
-{scalarproof}
+  · exact scalar_base y U q hq hH hK hy{phaseuse}
   · change ({scalar}:ℤ) ∣
       2*(y 0-3)*((y*U)*N) 0-2*{e}*y 1*((y*U)*N) 1
     rw [(base_mul (y*U) _ _).1,(base_mul (y*U) _ _).2]
@@ -127,6 +136,111 @@ theorem scalar (y U : R) (q : ℤ) (hq : q≠0)
       ((direction U q hq hH hK).1 y).1
       ((direction U q hq hH hK).1 y).2 hN0 hN1
 """
+OFF = """/-- The base part of a direction is invisible at the derivative precision. -/
+theorem off_derivative (y U : R) (q : ℤ) (hq : q≠0)
+    (hH : relH (1+(4*q) • U)=1) (hK : relK (1+(4*q) • U)=0)
+    (hy : f y=0) (hphase : (4:ℤ) ∣ y 0+({sign})*y 1-1) :
+    (64*q:ℤ) ∣ Lf y (y*U)-Lf y (y*(⟨![0,0,U 2,U 3]⟩:R)) := by
+  obtain ⟨hA,hB,_,_⟩ := trace_norm U q hq hH hK
+  have hu : U=(⟨![0,0,U 2,U 3]⟩:R)-
+      (2*q:ℤ) • (⟨![relH U,relK U,0,0]⟩:R) := by
+    ext j; fin_cases j
+    · change U 0=0-2*q*relH U; linarith only [hA]
+    · change U 1=0-2*q*relK U; linarith only [hB]
+    · change U 2=U 2-2*q*0; ring
+    · change U 3=U 3-2*q*0; ring
+  have he : Lf y (y*U)-Lf y (y*(⟨![0,0,U 2,U 3]⟩:R))=
+      -(2*q)*Lf y (y*(⟨![relH U,relK U,0,0]⟩:R)) := by
+    have hm := congrArg (fun z : R => y*z) hu
+    rw [mul_sub,mul_smul_comm] at hm
+    rw [hm,map_sub,map_smul,smul_eq_mul]
+    ring
+  rw [he]
+  obtain ⟨a,ha⟩ := scalar_base y U q hq hH hK hy hphase
+  exact ⟨-a,by rw [ha]; ring⟩
+
+"""
+
+DERIVATIVE_FOUR = """/-- Once the orbit phase is fixed, only an off-base primitive residue remains. -/
+theorem derivative_{name} (y U : R)
+    (hH : relH (1+({delta}:ℤ) • U)=1) (hK : relK (1+({delta}:ℤ) • U)=0)
+    (hy : f y=0)
+    (h0 : (16:ℤ) ∣ y 0-{a}) (h1 : (16:ℤ) ∣ y 1-{b})
+    (h2 : (8:ℤ) ∣ y 2-{c}) (h3 : (4:ℤ) ∣ y 3-{t})
+    (hp : {primitive}) :
+    ({mod}:ℤ) ∣ Lf y (y*U)-{half} := by
+  have hphase : (4:ℤ) ∣ y 0+({sign})*y 1-1 := by omega
+  have ho := off_derivative y U {q} (by decide) hH hK hy hphase
+  norm_num only [Int.reduceMul] at ho
+  have hr : ({mod}:ℤ) ∣ Lf y (y*(⟨![0,0,U 2,U 3]⟩:R))-{half} := by
+    obtain ⟨A,hA⟩ := h0; obtain ⟨B,hB⟩ := h1
+    obtain ⟨C,hC⟩ := h2; obtain ⟨D,hD⟩ := h3
+    obtain ⟨E,hE⟩ := hp
+    have ha : y 0={a}+16*A := by omega
+    have hb : y 1={b}+16*B := by omega
+    have hc : y 2={c}+8*C := by omega
+    have hd : y 3={t}+4*D := by omega
+    have hu : {substitution} := by omega
+    change ({mod}:ℤ) ∣ 2*(y 0-3)*(y*(⟨![0,0,U 2,U 3]⟩:R)) 0-
+      2*{e}*y 1*(y*(⟨![0,0,U 2,U 3]⟩:R)) 1-{half}
+    simp only [mul_apply0,mul_apply1]; norm_num only [Matrix.cons_val_zero,Matrix.cons_val_one,
+      Matrix.cons_val_two,Matrix.cons_val_three,Matrix.head_cons,Matrix.head_fin_const,Matrix.tail_cons,
+      mul_zero,zero_mul,zero_add,add_zero]
+    rw [ha,hb,hc,hd,hu]
+    ring_nf; omega
+  convert ho.add hr using 1; ring
+
+"""
+
+PHASE_RESIDUES = """/-- A norm-one step 1+4S preserves a small affine lattice.
+Only the third-coordinate modulus needs the even first coordinate. -/
+theorem phase_residues (V : Rˣ) (S : R) (hV : (V:R)=1+(4:ℤ) • S)
+    (hH : relH (1+(4:ℤ) • S)=1) (hK : relK (1+(4:ℤ) • S)=0)
+    (hS : (2:ℤ) ∣ S 3) (x : R) (hx : (2:ℤ) ∣ x 0) (i : ℤ) :
+    (16:ℤ) ∣ (x*(↑(V^i):R)) 0-x 0 ∧
+    (16:ℤ) ∣ (x*(↑(V^i):R)) 1-x 1 ∧
+    (8:ℤ) ∣ (x*(↑(V^i):R)) 2-x 2 ∧
+    (4:ℤ) ∣ (x*(↑(V^i):R)) 3-x 3 := by
+  have hnH : relH (1+(4*1:ℤ) • S)=1 := by simpa using hH
+  have hnK : relK (1+(4*1:ℤ) • S)=0 := by simpa using hK
+  have hwidth := (direction S 1 (by decide) hnH hnK).1
+  have hm (z : R) : z*(V:R)=z+(4:ℤ) • (z*S) := by
+    rw [hV,mul_add,mul_one,mul_smul_comm]
+  have h0 (z : R) : (16:ℤ) ∣ (z*(V:R)) 0-z 0 := by
+    rw [hm,add_apply,zsmul_apply]
+    obtain ⟨a,ha⟩ := (hwidth z).1
+    exact ⟨a,by rw [ha]; ring⟩
+  have h1 (z : R) : (16:ℤ) ∣ (z*(V:R)) 1-z 1 := by
+    rw [hm,add_apply,zsmul_apply]
+    obtain ⟨a,ha⟩ := (hwidth z).2
+    exact ⟨a,by rw [ha]; ring⟩
+  have h3 (z : R) : (4:ℤ) ∣ (z*(V:R)) 3-z 3 := by
+    rw [hm,add_apply,zsmul_apply]
+    exact ⟨(z*S) 3,by ring⟩
+  have hh0 := OrbitCongruence.invariant V (fun z : R => z 0) 16 h0 x
+  have heven (n : ℤ) : (2:ℤ) ∣ (x*(↑(V^n):R)) 0 := by
+    have := hh0 n
+    omega
+  have h2 (z : R) (hz : (2:ℤ) ∣ z 0) :
+      (8:ℤ) ∣ (z*(V:R)) 2-z 2 := by
+    obtain ⟨hA,hB,hN0,hN1⟩ := trace_norm S 1 (by decide) hnH hnK
+    obtain ⟨a,ha⟩ := hN0; obtain ⟨b,hb⟩ := hN1
+    have hu0 : S 0=8*(-a) := by rw [hA,ha]; ring
+    have hu1 : S 1=8*(-b) := by rw [hB,hb]; ring
+    obtain ⟨c,hc⟩ := hz; obtain ⟨t,ht⟩ := hS
+    rw [hm,add_apply,zsmul_apply]
+    simp only [mul_apply2]; rw [hu0,hu1,hc,ht]; ring_nf; omega
+  have hd (n : ℤ) : (8:ℤ) ∣
+      (x*(↑(V^(n+1)):R)) 2-(x*(↑(V^n):R)) 2 := by
+    rw [zpow_add_one,Units.val_mul,←mul_assoc]
+    exact h2 _ (heven n)
+  refine ⟨hh0 i,OrbitCongruence.invariant V (fun z : R => z 1) 16 h1 x i,?_,
+    OrbitCongruence.invariant V (fun z : R => z 3) 4 h3 x i⟩
+  simpa only [zpow_zero,Units.val_one,mul_one] using
+    OrbitCongruence.of_difference (fun n => (x*(↑(V^n):R)) 2) 8 hd i
+
+"""
+
 PHASE = """/-- The signed base-coordinate sum is fixed by each unit step modulo four. -/
 theorem orbit_phase (i : ℤ) :
     (4:ℤ) ∣ (xi0*(↑(rhoU^i):R)) 0+({sign})*(xi0*(↑(rhoU^i):R)) 1-1 := by
@@ -255,12 +369,96 @@ theorem derivative_at (c : Fin {count}) : {N} ∣ Lf (point c) (first c)-{H} := 
     hH hK (root c) primitive
 
 """
-ROOT_FOUR = """/-- Only the root and its first derivative remain as finite data. -/
-theorem root_and_derivative : ∀ c : Fin {count},
-    f (point c)=0 ∧
-    {N} ∣ Lf (point c) (first c)-{H} := by decide +kernel
+
+ROOT_ODD = """/-- Primitivity belongs to the direction, independently of the root. -/
+theorem primitive : {primitive} := by decide +kernel
+
+/-- Only the exact root remains as centre-specific finite data. -/
+theorem root : ∀ c : Fin 1, f (point c)=0 := by decide +kernel
+
+/-- These congruences hold along the entire phase, not just at the centre. -/
+theorem orbit_residues (i : ℤ) :
+    let y := (xi0*(↑(rhoU^({seed}:ℤ)):R))*(↑((rhoU^4)^i):R)
+    (16:ℤ) ∣ y 0-{a} ∧ (16:ℤ) ∣ y 1-{b} ∧
+    (8:ℤ) ∣ y 2-{c} ∧ (4:ℤ) ∣ y 3-{t} := by
+  let x : R := xi0*(↑(rhoU^({seed}:ℤ)):R)
+  have hx : x=⟨![{x0},{x1},{x2},{x3}]⟩ := by decide +kernel
+  have hV : (↑(rhoU^4):R)=1+(4:ℤ) • step := by
+    simpa only [zsmul_eq_mul,Int.cast_ofNat] using step_eq
+  have hS : (2:ℤ) ∣ step 3 := by
+    have hp := primitive
+    {evenproof}
+  have hh := phase_residues (rhoU^4) step hV norm_step.1 norm_step.2
+    hS x (by rw [hx]; change (2:ℤ) ∣ {x0}; decide) i
+  have hx0 : x 0={x0} := by rw [hx]; rfl
+  have hx1 : x 1={x1} := by rw [hx]; rfl
+  have hx2 : x 2={x2} := by rw [hx]; rfl
+  have hx3 : x 3={x3} := by rw [hx]; rfl
+  rw [hx0,hx1,hx2,hx3] at hh
+  dsimp only [x] at hh
+  dsimp only
+  exact ⟨by omega,by omega,by omega,by omega⟩
+
+theorem derivative_at (c : Fin 1) : (64:ℤ) ∣ Lf (point c) (first c)-32 := by
+  have he : centre c={seed} := by fin_cases c; rfl
+  have hp := orbit_residues 0
+  simp only [zpow_zero,Units.val_one,mul_one] at hp
+  have hpoint : point c=xi0*(↑(rhoU^({seed}:ℤ)):R) := by rw [point,he]
+  rw [←hpoint] at hp
+  exact derivative_odd (point c) step norm_step.1 norm_step.2 (root c)
+    hp.1 hp.2.1 hp.2.2.1 hp.2.2.2 {primuse}
 
 """
+ROOT_NEAR = """/-- Squaring the short unit step leaves its primitive residue unchanged modulo eight. -/
+theorem step_from_short : step=Differential2Odd.step+(2:ℤ) • Differential2Odd.step^2 := by
+  have he : rhoU^8=(rhoU^4)^2 := by rw [←pow_mul]
+  have hh := congrArg (fun u : Rˣ => (u:R)) he
+  change (↑(rhoU^8):R)=(↑(rhoU^4):R)^2 at hh
+  rw [step_eq,Differential2Odd.step_eq] at hh
+  have hid : (1+4*Differential2Odd.step)^2=
+      1+8*(Differential2Odd.step+(2:ℤ) • Differential2Odd.step^2) := by
+    simp only [zsmul_eq_mul]; ring
+  rw [hid] at hh
+  have hh' : 1+(8:ℤ) • step=
+      1+(8:ℤ) • (Differential2Odd.step+(2:ℤ) • Differential2Odd.step^2) := by
+    simpa only [zsmul_eq_mul,Int.cast_ofNat] using hh
+  ext j
+  have hj := congrArg (fun z : R => z j) hh'
+  simp only [add_apply,zsmul_apply] at hj ⊢
+  omega
+
+theorem primitive : (8:ℤ) ∣ 6*step 2+step 3-4 := by
+  have hp := Differential2Odd.primitive.2
+  obtain ⟨a,ha⟩ := Differential2Odd.properties.2.1 2
+  obtain ⟨b,hb⟩ := Differential2Odd.properties.2.1 3
+  rw [step_from_short,add_apply,add_apply,zsmul_apply,zsmul_apply,ha,hb]
+  ring_nf at *; omega
+
+theorem root : ∀ c : Fin 2, f (point c)=0 := by decide +kernel
+
+/-- The same affine class contains both close roots and the intervening orbit. -/
+theorem orbit_residues (i : ℤ) :
+    let y := xi0*(↑((rhoU^4)^i):R)
+    (16:ℤ) ∣ y 0-2 ∧ (16:ℤ) ∣ y 1-1 ∧
+    (8:ℤ) ∣ y 2-2 ∧ (4:ℤ) ∣ y 3-3 := by
+  have hV : (↑(rhoU^4):R)=1+(4:ℤ) • Differential2Odd.step := by
+    simpa only [zsmul_eq_mul,Int.cast_ofNat] using Differential2Odd.step_eq
+  have hS : (2:ℤ) ∣ Differential2Odd.step 3 := by
+    have hp := Differential2Odd.primitive.2
+    omega
+  have hh := phase_residues (rhoU^4) Differential2Odd.step hV
+    Differential2Odd.norm_step.1 Differential2Odd.norm_step.2 hS xi0 (by decide) i
+  change (16:ℤ) ∣ _-2 ∧ (16:ℤ) ∣ _-1 ∧ (8:ℤ) ∣ _-2 ∧ (4:ℤ) ∣ _-(-1) at hh
+  dsimp only
+  exact ⟨hh.1,hh.2.1,hh.2.2.1,by omega⟩
+
+theorem derivative_at (c : Fin 2) : (128:ℤ) ∣ Lf (point c) (first c)-64 := by
+  have hp := orbit_residues (centre c)
+  exact derivative_near (point c) step norm_step.1 norm_step.2 (root c)
+    hp.1 hp.2.1 hp.2.2.1 hp.2.2.2 primitive
+
+"""
+
 
 TRACE = """theorem square_trace : (2:ℤ) ∣ coord 0 squarePart+coord 1 squarePart := by
   have hsum := properties.2.2.resolve_left (by decide : ¬ ({m}:ℤ)=2)
@@ -287,7 +485,19 @@ def main():
         directions.append(SCALAR.format(e=e,m=m,scalar=2*m*m,finish='' if d in [3,11] else ' <;> ring',
             phase=PHASE.format(sign=sign) if m==4 else '',
             phasearg=f' (hphase : (4:ℤ) ∣ y 0+({sign})*y 1-1)' if m==4 else '',
-            scalarproof=(SCALAR_FOUR if m==4 else SCALAR_TWO).format(e=e,sign=sign)))
+            scalarproof='\n'.join(line[2:] for line in (SCALAR_FOUR if m==4 else SCALAR_TWO).format(e=e,sign=sign).splitlines()),
+            phaseuse=' hphase' if m==4 else ''))
+        if m==4:
+            directions.append(OFF.format(sign=sign))
+            directions.append(PHASE_RESIDUES)
+            cases = [('near',2,1,2,3,8,128,'(8:ℤ) ∣ 6*U 2+U 3-4','U 3=4-6*U 2+8*E'),
+                     ('odd',8,3,6,0,4,64,'(2:ℤ) ∣ U 2-1','U 2=1+2*E')] if d==2 else [
+                     ('odd',2,3,0,1,4,64,'(4:ℤ) ∣ U 3-2','U 3=2+4*E')]
+            for name,a,b,c,t,delta,mod,primitive,substitution in cases:
+                directions.append(DERIVATIVE_FOUR.format(name=name,a=a,b=b,c=c,t=t,
+                    delta=delta,mod=mod,half=mod//2,primitive=primitive,
+                    substitution=substitution,sign=sign,q=delta//4,e=e))
+
         pnorm = {1:'(y 2)^2-6*(y 3)^2',2:'2*((y 2)^2-3*(y 3)^2)',
             3:'3*((y 2)^2-2*(y 3)^2)',11:'11*(y 2)^2-6*(y 3)^2',
             66:'6*((y 2)^2-11*(y 3)^2)'}[d]
@@ -298,17 +508,28 @@ def main():
         directions.append(f'\nend Tetrahedral.NormEleven.NormProjection{d}\n')
     (OUT.parent/'RelativeDirectionData.lean').write_text(''.join(directions))
     parts = [HEADER]
-    specs = [(1,1,2,4,1,4,2,6,[0,-1]),(2,2,8,8,2,7,4,3,[0,-1]),
+    specs = [(1,1,2,4,1,4,2,6,[0,-1]),('2Odd',2,4,4,1,6,4,3,[-1]),(2,2,8,8,2,7,4,3,[0,-1]),
              (3,3,2,4,1,4,2,2,[0,-1]),(11,11,2,4,1,4,2,66,[0]),
-             (66,66,4,4,1,6,4,11,[1]),('2Odd',2,4,4,1,6,4,3,[-1])]
+             (66,66,4,4,1,6,4,11,[1])]
     for label,d,P,delta,t,v,m,e,centres in specs:
+        if label==2:
+            rootblock = ROOT_NEAR
+        elif m==4:
+            rootblock = ROOT_ODD.format(
+                primitive='(2:ℤ) ∣ step 2-1 ∧ (8:ℤ) ∣ 6*step 2+step 3-4' if d==2 else '(4:ℤ) ∣ step 3-2',
+                seed=-1 if d==2 else 1,a=8 if d==2 else 2,b=3,c=6 if d==2 else 0,t=0 if d==2 else 1,
+                x0=8 if d==2 else 66,x1=3 if d==2 else 19,x2=-2 if d==2 else 0,x3=0 if d==2 else 1,
+                evenproof='have hp := hp.2; omega' if d==2 else 'omega',
+                primuse='primitive.1' if d==2 else 'primitive')
+        else:
+            rootblock = ROOT_TWO.format(count=len(centres),N=2**v,H=2**(v-1),q=delta//4)
         parts.append(LOCAL.format(label=label,d=d,P=P,delta=delta,t=t,v=v,m=m,e=e,
             quartic='Quartic66' if d==66 else f'Quartic{d}', count=len(centres),
             centres=','.join(map(str,centres)),orbit='(rhoU^4)' if label==2 else 'rhoU',
             scalar=2*m*m,N=2**v,H=2**(v-1),twom=2*m,q=delta//4,trace=TRACE.format(m=m) if m==4 else '',
-            rootblock=(ROOT_TWO if m==2 else ROOT_FOUR).format(count=len(centres),N=2**v,H=2**(v-1),q=delta//4),
-            rootproof='root c' if m==2 else '(root_and_derivative c).1',
-            derivproof='derivative_at c' if m==2 else '(root_and_derivative c).2',
+            rootblock=rootblock,
+            rootproof='root c',
+            derivproof='derivative_at c',
             localphase=(' (by simpa only [point,zpow_mul,zpow_ofNat] using orbit_phase (4*centre c))'
               if label==2 else ' (by simpa only [point] using orbit_phase (centre c))') if m==4 else '',
             good='(Or.inl rfl)' if m==2 else '(Or.inr ⟨rfl,parity_mul,square_trace⟩)'))

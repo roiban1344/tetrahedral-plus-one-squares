@@ -73,6 +73,101 @@ theorem unique (c : Fin 2) (i : ℤ)
     (Or.inl rfl) (properties.1 (point c)) (scalar_bit c) hd i hi
 end Differential1
 
+namespace Differential2Odd
+open Quartic2 R NormProjection2
+def step : R := ⟨fun i => ((↑(rhoU^4):R) i-(if i=0 then 1 else 0))/4⟩
+theorem step_eq : (↑(rhoU^4):R)=1+4*step := by
+  have h : (↑(rhoU^4):R)=1+(4:ℤ) • step := by
+    ext i; fin_cases i <;> decide +kernel
+  simpa only [zsmul_eq_mul,Int.cast_ofNat] using h
+/-- The displayed step lies on the relative norm-one equation. -/
+theorem norm_step : relH (1+(4*1:ℤ) • step)=1 ∧ relK (1+(4*1:ℤ) • step)=0 := by
+  have he : 1+(4*1:ℤ) • step=(↑(rhoU^4):R) := by
+    change 1+(4:ℤ) • step=(↑(rhoU^4):R)
+    simpa only [zsmul_eq_mul,Int.cast_ofNat] using step_eq.symm
+  obtain ⟨hH,hK⟩ := relN_rho_zpow (4:ℤ)
+  exact ⟨by rw [he]; simpa only [zpow_natCast,zpow_ofNat] using hH,
+    by rw [he]; simpa only [zpow_natCast,zpow_ofNat] using hK⟩
+
+/-- These properties hold for every relative unit congruent to one modulo four. -/
+theorem properties :
+    (∀ y : R, (4:ℤ) ∣ (y*step) 0 ∧ (4:ℤ) ∣ (y*step) 1) ∧
+    (∀ j, (4:ℤ) ∣ (step^2) j) ∧
+    ((4:ℤ)=2 ∨ (8:ℤ) ∣ (step^2) 0+(step^2) 1) :=
+  direction step 1 (by decide) norm_step.1 norm_step.2
+
+def squarePart : R := ⟨fun j => (step^2) j/4⟩
+theorem square_eq : step^2=(4:ℤ) • squarePart := by
+  ext j
+  change (step^2) j=4*((step^2) j/4)
+  exact (Int.mul_ediv_cancel' (properties.2.1 j)).symm
+theorem square_trace : (2:ℤ) ∣ coord 0 squarePart+coord 1 squarePart := by
+  have hsum := properties.2.2.resolve_left (by decide : ¬ (4:ℤ)=2)
+  have h0 := Int.mul_ediv_cancel' (properties.2.1 0)
+  have h1 := Int.mul_ediv_cancel' (properties.2.1 1)
+  change (2:ℤ) ∣ (step^2) 0/4+(step^2) 1/4
+  omega
+
+def centre : Fin 1 → ℤ := ![-1]
+def point (c : Fin 1) : R := xi0*(↑(rhoU^(centre c)):R)
+def first (c : Fin 1) : R := point c*step
+def tangent (c : Fin 1) : R := point c*step^2
+
+/-- Primitivity belongs to the direction, independently of the root. -/
+theorem primitive : (2:ℤ) ∣ step 2-1 ∧ (8:ℤ) ∣ 6*step 2+step 3-4 := by decide +kernel
+
+/-- Only the exact root remains as centre-specific finite data. -/
+theorem root : ∀ c : Fin 1, f (point c)=0 := by decide +kernel
+
+/-- These congruences hold along the entire phase, not just at the centre. -/
+theorem orbit_residues (i : ℤ) :
+    let y := (xi0*(↑(rhoU^(-1:ℤ)):R))*(↑((rhoU^4)^i):R)
+    (16:ℤ) ∣ y 0-8 ∧ (16:ℤ) ∣ y 1-3 ∧
+    (8:ℤ) ∣ y 2-6 ∧ (4:ℤ) ∣ y 3-0 := by
+  let x : R := xi0*(↑(rhoU^(-1:ℤ)):R)
+  have hx : x=⟨![8,3,-2,0]⟩ := by decide +kernel
+  have hV : (↑(rhoU^4):R)=1+(4:ℤ) • step := by
+    simpa only [zsmul_eq_mul,Int.cast_ofNat] using step_eq
+  have hS : (2:ℤ) ∣ step 3 := by
+    have hp := primitive
+    have hp := hp.2; omega
+  have hh := phase_residues (rhoU^4) step hV norm_step.1 norm_step.2
+    hS x (by rw [hx]; change (2:ℤ) ∣ 8; decide) i
+  have hx0 : x 0=8 := by rw [hx]; rfl
+  have hx1 : x 1=3 := by rw [hx]; rfl
+  have hx2 : x 2=-2 := by rw [hx]; rfl
+  have hx3 : x 3=0 := by rw [hx]; rfl
+  rw [hx0,hx1,hx2,hx3] at hh
+  dsimp only [x] at hh
+  dsimp only
+  exact ⟨by omega,by omega,by omega,by omega⟩
+
+theorem derivative_at (c : Fin 1) : (64:ℤ) ∣ Lf (point c) (first c)-32 := by
+  have he : centre c=-1 := by fin_cases c; rfl
+  have hp := orbit_residues 0
+  simp only [zpow_zero,Units.val_one,mul_one] at hp
+  have hpoint : point c=xi0*(↑(rhoU^(-1:ℤ)):R) := by rw [point,he]
+  rw [←hpoint] at hp
+  exact derivative_odd (point c) step norm_step.1 norm_step.2 (root c)
+    hp.1 hp.2.1 hp.2.2.1 hp.2.2.2 primitive.1
+
+
+/-- The scalar bit is a consequence of the norm and the orbit, not a certificate. -/
+theorem scalar_bit (c : Fin 1) : 32 ∣ Lf (point c) (tangent c) :=
+  scalar (point c) step 1 (by decide) norm_step.1 norm_step.2
+    (root c) (by simpa only [point] using orbit_phase (centre c))
+
+theorem unique (c : Fin 1) (i : ℤ)
+    (hi : f ((xi0*(↑(rhoU^(centre c)):R))*(↑((rhoU^4)^i):R))=0) : i=0 := by
+  have hz := root c
+  have hd := derivative_at c
+  exact NormDerivative.unique (coord 0) (coord 1) 3
+    (point c) (rhoU^4) 1 6 (by decide) step
+    (by simpa only [Nat.reduceAdd,show (2:R)^(1+1)=4 by ring] using step_eq)
+    hz 4 (by decide) (by norm_num) squarePart square_eq
+    (Or.inr ⟨rfl,parity_mul,square_trace⟩) (properties.1 (point c)) (scalar_bit c) hd i hi
+end Differential2Odd
+
 namespace Differential2
 open Quartic2 R NormProjection2
 def step : R := ⟨fun i => ((↑(rhoU^8):R) i-(if i=0 then 1 else 0))/8⟩
@@ -113,21 +208,64 @@ def point (c : Fin 2) : R := xi0*(↑((rhoU^4)^(centre c)):R)
 def first (c : Fin 2) : R := point c*step
 def tangent (c : Fin 2) : R := point c*step^2
 
-/-- Only the root and its first derivative remain as finite data. -/
-theorem root_and_derivative : ∀ c : Fin 2,
-    f (point c)=0 ∧
-    128 ∣ Lf (point c) (first c)-64 := by decide +kernel
+/-- Squaring the short unit step leaves its primitive residue unchanged modulo eight. -/
+theorem step_from_short : step=Differential2Odd.step+(2:ℤ) • Differential2Odd.step^2 := by
+  have he : rhoU^8=(rhoU^4)^2 := by rw [←pow_mul]
+  have hh := congrArg (fun u : Rˣ => (u:R)) he
+  change (↑(rhoU^8):R)=(↑(rhoU^4):R)^2 at hh
+  rw [step_eq,Differential2Odd.step_eq] at hh
+  have hid : (1+4*Differential2Odd.step)^2=
+      1+8*(Differential2Odd.step+(2:ℤ) • Differential2Odd.step^2) := by
+    simp only [zsmul_eq_mul]; ring
+  rw [hid] at hh
+  have hh' : 1+(8:ℤ) • step=
+      1+(8:ℤ) • (Differential2Odd.step+(2:ℤ) • Differential2Odd.step^2) := by
+    simpa only [zsmul_eq_mul,Int.cast_ofNat] using hh
+  ext j
+  have hj := congrArg (fun z : R => z j) hh'
+  simp only [add_apply,zsmul_apply] at hj ⊢
+  omega
+
+theorem primitive : (8:ℤ) ∣ 6*step 2+step 3-4 := by
+  have hp := Differential2Odd.primitive.2
+  obtain ⟨a,ha⟩ := Differential2Odd.properties.2.1 2
+  obtain ⟨b,hb⟩ := Differential2Odd.properties.2.1 3
+  rw [step_from_short,add_apply,add_apply,zsmul_apply,zsmul_apply,ha,hb]
+  ring_nf at *; omega
+
+theorem root : ∀ c : Fin 2, f (point c)=0 := by decide +kernel
+
+/-- The same affine class contains both close roots and the intervening orbit. -/
+theorem orbit_residues (i : ℤ) :
+    let y := xi0*(↑((rhoU^4)^i):R)
+    (16:ℤ) ∣ y 0-2 ∧ (16:ℤ) ∣ y 1-1 ∧
+    (8:ℤ) ∣ y 2-2 ∧ (4:ℤ) ∣ y 3-3 := by
+  have hV : (↑(rhoU^4):R)=1+(4:ℤ) • Differential2Odd.step := by
+    simpa only [zsmul_eq_mul,Int.cast_ofNat] using Differential2Odd.step_eq
+  have hS : (2:ℤ) ∣ Differential2Odd.step 3 := by
+    have hp := Differential2Odd.primitive.2
+    omega
+  have hh := phase_residues (rhoU^4) Differential2Odd.step hV
+    Differential2Odd.norm_step.1 Differential2Odd.norm_step.2 hS xi0 (by decide) i
+  change (16:ℤ) ∣ _-2 ∧ (16:ℤ) ∣ _-1 ∧ (8:ℤ) ∣ _-2 ∧ (4:ℤ) ∣ _-(-1) at hh
+  dsimp only
+  exact ⟨hh.1,hh.2.1,hh.2.2.1,by omega⟩
+
+theorem derivative_at (c : Fin 2) : (128:ℤ) ∣ Lf (point c) (first c)-64 := by
+  have hp := orbit_residues (centre c)
+  exact derivative_near (point c) step norm_step.1 norm_step.2 (root c)
+    hp.1 hp.2.1 hp.2.2.1 hp.2.2.2 primitive
 
 
 /-- The scalar bit is a consequence of the norm and the orbit, not a certificate. -/
 theorem scalar_bit (c : Fin 2) : 32 ∣ Lf (point c) (tangent c) :=
   scalar (point c) step 2 (by decide) norm_step.1 norm_step.2
-    ((root_and_derivative c).1) (by simpa only [point,zpow_mul,zpow_ofNat] using orbit_phase (4*centre c))
+    (root c) (by simpa only [point,zpow_mul,zpow_ofNat] using orbit_phase (4*centre c))
 
 theorem unique (c : Fin 2) (i : ℤ)
     (hi : f ((xi0*(↑((rhoU^4)^(centre c)):R))*(↑((rhoU^8)^i):R))=0) : i=0 := by
-  have hz := (root_and_derivative c).1
-  have hd := (root_and_derivative c).2
+  have hz := root c
+  have hd := derivative_at c
   exact NormDerivative.unique (coord 0) (coord 1) 3
     (point c) (rhoU^8) 2 7 (by decide) step
     (by simpa only [Nat.reduceAdd,show (2:R)^(2+1)=8 by ring] using step_eq)
@@ -299,88 +437,59 @@ def point (c : Fin 1) : R := xi0*(↑(rhoU^(centre c)):R)
 def first (c : Fin 1) : R := point c*step
 def tangent (c : Fin 1) : R := point c*step^2
 
-/-- Only the root and its first derivative remain as finite data. -/
-theorem root_and_derivative : ∀ c : Fin 1,
-    f (point c)=0 ∧
-    64 ∣ Lf (point c) (first c)-32 := by decide +kernel
+/-- Primitivity belongs to the direction, independently of the root. -/
+theorem primitive : (4:ℤ) ∣ step 3-2 := by decide +kernel
+
+/-- Only the exact root remains as centre-specific finite data. -/
+theorem root : ∀ c : Fin 1, f (point c)=0 := by decide +kernel
+
+/-- These congruences hold along the entire phase, not just at the centre. -/
+theorem orbit_residues (i : ℤ) :
+    let y := (xi0*(↑(rhoU^(1:ℤ)):R))*(↑((rhoU^4)^i):R)
+    (16:ℤ) ∣ y 0-2 ∧ (16:ℤ) ∣ y 1-3 ∧
+    (8:ℤ) ∣ y 2-0 ∧ (4:ℤ) ∣ y 3-1 := by
+  let x : R := xi0*(↑(rhoU^(1:ℤ)):R)
+  have hx : x=⟨![66,19,0,1]⟩ := by decide +kernel
+  have hV : (↑(rhoU^4):R)=1+(4:ℤ) • step := by
+    simpa only [zsmul_eq_mul,Int.cast_ofNat] using step_eq
+  have hS : (2:ℤ) ∣ step 3 := by
+    have hp := primitive
+    omega
+  have hh := phase_residues (rhoU^4) step hV norm_step.1 norm_step.2
+    hS x (by rw [hx]; change (2:ℤ) ∣ 66; decide) i
+  have hx0 : x 0=66 := by rw [hx]; rfl
+  have hx1 : x 1=19 := by rw [hx]; rfl
+  have hx2 : x 2=0 := by rw [hx]; rfl
+  have hx3 : x 3=1 := by rw [hx]; rfl
+  rw [hx0,hx1,hx2,hx3] at hh
+  dsimp only [x] at hh
+  dsimp only
+  exact ⟨by omega,by omega,by omega,by omega⟩
+
+theorem derivative_at (c : Fin 1) : (64:ℤ) ∣ Lf (point c) (first c)-32 := by
+  have he : centre c=1 := by fin_cases c; rfl
+  have hp := orbit_residues 0
+  simp only [zpow_zero,Units.val_one,mul_one] at hp
+  have hpoint : point c=xi0*(↑(rhoU^(1:ℤ)):R) := by rw [point,he]
+  rw [←hpoint] at hp
+  exact derivative_odd (point c) step norm_step.1 norm_step.2 (root c)
+    hp.1 hp.2.1 hp.2.2.1 hp.2.2.2 primitive
 
 
 /-- The scalar bit is a consequence of the norm and the orbit, not a certificate. -/
 theorem scalar_bit (c : Fin 1) : 32 ∣ Lf (point c) (tangent c) :=
   scalar (point c) step 1 (by decide) norm_step.1 norm_step.2
-    ((root_and_derivative c).1) (by simpa only [point] using orbit_phase (centre c))
+    (root c) (by simpa only [point] using orbit_phase (centre c))
 
 theorem unique (c : Fin 1) (i : ℤ)
     (hi : f ((xi0*(↑(rhoU^(centre c)):R))*(↑((rhoU^4)^i):R))=0) : i=0 := by
-  have hz := (root_and_derivative c).1
-  have hd := (root_and_derivative c).2
+  have hz := root c
+  have hd := derivative_at c
   exact NormDerivative.unique (coord 0) (coord 1) 11
     (point c) (rhoU^4) 1 6 (by decide) step
     (by simpa only [Nat.reduceAdd,show (2:R)^(1+1)=4 by ring] using step_eq)
     hz 4 (by decide) (by norm_num) squarePart square_eq
     (Or.inr ⟨rfl,parity_mul,square_trace⟩) (properties.1 (point c)) (scalar_bit c) hd i hi
 end Differential66
-
-namespace Differential2Odd
-open Quartic2 R NormProjection2
-def step : R := ⟨fun i => ((↑(rhoU^4):R) i-(if i=0 then 1 else 0))/4⟩
-theorem step_eq : (↑(rhoU^4):R)=1+4*step := by
-  have h : (↑(rhoU^4):R)=1+(4:ℤ) • step := by
-    ext i; fin_cases i <;> decide +kernel
-  simpa only [zsmul_eq_mul,Int.cast_ofNat] using h
-/-- The displayed step lies on the relative norm-one equation. -/
-theorem norm_step : relH (1+(4*1:ℤ) • step)=1 ∧ relK (1+(4*1:ℤ) • step)=0 := by
-  have he : 1+(4*1:ℤ) • step=(↑(rhoU^4):R) := by
-    change 1+(4:ℤ) • step=(↑(rhoU^4):R)
-    simpa only [zsmul_eq_mul,Int.cast_ofNat] using step_eq.symm
-  obtain ⟨hH,hK⟩ := relN_rho_zpow (4:ℤ)
-  exact ⟨by rw [he]; simpa only [zpow_natCast,zpow_ofNat] using hH,
-    by rw [he]; simpa only [zpow_natCast,zpow_ofNat] using hK⟩
-
-/-- These properties hold for every relative unit congruent to one modulo four. -/
-theorem properties :
-    (∀ y : R, (4:ℤ) ∣ (y*step) 0 ∧ (4:ℤ) ∣ (y*step) 1) ∧
-    (∀ j, (4:ℤ) ∣ (step^2) j) ∧
-    ((4:ℤ)=2 ∨ (8:ℤ) ∣ (step^2) 0+(step^2) 1) :=
-  direction step 1 (by decide) norm_step.1 norm_step.2
-
-def squarePart : R := ⟨fun j => (step^2) j/4⟩
-theorem square_eq : step^2=(4:ℤ) • squarePart := by
-  ext j
-  change (step^2) j=4*((step^2) j/4)
-  exact (Int.mul_ediv_cancel' (properties.2.1 j)).symm
-theorem square_trace : (2:ℤ) ∣ coord 0 squarePart+coord 1 squarePart := by
-  have hsum := properties.2.2.resolve_left (by decide : ¬ (4:ℤ)=2)
-  have h0 := Int.mul_ediv_cancel' (properties.2.1 0)
-  have h1 := Int.mul_ediv_cancel' (properties.2.1 1)
-  change (2:ℤ) ∣ (step^2) 0/4+(step^2) 1/4
-  omega
-
-def centre : Fin 1 → ℤ := ![-1]
-def point (c : Fin 1) : R := xi0*(↑(rhoU^(centre c)):R)
-def first (c : Fin 1) : R := point c*step
-def tangent (c : Fin 1) : R := point c*step^2
-
-/-- Only the root and its first derivative remain as finite data. -/
-theorem root_and_derivative : ∀ c : Fin 1,
-    f (point c)=0 ∧
-    64 ∣ Lf (point c) (first c)-32 := by decide +kernel
-
-
-/-- The scalar bit is a consequence of the norm and the orbit, not a certificate. -/
-theorem scalar_bit (c : Fin 1) : 32 ∣ Lf (point c) (tangent c) :=
-  scalar (point c) step 1 (by decide) norm_step.1 norm_step.2
-    ((root_and_derivative c).1) (by simpa only [point] using orbit_phase (centre c))
-
-theorem unique (c : Fin 1) (i : ℤ)
-    (hi : f ((xi0*(↑(rhoU^(centre c)):R))*(↑((rhoU^4)^i):R))=0) : i=0 := by
-  have hz := (root_and_derivative c).1
-  have hd := (root_and_derivative c).2
-  exact NormDerivative.unique (coord 0) (coord 1) 3
-    (point c) (rhoU^4) 1 6 (by decide) step
-    (by simpa only [Nat.reduceAdd,show (2:R)^(1+1)=4 by ring] using step_eq)
-    hz 4 (by decide) (by norm_num) squarePart square_eq
-    (Or.inr ⟨rfl,parity_mul,square_trace⟩) (properties.1 (point c)) (scalar_bit c) hd i hi
-end Differential2Odd
 
 end Tetrahedral.NormEleven
