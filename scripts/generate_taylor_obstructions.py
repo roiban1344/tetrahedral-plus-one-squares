@@ -26,14 +26,14 @@ def second : Fin {count} → R := ![{second}]
 def third : Fin {count} → R := ![{third}]
 def modulus : Fin {count} → ℤ := ![{moduli}]
 def value : Fin {count} → ℤ := ![{values}]
-theorem first_eq : ∀ j : Fin {count}, point j*Direction{d}.step=first j := by decide +kernel
-theorem second_eq : ∀ j : Fin {count}, point j*Direction{d}.step^2=second j := by decide +kernel
-theorem third_eq : ∀ j : Fin {count}, point j*Direction{d}.step^3=third j := by decide +kernel
+theorem first_eq : ∀ j : Fin {count}, point j*{direction}.step=first j := by decide +kernel
+theorem second_eq : ∀ j : Fin {count}, point j*{direction}.step^2=second j := by decide +kernel
+theorem third_eq : ∀ j : Fin {count}, point j*{direction}.step^3=third j := by decide +kernel
 
 def model (j : Fin {count}) (a : ℤ) (E : R) : R := ⟨fun i => point j i+
   {delta}*a*first j i+{halfDelta}*a*(a-1)*second j i+{cube}*(third j*E) i⟩
 theorem model_eq (j : Fin {count}) (a : ℤ) (E : R) :
-    TaylorOrbit.truncation {s} Direction{d}.step (point j) a E=model j a E := by
+    TaylorOrbit.truncation {s} {direction}.step (point j) a E=model j a E := by
   simp only [TaylorOrbit.truncation]
   rw [first_eq j,second_eq j,third_eq j]
   ext i
@@ -46,7 +46,7 @@ theorem residue (j : Fin {count}) (a : ℤ) (E : R) :
     <;> ring_nf <;> omega
 theorem value_nonzero : ∀ j : Fin {count}, ¬ modulus j ∣ value j := by decide +kernel
 theorem nonzero (j : Fin {count}) (a : ℤ) (E : R) :
-    f (TaylorOrbit.truncation {s} Direction{d}.step (point j) a E)≠0 := by
+    f (TaylorOrbit.truncation {s} {direction}.step (point j) a E)≠0 := by
   rw [model_eq]
   intro h
   have hd := residue j a E
@@ -63,7 +63,8 @@ def vec(v):
 def main():
     parts = [HEADER]
     archive = [HEADER]
-    specs = [(2, 3, 8, 'Quartic2', [(1, r) for r in [1, 2, 3, 5, 6]]),
+    specs = [(2, 3, 4, 'Quartic2', [(1, r) for r in [1, 2]]),
+             (2, 3, 8, 'Quartic2', [(1, r) for r in [1, 2, 3, 5, 6]]),
              (66, 11, 4, 'Quartic66', [(1, 2)]),
              (66, 11, 4, 'Quartic66', [(1, 2), (-1, 1), (-1, 2), (-1, 3)])]
     for d, e, delta, quartic, cases in specs:
@@ -102,6 +103,7 @@ def main():
             rows.append((y, z, v, w)); ns.append(N); vs.append(f % N)
             print(d, sg, r, 'modulus', N, 'constant residue', f % N)
         rendered = TEMPLATE.format(d=d, quartic=quartic, count=len(rows),
+            direction="Direction2Odd" if d==2 and delta==4 else f"Direction{d}",
             points=','.join(vec(row[0]) for row in rows),
             first=','.join(vec(row[1]) for row in rows),
             second=','.join(vec(row[2]) for row in rows),
@@ -111,6 +113,8 @@ def main():
         if d==66:
             archive.append(rendered.replace("Obstruction66", "Obstruction66Signed")
                            if len(cases)>1 else rendered)
+        elif delta==8:
+            archive.append(rendered.replace("Obstruction2", "Obstruction2Eight"))
         else:
             parts.append(rendered)
     parts.append('\nend Tetrahedral.NormEleven\n')

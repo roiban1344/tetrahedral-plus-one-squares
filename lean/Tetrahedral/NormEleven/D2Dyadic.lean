@@ -1,5 +1,6 @@
 import Tetrahedral.Quartic.D2
 import Tetrahedral.NormEleven.TaylorObstructions
+import Tetrahedral.NormEleven.DyadicSimple
 
 set_option maxRecDepth 20000
 set_option maxHeartbeats 0
@@ -7,33 +8,45 @@ set_option maxHeartbeats 0
 namespace Tetrahedral.NormEleven.Dyadic2
 open Quartic2 R
 
-abbrev step : R := Direction2.step
-theorem step_eq : (↑(rhoU^8):R)=1+8*step := Direction2.step_eq
+abbrev step : R := Direction2Odd.step
+theorem step_eq : (↑(rhoU^4):R)=1+4*step := Direction2Odd.step_eq
 
-def centre (c : Fin 3) : ℤ := ![0,-4,-1] c
+def centre (c : Fin 2) : ℤ := ![0,-1] c
 
-theorem phase_certificate : ∀ r : Fin 8,
-    (∃ c : Fin 3, (r.val:ℤ)=centre c%8) ∨
-    ∃ j : Fin 5, xi0*(↑(rhoU^r.val):R)=Obstruction2.point j := by decide +kernel
+theorem phase_certificate : ∀ r : Fin 4,
+    (∃ c : Fin 2, (r.val:ℤ)=centre c%4) ∨
+    ∃ j : Fin 2, xi0*(↑(rhoU^r.val):R)=Obstruction2.point j := by decide +kernel
 
+/-- The two close roots share one class modulo four. A single parity split
+separates them; the third root has its own, shorter local period. -/
 theorem roots (m : ℤ) (hm : f (xi0*(↑(rhoU^m):R))=0) : m=0 ∨ m= -4 ∨ m= -1 := by
-  obtain ⟨c,hc⟩ := TaylorOrbit.phase_roots f rhoU 8 (by decide) 2 step
+  obtain ⟨c,hc⟩ := TaylorOrbit.phase_roots f rhoU 4 (by decide) 1 step
     (by convert step_eq using 1 <;> ring) xi0 centre (by
       intro r
       rcases phase_certificate r with h|⟨j,hj⟩
       · exact Or.inl h
       · right; intro a E; rw [hj]; exact Obstruction2.nonzero j a E) m hm
   norm_num at hc
-  have hd : (8:ℤ) ∣ m-centre c := Int.dvd_of_emod_eq_zero (by
+  have hd : (4:ℤ) ∣ m-centre c := Int.dvd_of_emod_eq_zero (by
     rw [Int.sub_emod,hc,sub_self,Int.zero_emod])
   obtain ⟨a,ha⟩ := hd
-  have he : m=centre c+8*a := by omega
-  have hp : rhoU^m=rhoU^(centre c)*(rhoU^8)^a := by
+  have he : m=centre c+4*a := by omega
+  have hp : rhoU^m=rhoU^(centre c)*(rhoU^4)^a := by
     rw [← zpow_natCast,← zpow_mul,← zpow_add]
     norm_num; rw [← he]
-  have ha0 := Direction2.unique c a (by simpa only [hp,Units.val_mul,mul_assoc,centre,Direction2.centre] using hm)
-  have hmc : m=centre c := by simpa only [ha0,mul_zero,add_zero] using he
-  fin_cases c <;> simp_all [centre]
+  have hb : f ((xi0*(↑(rhoU^(centre c)):R))*(↑((rhoU^4)^a):R))=0 := by
+    simpa only [hp,Units.val_mul,mul_assoc] using hm
+  fin_cases c
+  · change m=0+4*a at he
+    change f (xi0*(↑((rhoU^4)^a):R))=0 at hb
+    rcases DyadicSimple.pair f (rhoU^4) xi0 (fun j i hi =>
+      Direction2.unique j i (by simpa only [← pow_mul,Nat.reduceMul,Direction2.centre,DyadicSimple.centre] using hi)) a hb with h|h
+    · left; omega
+    · right; left; omega
+  · change m= -1+4*a at he
+    change f ((xi0*(↑(rhoU^(-1:ℤ)):R))*(↑((rhoU^4)^a):R))=0 at hb
+    have ha0 := Direction2Odd.unique 0 a hb
+    right; right; omega
 
 /-- Only the second positive Euler type remains. Its two parity classes
 fail different necessary conditions, at moduli 16 and 8. -/

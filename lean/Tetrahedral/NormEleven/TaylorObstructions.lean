@@ -8,33 +8,33 @@ namespace Tetrahedral.NormEleven
 
 namespace Obstruction2
 open Quartic2 R
-def point : Fin 5 → R := ![⟨![16,11,2,2]⟩,⟨![226,129,34,21]⟩,⟨![2888,1667,454,260]⟩,⟨![476848,275307,74666,43110]⟩,⟨![6127666,3537809,959506,553969]⟩]
-def first : Fin 5 → R := ![⟨![1625374464,938410384,254510250,146941561]⟩,⟨![20886686892,12058934300,3270554580,1888255567]⟩,⟨![268401958488,154961942984,42027884034,24264810161]⟩,⟨![44321855011248,25589234921728,6940164643722,4006905925273]⟩,⟨![569552880748380,328831509017804,89183784494052,51490281984991]⟩]
-def second : Fin 5 → R := ![⟨![151074942485516844,87223158711820380,23656161821841552,13657891395833568]⟩,⟨![1941371106414312300,1120851130885264812,303990776326042908,175509156543004188]⟩,⟨![24947365266623534700,14403368052257017692,3906398374650466152,2255360153166363192]⟩,⟨![4119617876445654876204,2378462489924293295964,645072872615472682560,372432996651468323472]⟩,⟨![52938673900645037700588,30564157627079228300460,8289434474200882864716,4785907225109643631500]⟩]
-def third : Fin 5 → R := ![⟨![14042079998420285511077184,8107198667070211569876288,2198787643356013354681836,1269470637782417160957804]⟩,⟨![180446127824969410840606944,104180620473971709207121344,28255266755182828540869516,16313185867129489762113372]⟩,⟨![2318802132639056690018020608,1338761035476637687035279552,363091043293294835035895724,209630711585725835575200492]⟩,⟨![382909321905040055229046868160,221072800077091941246188036160,59958089230751340782417638380,34616818957469888181728477292]⟩,⟨![4920532033261614603354846771552,2840870493959769787220239051200,770484503342113406666670647052,444839435411004287356208744796]⟩]
-def modulus : Fin 5 → ℤ := ![128,128,256,128,128]
-def value : Fin 5 → ℤ := ![64,64,128,64,64]
-theorem first_eq : ∀ j : Fin 5, point j*Direction2.step=first j := by decide +kernel
-theorem second_eq : ∀ j : Fin 5, point j*Direction2.step^2=second j := by decide +kernel
-theorem third_eq : ∀ j : Fin 5, point j*Direction2.step^3=third j := by decide +kernel
+def point : Fin 2 → R := ![⟨![16,11,2,2]⟩,⟨![226,129,34,21]⟩]
+def first : Fin 2 → R := ![⟨![119208,68824,18666,10777]⟩,⟨![1531860,884420,239868,138487]⟩]
+def second : Fin 2 → R := ![⟨![812627628,469170780,127245792,73465392]⟩,⟨![10442577516,6029024940,1635157356,944058540]⟩]
+def third : Fin 2 → R := ![⟨![5539622390784,3198302478528,867425143788,500808140268]⟩,⟨![71186277968928,41099416747968,11146746663756,6435577186908]⟩]
+def modulus : Fin 2 → ℤ := ![128,128]
+def value : Fin 2 → ℤ := ![64,64]
+theorem first_eq : ∀ j : Fin 2, point j*Direction2Odd.step=first j := by decide +kernel
+theorem second_eq : ∀ j : Fin 2, point j*Direction2Odd.step^2=second j := by decide +kernel
+theorem third_eq : ∀ j : Fin 2, point j*Direction2Odd.step^3=third j := by decide +kernel
 
-def model (j : Fin 5) (a : ℤ) (E : R) : R := ⟨fun i => point j i+
-  8*a*first j i+32*a*(a-1)*second j i+512*(third j*E) i⟩
-theorem model_eq (j : Fin 5) (a : ℤ) (E : R) :
-    TaylorOrbit.truncation 2 Direction2.step (point j) a E=model j a E := by
+def model (j : Fin 2) (a : ℤ) (E : R) : R := ⟨fun i => point j i+
+  4*a*first j i+8*a*(a-1)*second j i+64*(third j*E) i⟩
+theorem model_eq (j : Fin 2) (a : ℤ) (E : R) :
+    TaylorOrbit.truncation 1 Direction2Odd.step (point j) a E=model j a E := by
   simp only [TaylorOrbit.truncation]
   rw [first_eq j,second_eq j,third_eq j]
   ext i
   simp only [model,add_apply,zsmul_apply]
   ring
 
-theorem residue (j : Fin 5) (a : ℤ) (E : R) :
+theorem residue (j : Fin 2) (a : ℤ) (E : R) :
     modulus j ∣ f (model j a E)-value j := by
   fin_cases j <;> norm_num [modulus,value,f,model,point,first,second,third,mul_apply0,mul_apply1]
     <;> ring_nf <;> omega
-theorem value_nonzero : ∀ j : Fin 5, ¬ modulus j ∣ value j := by decide +kernel
-theorem nonzero (j : Fin 5) (a : ℤ) (E : R) :
-    f (TaylorOrbit.truncation 2 Direction2.step (point j) a E)≠0 := by
+theorem value_nonzero : ∀ j : Fin 2, ¬ modulus j ∣ value j := by decide +kernel
+theorem nonzero (j : Fin 2) (a : ℤ) (E : R) :
+    f (TaylorOrbit.truncation 1 Direction2Odd.step (point j) a E)≠0 := by
   rw [model_eq]
   intro h
   have hd := residue j a E

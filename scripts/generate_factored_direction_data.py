@@ -37,7 +37,7 @@ theorem square_eq : step^2=2*{factor}*squarePart := by
 
 def centre : Fin {count} → ℤ := ![{centres}]
 def point : Fin {count} → R := ![{points}]
-theorem point_eq : ∀ c : Fin {count}, xi0*(↑(rhoU^(centre c)):R)=point c := by decide +kernel
+theorem point_eq : ∀ c : Fin {count}, xi0*(↑({orbit}^(centre c)):R)=point c := by decide +kernel
 def first : Fin {count} → R := ![{first}]
 def tangent : Fin {count} → R := ![{tangent}]
 theorem first_eq : ∀ c : Fin {count}, point c*step=first c := by decide +kernel
@@ -62,29 +62,23 @@ theorem quadratic (c : Fin {count}) (a b : ℤ) (E : R) :
     combine,residue] <;> ring_nf <;> omega
 
 theorem unique (c : Fin {count}) (i : ℤ)
-    (hi : f ((xi0*(↑(rhoU^(centre c)):R))*(↑((rhoU^{P})^i):R))=0) : i=0 := by
+    (hi : f ((xi0*(↑({orbit}^(centre c)):R))*(↑((rhoU^{P})^i):R))=0) : i=0 := by
   rw [point_eq c] at hi
   have hz : ∀ c : Fin {count}, f (point c)=0 := by decide +kernel
-  have hk : ∀ c : Fin {count}, Lf (point c) (point c*step)%{N} ∈ [{quarter},{halfN},{three}] := by decide +kernel
+  have hk : ∀ c : Fin {count}, Lf (point c) (first c)%{N} ∈ [{quarter},{halfN},{three}] := by decide +kernel
   apply FactoredExponent.unique f (Lf (point c)) Qf
     (point c) (rhoU^{P}) {t} {v} (by decide) step
     (by simpa only [Nat.reduceAdd,show (2:R)^({t}+1)={delta} by ring] using step_eq)
-    (hz c) (f_expand _) ?_ ?_ ?_ i hi
+    (hz c) (f_expand _) (first c) (tangent c) (first_eq c) (tangent_eq c)
+    ?_ ?_ ?_ i hi
   · intro b E
-    rw [← mul_assoc,tangent_eq c]
     have hh := linear c b E
     rw [residue_eq] at hh
-    simpa only [Int.reducePow,zsmul_eq_mul,Int.cast_ofNat,mul_one,mul_assoc]
-      using hh
+    simpa only [Int.reducePow,zsmul_eq_mul,Int.cast_ofNat,mul_one] using hh
   · intro a b E
-    have he : point c*(a • step+({q}:ℤ) • (step^2*(b • (1:R)+(2:ℤ) • E)))=
-        a • first c+({q}:ℤ) • (tangent c*(b • (1:R)+(2:ℤ) • E)) := by
-      rw [mul_add,mul_smul_comm,mul_smul_comm,← mul_assoc,first_eq,tangent_eq]
     have hh := quadratic c a b E
     rw [combine_eq,residue_eq] at hh
-    rw [← he] at hh
-    simpa only [Nat.reduceAdd,Int.reducePow,zsmul_eq_mul,Int.cast_ofNat,mul_one,mul_assoc,
-      show (2:R)^{t}={q} by ring] using hh
+    simpa only [Nat.reduceAdd,Int.reducePow,zsmul_eq_mul,Int.cast_ofNat,mul_one] using hh
   · intro a ha
     norm_num at ha
     have hm := Int.emod_eq_zero_of_dvd ha
@@ -119,15 +113,17 @@ def vec(v):
 def main():
     points = {
         1: ([0, -1], [[1, 1, 5, -2], [25, 9, -5, 0]]),
-        2: ([0, -4, -1], [[2, 1, 2, -1], [13778, 7953, -2158, -1245], [8, 3, -2, 0]]),
+        2: ([0, -1], [[2, 1, 2, -1], [13778, 7953, -2158, -1245]]),
         3: ([0, -1], [[3, 1, 1, 0], [27, 17, -9, -6]]),
         11: ([0, -1], [[11, 1, 1, 0], [11, 1, -1, 0]]),
         66: ([1, -1], [[66, 19, 0, 1], [66, 19, 0, -1]]),
+        '2Odd': ([-1], [[8, 3, -2, 0]]),
     }
     parts = [HEADER]
     for d, P, delta, t, v, quartic in [(1, 2, 4, 1, 4, 'Quartic1'), (2, 8, 8, 2, 7, 'Quartic2'),
-        (3, 2, 4, 1, 4, 'Quartic3'), (11, 2, 4, 1, 4, 'Quartic11'), (66, 4, 4, 1, 6, 'Quartic66')]:
-        ring, mul = read_ring(d)
+        (3, 2, 4, 1, 4, 'Quartic3'), (11, 2, 4, 1, 4, 'Quartic11'), (66, 4, 4, 1, 6, 'Quartic66'),
+        ('2Odd', 4, 4, 1, 6, 'Quartic2')]:
+        ring, mul = read_ring(2 if d == '2Odd' else d)
         rho = vector('rho', ring)
         w = (1, 0, 0, 0)
         for _ in range(P):
@@ -139,6 +135,7 @@ def main():
         cs, ps = points[d]
         N = 2**v
         parts.append(TEMPLATE.format(d=d, P=P, delta=delta, t=t, v=v, quartic=quartic,
+            orbit="(rhoU^4)" if d==2 else "rhoU",
             step=vec(step), half=vec([x // squareFactor for x in sq]), square=vec(sq),
             squareFactor=squareFactor, factor=squareFactor//2, count=len(cs),
             centres=','.join(map(str, cs)), points=','.join(map(vec, ps)),

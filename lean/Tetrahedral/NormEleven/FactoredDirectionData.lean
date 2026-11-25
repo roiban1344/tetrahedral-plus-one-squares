@@ -57,26 +57,20 @@ theorem unique (c : Fin 2) (i : ℤ)
     (hi : f ((xi0*(↑(rhoU^(centre c)):R))*(↑((rhoU^2)^i):R))=0) : i=0 := by
   rw [point_eq c] at hi
   have hz : ∀ c : Fin 2, f (point c)=0 := by decide +kernel
-  have hk : ∀ c : Fin 2, Lf (point c) (point c*step)%16 ∈ [4,8,12] := by decide +kernel
+  have hk : ∀ c : Fin 2, Lf (point c) (first c)%16 ∈ [4,8,12] := by decide +kernel
   apply FactoredExponent.unique f (Lf (point c)) Qf
     (point c) (rhoU^2) 1 4 (by decide) step
     (by simpa only [Nat.reduceAdd,show (2:R)^(1+1)=4 by ring] using step_eq)
-    (hz c) (f_expand _) ?_ ?_ ?_ i hi
+    (hz c) (f_expand _) (first c) (tangent c) (first_eq c) (tangent_eq c)
+    ?_ ?_ ?_ i hi
   · intro b E
-    rw [← mul_assoc,tangent_eq c]
     have hh := linear c b E
     rw [residue_eq] at hh
-    simpa only [Int.reducePow,zsmul_eq_mul,Int.cast_ofNat,mul_one,mul_assoc]
-      using hh
+    simpa only [Int.reducePow,zsmul_eq_mul,Int.cast_ofNat,mul_one] using hh
   · intro a b E
-    have he : point c*(a • step+(2:ℤ) • (step^2*(b • (1:R)+(2:ℤ) • E)))=
-        a • first c+(2:ℤ) • (tangent c*(b • (1:R)+(2:ℤ) • E)) := by
-      rw [mul_add,mul_smul_comm,mul_smul_comm,← mul_assoc,first_eq,tangent_eq]
     have hh := quadratic c a b E
     rw [combine_eq,residue_eq] at hh
-    rw [← he] at hh
-    simpa only [Nat.reduceAdd,Int.reducePow,zsmul_eq_mul,Int.cast_ofNat,mul_one,mul_assoc,
-      show (2:R)^1=2 by ring] using hh
+    simpa only [Nat.reduceAdd,Int.reducePow,zsmul_eq_mul,Int.cast_ofNat,mul_one] using hh
   · intro a ha
     norm_num at ha
     have hm := Int.emod_eq_zero_of_dvd ha
@@ -103,13 +97,13 @@ theorem square_eq : step^2=2*2*squarePart := by
   calc step^2=(4:ℤ) • squarePart := h
        _=2*2*squarePart := by rw [zsmul_eq_mul]; push_cast; ring
 
-def centre : Fin 3 → ℤ := ![0,-4,-1]
-def point : Fin 3 → R := ![⟨![2,1,2,-1]⟩,⟨![13778,7953,-2158,-1245]⟩,⟨![8,3,-2,0]⟩]
-theorem point_eq : ∀ c : Fin 3, xi0*(↑(rhoU^(centre c)):R)=point c := by decide +kernel
-def first : Fin 3 → R := ![⟨![126484500,73025860,19805652,11434799]⟩,⟨![2916,1684,996,575]⟩,⟨![9842856,5682776,1541250,889841]⟩]
-def tangent : Fin 3 → R := ![⟨![11756453040633324,6787591327724844,1840891355009220,1062839119363428]⟩,⟨![431133547116,248915069484,67509308820,38976517620]⟩,⟨![914871690981228,528201417061980,143255740574904,82708740383880]⟩]
-theorem first_eq : ∀ c : Fin 3, point c*step=first c := by decide +kernel
-theorem tangent_eq : ∀ c : Fin 3, point c*step^2=tangent c := by decide +kernel
+def centre : Fin 2 → ℤ := ![0,-1]
+def point : Fin 2 → R := ![⟨![2,1,2,-1]⟩,⟨![13778,7953,-2158,-1245]⟩]
+theorem point_eq : ∀ c : Fin 2, xi0*(↑((rhoU^4)^(centre c)):R)=point c := by decide +kernel
+def first : Fin 2 → R := ![⟨![126484500,73025860,19805652,11434799]⟩,⟨![2916,1684,996,575]⟩]
+def tangent : Fin 2 → R := ![⟨![11756453040633324,6787591327724844,1840891355009220,1062839119363428]⟩,⟨![431133547116,248915069484,67509308820,38976517620]⟩]
+theorem first_eq : ∀ c : Fin 2, point c*step=first c := by decide +kernel
+theorem tangent_eq : ∀ c : Fin 2, point c*step^2=tangent c := by decide +kernel
 def residue (b : ℤ) (E : R) : R := ⟨![b+2*E 0,2*E 1,2*E 2,2*E 3]⟩
 theorem residue_eq (b : ℤ) (E : R) : residue b E=b • (1:R)+(2:ℤ) • E := by
   ext i; fin_cases i <;> simp only [residue,add_apply,zsmul_apply,one_apply] <;> norm_num
@@ -117,42 +111,36 @@ def combine (a : ℤ) (F : R) (b : ℤ) (G : R) : R := ⟨fun i => a*F i+b*G i�
 theorem combine_eq (a : ℤ) (F : R) (b : ℤ) (G : R) : combine a F b G=a • F+b • G := by
   ext i; rfl
 
-theorem linear (c : Fin 3) (b : ℤ) (E : R) :
+theorem linear (c : Fin 2) (b : ℤ) (E : R) :
     (128:ℤ) ∣ 4*Lf (point c)
       (tangent c*residue b E) := by
   fin_cases c <;> norm_num [point,tangent,Lf,mul_apply0,mul_apply1,
     residue] <;> ring_nf <;> omega
 
-theorem quadratic (c : Fin 3) (a b : ℤ) (E : R) :
+theorem quadratic (c : Fin 2) (a b : ℤ) (E : R) :
     (128:ℤ) ∣ 8*Qf
       (combine a (first c) 4 (tangent c*residue b E)) := by
   fin_cases c <;> norm_num [first,tangent,Qf,mul_apply0,mul_apply1,
     combine,residue] <;> ring_nf <;> omega
 
-theorem unique (c : Fin 3) (i : ℤ)
-    (hi : f ((xi0*(↑(rhoU^(centre c)):R))*(↑((rhoU^8)^i):R))=0) : i=0 := by
+theorem unique (c : Fin 2) (i : ℤ)
+    (hi : f ((xi0*(↑((rhoU^4)^(centre c)):R))*(↑((rhoU^8)^i):R))=0) : i=0 := by
   rw [point_eq c] at hi
-  have hz : ∀ c : Fin 3, f (point c)=0 := by decide +kernel
-  have hk : ∀ c : Fin 3, Lf (point c) (point c*step)%128 ∈ [32,64,96] := by decide +kernel
+  have hz : ∀ c : Fin 2, f (point c)=0 := by decide +kernel
+  have hk : ∀ c : Fin 2, Lf (point c) (first c)%128 ∈ [32,64,96] := by decide +kernel
   apply FactoredExponent.unique f (Lf (point c)) Qf
     (point c) (rhoU^8) 2 7 (by decide) step
     (by simpa only [Nat.reduceAdd,show (2:R)^(2+1)=8 by ring] using step_eq)
-    (hz c) (f_expand _) ?_ ?_ ?_ i hi
+    (hz c) (f_expand _) (first c) (tangent c) (first_eq c) (tangent_eq c)
+    ?_ ?_ ?_ i hi
   · intro b E
-    rw [← mul_assoc,tangent_eq c]
     have hh := linear c b E
     rw [residue_eq] at hh
-    simpa only [Int.reducePow,zsmul_eq_mul,Int.cast_ofNat,mul_one,mul_assoc]
-      using hh
+    simpa only [Int.reducePow,zsmul_eq_mul,Int.cast_ofNat,mul_one] using hh
   · intro a b E
-    have he : point c*(a • step+(4:ℤ) • (step^2*(b • (1:R)+(2:ℤ) • E)))=
-        a • first c+(4:ℤ) • (tangent c*(b • (1:R)+(2:ℤ) • E)) := by
-      rw [mul_add,mul_smul_comm,mul_smul_comm,← mul_assoc,first_eq,tangent_eq]
     have hh := quadratic c a b E
     rw [combine_eq,residue_eq] at hh
-    rw [← he] at hh
-    simpa only [Nat.reduceAdd,Int.reducePow,zsmul_eq_mul,Int.cast_ofNat,mul_one,mul_assoc,
-      show (2:R)^2=4 by ring] using hh
+    simpa only [Nat.reduceAdd,Int.reducePow,zsmul_eq_mul,Int.cast_ofNat,mul_one] using hh
   · intro a ha
     norm_num at ha
     have hm := Int.emod_eq_zero_of_dvd ha
@@ -209,26 +197,20 @@ theorem unique (c : Fin 2) (i : ℤ)
     (hi : f ((xi0*(↑(rhoU^(centre c)):R))*(↑((rhoU^2)^i):R))=0) : i=0 := by
   rw [point_eq c] at hi
   have hz : ∀ c : Fin 2, f (point c)=0 := by decide +kernel
-  have hk : ∀ c : Fin 2, Lf (point c) (point c*step)%16 ∈ [4,8,12] := by decide +kernel
+  have hk : ∀ c : Fin 2, Lf (point c) (first c)%16 ∈ [4,8,12] := by decide +kernel
   apply FactoredExponent.unique f (Lf (point c)) Qf
     (point c) (rhoU^2) 1 4 (by decide) step
     (by simpa only [Nat.reduceAdd,show (2:R)^(1+1)=4 by ring] using step_eq)
-    (hz c) (f_expand _) ?_ ?_ ?_ i hi
+    (hz c) (f_expand _) (first c) (tangent c) (first_eq c) (tangent_eq c)
+    ?_ ?_ ?_ i hi
   · intro b E
-    rw [← mul_assoc,tangent_eq c]
     have hh := linear c b E
     rw [residue_eq] at hh
-    simpa only [Int.reducePow,zsmul_eq_mul,Int.cast_ofNat,mul_one,mul_assoc]
-      using hh
+    simpa only [Int.reducePow,zsmul_eq_mul,Int.cast_ofNat,mul_one] using hh
   · intro a b E
-    have he : point c*(a • step+(2:ℤ) • (step^2*(b • (1:R)+(2:ℤ) • E)))=
-        a • first c+(2:ℤ) • (tangent c*(b • (1:R)+(2:ℤ) • E)) := by
-      rw [mul_add,mul_smul_comm,mul_smul_comm,← mul_assoc,first_eq,tangent_eq]
     have hh := quadratic c a b E
     rw [combine_eq,residue_eq] at hh
-    rw [← he] at hh
-    simpa only [Nat.reduceAdd,Int.reducePow,zsmul_eq_mul,Int.cast_ofNat,mul_one,mul_assoc,
-      show (2:R)^1=2 by ring] using hh
+    simpa only [Nat.reduceAdd,Int.reducePow,zsmul_eq_mul,Int.cast_ofNat,mul_one] using hh
   · intro a ha
     norm_num at ha
     have hm := Int.emod_eq_zero_of_dvd ha
@@ -285,26 +267,20 @@ theorem unique (c : Fin 2) (i : ℤ)
     (hi : f ((xi0*(↑(rhoU^(centre c)):R))*(↑((rhoU^2)^i):R))=0) : i=0 := by
   rw [point_eq c] at hi
   have hz : ∀ c : Fin 2, f (point c)=0 := by decide +kernel
-  have hk : ∀ c : Fin 2, Lf (point c) (point c*step)%16 ∈ [4,8,12] := by decide +kernel
+  have hk : ∀ c : Fin 2, Lf (point c) (first c)%16 ∈ [4,8,12] := by decide +kernel
   apply FactoredExponent.unique f (Lf (point c)) Qf
     (point c) (rhoU^2) 1 4 (by decide) step
     (by simpa only [Nat.reduceAdd,show (2:R)^(1+1)=4 by ring] using step_eq)
-    (hz c) (f_expand _) ?_ ?_ ?_ i hi
+    (hz c) (f_expand _) (first c) (tangent c) (first_eq c) (tangent_eq c)
+    ?_ ?_ ?_ i hi
   · intro b E
-    rw [← mul_assoc,tangent_eq c]
     have hh := linear c b E
     rw [residue_eq] at hh
-    simpa only [Int.reducePow,zsmul_eq_mul,Int.cast_ofNat,mul_one,mul_assoc]
-      using hh
+    simpa only [Int.reducePow,zsmul_eq_mul,Int.cast_ofNat,mul_one] using hh
   · intro a b E
-    have he : point c*(a • step+(2:ℤ) • (step^2*(b • (1:R)+(2:ℤ) • E)))=
-        a • first c+(2:ℤ) • (tangent c*(b • (1:R)+(2:ℤ) • E)) := by
-      rw [mul_add,mul_smul_comm,mul_smul_comm,← mul_assoc,first_eq,tangent_eq]
     have hh := quadratic c a b E
     rw [combine_eq,residue_eq] at hh
-    rw [← he] at hh
-    simpa only [Nat.reduceAdd,Int.reducePow,zsmul_eq_mul,Int.cast_ofNat,mul_one,mul_assoc,
-      show (2:R)^1=2 by ring] using hh
+    simpa only [Nat.reduceAdd,Int.reducePow,zsmul_eq_mul,Int.cast_ofNat,mul_one] using hh
   · intro a ha
     norm_num at ha
     have hm := Int.emod_eq_zero_of_dvd ha
@@ -361,26 +337,20 @@ theorem unique (c : Fin 2) (i : ℤ)
     (hi : f ((xi0*(↑(rhoU^(centre c)):R))*(↑((rhoU^4)^i):R))=0) : i=0 := by
   rw [point_eq c] at hi
   have hz : ∀ c : Fin 2, f (point c)=0 := by decide +kernel
-  have hk : ∀ c : Fin 2, Lf (point c) (point c*step)%64 ∈ [16,32,48] := by decide +kernel
+  have hk : ∀ c : Fin 2, Lf (point c) (first c)%64 ∈ [16,32,48] := by decide +kernel
   apply FactoredExponent.unique f (Lf (point c)) Qf
     (point c) (rhoU^4) 1 6 (by decide) step
     (by simpa only [Nat.reduceAdd,show (2:R)^(1+1)=4 by ring] using step_eq)
-    (hz c) (f_expand _) ?_ ?_ ?_ i hi
+    (hz c) (f_expand _) (first c) (tangent c) (first_eq c) (tangent_eq c)
+    ?_ ?_ ?_ i hi
   · intro b E
-    rw [← mul_assoc,tangent_eq c]
     have hh := linear c b E
     rw [residue_eq] at hh
-    simpa only [Int.reducePow,zsmul_eq_mul,Int.cast_ofNat,mul_one,mul_assoc]
-      using hh
+    simpa only [Int.reducePow,zsmul_eq_mul,Int.cast_ofNat,mul_one] using hh
   · intro a b E
-    have he : point c*(a • step+(2:ℤ) • (step^2*(b • (1:R)+(2:ℤ) • E)))=
-        a • first c+(2:ℤ) • (tangent c*(b • (1:R)+(2:ℤ) • E)) := by
-      rw [mul_add,mul_smul_comm,mul_smul_comm,← mul_assoc,first_eq,tangent_eq]
     have hh := quadratic c a b E
     rw [combine_eq,residue_eq] at hh
-    rw [← he] at hh
-    simpa only [Nat.reduceAdd,Int.reducePow,zsmul_eq_mul,Int.cast_ofNat,mul_one,mul_assoc,
-      show (2:R)^1=2 by ring] using hh
+    simpa only [Nat.reduceAdd,Int.reducePow,zsmul_eq_mul,Int.cast_ofNat,mul_one] using hh
   · intro a ha
     norm_num at ha
     have hm := Int.emod_eq_zero_of_dvd ha
@@ -389,5 +359,75 @@ theorem unique (c : Fin 2) (i : ℤ)
     simp only [List.mem_cons,List.not_mem_nil,or_false] at h
     rcases h with h|h|h <;> rw [h] at hm <;> omega
 end Direction66
+
+namespace Direction2Odd
+open Quartic2 R
+-- The direction is (rho^4-1)/4, as checked by step_eq.
+def step : R := ⟨![1704,984,267,154]⟩
+def squarePart : R := ⟨![5808810,3353718,909576,525144]⟩
+def square : R := ⟨![11617620,6707436,1819152,1050288]⟩
+theorem square_value : step^2=square := by decide +kernel
+theorem step_eq : (↑(rhoU^4):R)=1+4*step := by
+  have h : (↑(rhoU^4):R)=1+(4:ℤ) • step := by
+    ext i; fin_cases i <;> decide +kernel
+  simpa only [zsmul_eq_mul,Int.cast_ofNat] using h
+theorem square_eq : step^2=2*1*squarePart := by
+  have h : step^2=(2:ℤ) • squarePart := by
+    ext i; fin_cases i <;> decide +kernel
+  calc step^2=(2:ℤ) • squarePart := h
+       _=2*1*squarePart := by rw [zsmul_eq_mul]; push_cast; ring
+
+def centre : Fin 1 → ℤ := ![-1]
+def point : Fin 1 → R := ![⟨![8,3,-2,0]⟩]
+theorem point_eq : ∀ c : Fin 1, xi0*(↑(rhoU^(centre c)):R)=point c := by decide +kernel
+def first : Fin 1 → R := ![⟨![720,416,114,65]⟩]
+def tangent : Fin 1 → R := ![⟨![4921068,2841180,770568,444888]⟩]
+theorem first_eq : ∀ c : Fin 1, point c*step=first c := by decide +kernel
+theorem tangent_eq : ∀ c : Fin 1, point c*step^2=tangent c := by decide +kernel
+def residue (b : ℤ) (E : R) : R := ⟨![b+2*E 0,2*E 1,2*E 2,2*E 3]⟩
+theorem residue_eq (b : ℤ) (E : R) : residue b E=b • (1:R)+(2:ℤ) • E := by
+  ext i; fin_cases i <;> simp only [residue,add_apply,zsmul_apply,one_apply] <;> norm_num
+def combine (a : ℤ) (F : R) (b : ℤ) (G : R) : R := ⟨fun i => a*F i+b*G i⟩
+theorem combine_eq (a : ℤ) (F : R) (b : ℤ) (G : R) : combine a F b G=a • F+b • G := by
+  ext i; rfl
+
+theorem linear (c : Fin 1) (b : ℤ) (E : R) :
+    (64:ℤ) ∣ 2*Lf (point c)
+      (tangent c*residue b E) := by
+  fin_cases c <;> norm_num [point,tangent,Lf,mul_apply0,mul_apply1,
+    residue] <;> ring_nf <;> omega
+
+theorem quadratic (c : Fin 1) (a b : ℤ) (E : R) :
+    (64:ℤ) ∣ 4*Qf
+      (combine a (first c) 2 (tangent c*residue b E)) := by
+  fin_cases c <;> norm_num [first,tangent,Qf,mul_apply0,mul_apply1,
+    combine,residue] <;> ring_nf <;> omega
+
+theorem unique (c : Fin 1) (i : ℤ)
+    (hi : f ((xi0*(↑(rhoU^(centre c)):R))*(↑((rhoU^4)^i):R))=0) : i=0 := by
+  rw [point_eq c] at hi
+  have hz : ∀ c : Fin 1, f (point c)=0 := by decide +kernel
+  have hk : ∀ c : Fin 1, Lf (point c) (first c)%64 ∈ [16,32,48] := by decide +kernel
+  apply FactoredExponent.unique f (Lf (point c)) Qf
+    (point c) (rhoU^4) 1 6 (by decide) step
+    (by simpa only [Nat.reduceAdd,show (2:R)^(1+1)=4 by ring] using step_eq)
+    (hz c) (f_expand _) (first c) (tangent c) (first_eq c) (tangent_eq c)
+    ?_ ?_ ?_ i hi
+  · intro b E
+    have hh := linear c b E
+    rw [residue_eq] at hh
+    simpa only [Int.reducePow,zsmul_eq_mul,Int.cast_ofNat,mul_one] using hh
+  · intro a b E
+    have hh := quadratic c a b E
+    rw [combine_eq,residue_eq] at hh
+    simpa only [Nat.reduceAdd,Int.reducePow,zsmul_eq_mul,Int.cast_ofNat,mul_one] using hh
+  · intro a ha
+    norm_num at ha
+    have hm := Int.emod_eq_zero_of_dvd ha
+    rw [Int.mul_emod] at hm
+    have h := hk c
+    simp only [List.mem_cons,List.not_mem_nil,or_false] at h
+    rcases h with h|h|h <;> rw [h] at hm <;> omega
+end Direction2Odd
 
 end Tetrahedral.NormEleven
