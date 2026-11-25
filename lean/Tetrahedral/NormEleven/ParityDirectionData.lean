@@ -123,16 +123,12 @@ theorem root : ∀ c : Fin 1, f (point c)=0 := by decide +kernel
 theorem orbit_residues (i : ℤ) :
     let y := (xi0*(↑(rhoU^(-1:ℤ)):R))*(↑((rhoU^4)^i):R)
     (16:ℤ) ∣ y 0-8 ∧ (16:ℤ) ∣ y 1-3 ∧
-    (8:ℤ) ∣ y 2-6 ∧ (4:ℤ) ∣ y 3-0 := by
+    (4:ℤ) ∣ y 2-2 ∧ (4:ℤ) ∣ y 3-0 := by
   let x : R := xi0*(↑(rhoU^(-1:ℤ)):R)
   have hx : x=⟨![8,3,-2,0]⟩ := by decide +kernel
   have hV : (↑(rhoU^4):R)=1+(4:ℤ) • step := by
     simpa only [zsmul_eq_mul,Int.cast_ofNat] using step_eq
-  have hS : (2:ℤ) ∣ step 3 := by
-    have hp := primitive
-    have hp := hp.2; omega
-  have hh := phase_residues (rhoU^4) step hV norm_step.1 norm_step.2
-    hS x (by rw [hx]; change (2:ℤ) ∣ 8; decide) i
+  have hh := phase_residues (rhoU^4) step hV norm_step.1 norm_step.2 x i
   have hx0 : x 0=8 := by rw [hx]; rfl
   have hx1 : x 1=3 := by rw [hx]; rfl
   have hx2 : x 2=-2 := by rw [hx]; rfl
@@ -148,8 +144,11 @@ theorem derivative_at (c : Fin 1) : (64:ℤ) ∣ Lf (point c) (first c)-32 := by
   simp only [zpow_zero,Units.val_one,mul_one] at hp
   have hpoint : point c=xi0*(↑(rhoU^(-1:ℤ)):R) := by rw [point,he]
   rw [←hpoint] at hp
-  exact derivative_odd (point c) step norm_step.1 norm_step.2 (root c)
-    hp.1 hp.2.1 hp.2.2.1 hp.2.2.2 primitive.1
+  have hd := derivative_odd (point c) step norm_step.1 norm_step.2 (root c)
+    hp.1 hp.2.1 hp.2.2.1 hp.2.2.2
+  have hu := primitive.1
+  change (64:ℤ) ∣ Lf (point c) (point c*step)-32
+  omega
 
 
 /-- The scalar bit is a consequence of the norm and the orbit, not a certificate. -/
@@ -246,15 +245,19 @@ theorem orbit_residues (i : ℤ) :
     have hp := Differential2Odd.primitive.2
     omega
   have hh := phase_residues (rhoU^4) Differential2Odd.step hV
+    Differential2Odd.norm_step.1 Differential2Odd.norm_step.2 xi0 i
+  have hc := phase_third (rhoU^4) Differential2Odd.step hV
     Differential2Odd.norm_step.1 Differential2Odd.norm_step.2 hS xi0 (by decide) i
-  change (16:ℤ) ∣ _-2 ∧ (16:ℤ) ∣ _-1 ∧ (8:ℤ) ∣ _-2 ∧ (4:ℤ) ∣ _-(-1) at hh
-  dsimp only
-  exact ⟨hh.1,hh.2.1,hh.2.2.1,by omega⟩
+  change (16:ℤ) ∣ _-2 ∧ (16:ℤ) ∣ _-1 ∧ (4:ℤ) ∣ _-2 ∧ (4:ℤ) ∣ _-(-1) at hh
+  exact ⟨hh.1,hh.2.1,hc,by omega⟩
 
 theorem derivative_at (c : Fin 2) : (128:ℤ) ∣ Lf (point c) (first c)-64 := by
   have hp := orbit_residues (centre c)
-  exact derivative_near (point c) step norm_step.1 norm_step.2 (root c)
-    hp.1 hp.2.1 hp.2.2.1 hp.2.2.2 primitive
+  have hu := primitive
+  have hd := derivative_near (point c) step norm_step.1 norm_step.2 (root c)
+    hp.1 hp.2.1 hp.2.2.1 hp.2.2.2 (by omega)
+  change (128:ℤ) ∣ Lf (point c) (point c*step)-64
+  omega
 
 
 /-- The scalar bit is a consequence of the norm and the orbit, not a certificate. -/
@@ -447,16 +450,12 @@ theorem root : ∀ c : Fin 1, f (point c)=0 := by decide +kernel
 theorem orbit_residues (i : ℤ) :
     let y := (xi0*(↑(rhoU^(1:ℤ)):R))*(↑((rhoU^4)^i):R)
     (16:ℤ) ∣ y 0-2 ∧ (16:ℤ) ∣ y 1-3 ∧
-    (8:ℤ) ∣ y 2-0 ∧ (4:ℤ) ∣ y 3-1 := by
+    (4:ℤ) ∣ y 2-0 ∧ (4:ℤ) ∣ y 3-1 := by
   let x : R := xi0*(↑(rhoU^(1:ℤ)):R)
   have hx : x=⟨![66,19,0,1]⟩ := by decide +kernel
   have hV : (↑(rhoU^4):R)=1+(4:ℤ) • step := by
     simpa only [zsmul_eq_mul,Int.cast_ofNat] using step_eq
-  have hS : (2:ℤ) ∣ step 3 := by
-    have hp := primitive
-    omega
-  have hh := phase_residues (rhoU^4) step hV norm_step.1 norm_step.2
-    hS x (by rw [hx]; change (2:ℤ) ∣ 66; decide) i
+  have hh := phase_residues (rhoU^4) step hV norm_step.1 norm_step.2 x i
   have hx0 : x 0=66 := by rw [hx]; rfl
   have hx1 : x 1=19 := by rw [hx]; rfl
   have hx2 : x 2=0 := by rw [hx]; rfl
@@ -472,8 +471,11 @@ theorem derivative_at (c : Fin 1) : (64:ℤ) ∣ Lf (point c) (first c)-32 := by
   simp only [zpow_zero,Units.val_one,mul_one] at hp
   have hpoint : point c=xi0*(↑(rhoU^(1:ℤ)):R) := by rw [point,he]
   rw [←hpoint] at hp
-  exact derivative_odd (point c) step norm_step.1 norm_step.2 (root c)
-    hp.1 hp.2.1 hp.2.2.1 hp.2.2.2 primitive
+  have hd := derivative_odd (point c) step norm_step.1 norm_step.2 (root c)
+    hp.1 hp.2.1 hp.2.2.1 hp.2.2.2
+  have hu := primitive
+  change (64:ℤ) ∣ Lf (point c) (point c*step)-32
+  omega
 
 
 /-- The scalar bit is a consequence of the norm and the orbit, not a certificate. -/

@@ -297,131 +297,114 @@ theorem scalar (y U : R) (q : ℤ) (hq : q≠0)
       ((y*U) 0) ((y*U) 1) (relH U) (relK U) 4
       ((direction U q hq hH hK).1 y).1
       ((direction U q hq hH hK).1 y).2 hN0 hN1
-/-- The base part of a direction is invisible at the derivative precision. -/
-theorem off_derivative (y U : R) (q : ℤ) (hq : q≠0)
+/-- After the norm has removed the base part, the derivative is a
+pairing of the two relative coordinates. -/
+def pairing (y U : R) : ℤ :=
+  (5*(y 0-3)-3*3*y 1)*(y 2*U 2+3*y 3*U 3)+
+  3*(3*(y 0-3)-5*y 1)*(y 2*U 3+y 3*U 2)
+
+theorem derivative_pairing (y U : R) (q : ℤ) (hq : q≠0)
     (hH : relH (1+(4*q) • U)=1) (hK : relK (1+(4*q) • U)=0)
     (hy : f y=0) (hphase : (4:ℤ) ∣ y 0+(-1)*y 1-1) :
-    (64*q:ℤ) ∣ Lf y (y*U)-Lf y (y*(⟨![0,0,U 2,U 3]⟩:R)) := by
+    (64*q:ℤ) ∣ Lf y (y*U)-8*pairing y U := by
   obtain ⟨hA,hB,_,_⟩ := trace_norm U q hq hH hK
-  have hu : U=(⟨![0,0,U 2,U 3]⟩:R)-
-      (2*q:ℤ) • (⟨![relH U,relK U,0,0]⟩:R) := by
-    ext j; fin_cases j
-    · change U 0=0-2*q*relH U; linarith only [hA]
-    · change U 1=0-2*q*relK U; linarith only [hB]
-    · change U 2=U 2-2*q*0; ring
-    · change U 3=U 3-2*q*0; ring
-  have he : Lf y (y*U)-Lf y (y*(⟨![0,0,U 2,U 3]⟩:R))=
+  have he : Lf y (y*U)-8*pairing y U=
       -(2*q)*Lf y (y*(⟨![relH U,relK U,0,0]⟩:R)) := by
-    have hm := congrArg (fun z : R => y*z) hu
-    rw [mul_sub,mul_smul_comm] at hm
-    rw [hm,map_sub,map_smul,smul_eq_mul]
-    ring
+    change 2*(y 0-3)*(y*U) 0-2*3*y 1*(y*U) 1-8*pairing y U=
+      -(2*q)*(2*(y 0-3)*(y*(⟨![relH U,relK U,0,0]⟩:R)) 0-
+        2*3*y 1*(y*(⟨![relH U,relK U,0,0]⟩:R)) 1)
+    rw [(base_mul y _ _).1,(base_mul y _ _).2]
+    simp only [mul_apply0,mul_apply1,pairing]
+    rw [hA,hB]; ring
   rw [he]
   obtain ⟨a,ha⟩ := scalar_base y U q hq hH hK hy hphase
   exact ⟨-a,by rw [ha]; ring⟩
 
-/-- A norm-one step 1+4S preserves a small affine lattice.
-Only the third-coordinate modulus needs the even first coordinate. -/
+/-- Width four preserves the base coordinates modulo sixteen;
+the relative coordinates need only the automatic congruence modulo four. -/
 theorem phase_residues (V : Rˣ) (S : R) (hV : (V:R)=1+(4:ℤ) • S)
     (hH : relH (1+(4:ℤ) • S)=1) (hK : relK (1+(4:ℤ) • S)=0)
-    (hS : (2:ℤ) ∣ S 3) (x : R) (hx : (2:ℤ) ∣ x 0) (i : ℤ) :
+    (x : R) (i : ℤ) :
     (16:ℤ) ∣ (x*(↑(V^i):R)) 0-x 0 ∧
     (16:ℤ) ∣ (x*(↑(V^i):R)) 1-x 1 ∧
-    (8:ℤ) ∣ (x*(↑(V^i):R)) 2-x 2 ∧
+    (4:ℤ) ∣ (x*(↑(V^i):R)) 2-x 2 ∧
     (4:ℤ) ∣ (x*(↑(V^i):R)) 3-x 3 := by
-  have hnH : relH (1+(4*1:ℤ) • S)=1 := by simpa using hH
-  have hnK : relK (1+(4*1:ℤ) • S)=0 := by simpa using hK
-  have hwidth := (direction S 1 (by decide) hnH hnK).1
-  have hm (z : R) : z*(V:R)=z+(4:ℤ) • (z*S) := by
-    rw [hV,mul_add,mul_one,mul_smul_comm]
-  have h0 (z : R) : (16:ℤ) ∣ (z*(V:R)) 0-z 0 := by
-    rw [hm,add_apply,zsmul_apply]
-    obtain ⟨a,ha⟩ := (hwidth z).1
-    exact ⟨a,by rw [ha]; ring⟩
-  have h1 (z : R) : (16:ℤ) ∣ (z*(V:R)) 1-z 1 := by
-    rw [hm,add_apply,zsmul_apply]
-    obtain ⟨a,ha⟩ := (hwidth z).2
-    exact ⟨a,by rw [ha]; ring⟩
-  have h3 (z : R) : (4:ℤ) ∣ (z*(V:R)) 3-z 3 := by
-    rw [hm,add_apply,zsmul_apply]
-    exact ⟨(z*S) 3,by ring⟩
-  have hh0 := OrbitCongruence.invariant V (fun z : R => z 0) 16 h0 x
+  have hw := (direction S 1 (by decide) (by simpa using hH) (by simpa using hK)).1
+  have hm (z : R) (j : Fin 4) : (z*(V:R)) j-z j=4*(z*S) j := by
+    rw [hV,mul_add,mul_one,mul_smul_comm,add_apply,zsmul_apply]; ring
+  have hs (j : Fin 4) (N : ℤ) (h : ∀ z : R, N ∣ 4*(z*S) j) :
+      N ∣ (x*(↑(V^i):R)) j-x j :=
+    OrbitCongruence.invariant V (fun z : R => z j) N (by intro z; rw [hm]; exact h z) x i
+  refine ⟨hs 0 16 ?_,hs 1 16 ?_,hs 2 4 (by intro z; exact dvd_mul_right _ _),
+    hs 3 4 (by intro z; exact dvd_mul_right _ _)⟩
+  · intro z; obtain ⟨a,ha⟩ := (hw z).1; exact ⟨a,by rw [ha]; ring⟩
+  · intro z; obtain ⟨a,ha⟩ := (hw z).2; exact ⟨a,by rw [ha]; ring⟩
+
+/-- Only the close pair needs one extra bit of the relative coordinate. -/
+theorem phase_third (V : Rˣ) (S : R) (hV : (V:R)=1+(4:ℤ) • S)
+    (hH : relH (1+(4:ℤ) • S)=1) (hK : relK (1+(4:ℤ) • S)=0)
+    (hS : (2:ℤ) ∣ S 3) (x : R) (hx : (2:ℤ) ∣ x 0) (i : ℤ) :
+    (8:ℤ) ∣ (x*(↑(V^i):R)) 2-x 2 := by
   have heven (n : ℤ) : (2:ℤ) ∣ (x*(↑(V^n):R)) 0 := by
-    have := hh0 n
+    have := (phase_residues V S hV hH hK x n).1
     omega
-  have h2 (z : R) (hz : (2:ℤ) ∣ z 0) :
+  have hstep (z : R) (hz : (2:ℤ) ∣ z 0) :
       (8:ℤ) ∣ (z*(V:R)) 2-z 2 := by
-    obtain ⟨hA,hB,hN0,hN1⟩ := trace_norm S 1 (by decide) hnH hnK
+    obtain ⟨hA,hB,hN0,hN1⟩ := trace_norm S 1 (by decide)
+      (by simpa using hH) (by simpa using hK)
     obtain ⟨a,ha⟩ := hN0; obtain ⟨b,hb⟩ := hN1
     have hu0 : S 0=8*(-a) := by rw [hA,ha]; ring
     have hu1 : S 1=8*(-b) := by rw [hB,hb]; ring
     obtain ⟨c,hc⟩ := hz; obtain ⟨t,ht⟩ := hS
-    rw [hm,add_apply,zsmul_apply]
+    rw [hV,mul_add,mul_one,mul_smul_comm,add_apply,zsmul_apply]
     simp only [mul_apply2]; rw [hu0,hu1,hc,ht]; ring_nf; omega
   have hd (n : ℤ) : (8:ℤ) ∣
       (x*(↑(V^(n+1)):R)) 2-(x*(↑(V^n):R)) 2 := by
     rw [zpow_add_one,Units.val_mul,←mul_assoc]
-    exact h2 _ (heven n)
-  refine ⟨hh0 i,OrbitCongruence.invariant V (fun z : R => z 1) 16 h1 x i,?_,
-    OrbitCongruence.invariant V (fun z : R => z 3) 4 h3 x i⟩
+    exact hstep _ (heven n)
   simpa only [zpow_zero,Units.val_one,mul_one] using
     OrbitCongruence.of_difference (fun n => (x*(↑(V^n):R)) 2) 8 hd i
 
-/-- Once the orbit phase is fixed, only an off-base primitive residue remains. -/
+/-- The phase determines the derivative as a linear form in the relative direction. -/
 theorem derivative_near (y U : R)
     (hH : relH (1+(8:ℤ) • U)=1) (hK : relK (1+(8:ℤ) • U)=0)
     (hy : f y=0)
     (h0 : (16:ℤ) ∣ y 0-2) (h1 : (16:ℤ) ∣ y 1-1)
     (h2 : (8:ℤ) ∣ y 2-2) (h3 : (4:ℤ) ∣ y 3-3)
-    (hp : (8:ℤ) ∣ 6*U 2+U 3-4) :
-    (128:ℤ) ∣ Lf y (y*U)-64 := by
-  have hphase : (4:ℤ) ∣ y 0+(-1)*y 1-1 := by omega
-  have ho := off_derivative y U 2 (by decide) hH hK hy hphase
+    (hp : (2:ℤ) ∣ U 3) :
+    (128:ℤ) ∣ Lf y (y*U)-(16*(6*U 2+U 3)) := by
+  have ho := derivative_pairing y U 2 (by decide) hH hK hy (by omega)
   norm_num only [Int.reduceMul] at ho
-  have hr : (128:ℤ) ∣ Lf y (y*(⟨![0,0,U 2,U 3]⟩:R))-64 := by
+  have hr : (128:ℤ) ∣ 8*pairing y U-(16*(6*U 2+U 3)) := by
     obtain ⟨A,hA⟩ := h0; obtain ⟨B,hB⟩ := h1
     obtain ⟨C,hC⟩ := h2; obtain ⟨D,hD⟩ := h3
-    obtain ⟨E,hE⟩ := hp
     have ha : y 0=2+16*A := by omega
     have hb : y 1=1+16*B := by omega
     have hc : y 2=2+8*C := by omega
     have hd : y 3=3+4*D := by omega
-    have hu : U 3=4-6*U 2+8*E := by omega
-    change (128:ℤ) ∣ 2*(y 0-3)*(y*(⟨![0,0,U 2,U 3]⟩:R)) 0-
-      2*3*y 1*(y*(⟨![0,0,U 2,U 3]⟩:R)) 1-64
-    simp only [mul_apply0,mul_apply1]; norm_num only [Matrix.cons_val_zero,Matrix.cons_val_one,
-      Matrix.cons_val_two,Matrix.cons_val_three,Matrix.head_cons,Matrix.head_fin_const,Matrix.tail_cons,
-      mul_zero,zero_mul,zero_add,add_zero]
-    rw [ha,hb,hc,hd,hu]
+    obtain ⟨E,hE⟩ := hp
+    simp only [pairing]; rw [ha,hb,hc,hd,hE]
     ring_nf; omega
   convert ho.add hr using 1; ring
 
-/-- Once the orbit phase is fixed, only an off-base primitive residue remains. -/
+/-- The phase determines the derivative as a linear form in the relative direction. -/
 theorem derivative_odd (y U : R)
     (hH : relH (1+(4:ℤ) • U)=1) (hK : relK (1+(4:ℤ) • U)=0)
     (hy : f y=0)
     (h0 : (16:ℤ) ∣ y 0-8) (h1 : (16:ℤ) ∣ y 1-3)
-    (h2 : (8:ℤ) ∣ y 2-6) (h3 : (4:ℤ) ∣ y 3-0)
-    (hp : (2:ℤ) ∣ U 2-1) :
-    (64:ℤ) ∣ Lf y (y*U)-32 := by
-  have hphase : (4:ℤ) ∣ y 0+(-1)*y 1-1 := by omega
-  have ho := off_derivative y U 1 (by decide) hH hK hy hphase
+    (h2 : (4:ℤ) ∣ y 2-2) (h3 : (4:ℤ) ∣ y 3-0)
+ :
+    (64:ℤ) ∣ Lf y (y*U)-(32*U 2) := by
+  have ho := derivative_pairing y U 1 (by decide) hH hK hy (by omega)
   norm_num only [Int.reduceMul] at ho
-  have hr : (64:ℤ) ∣ Lf y (y*(⟨![0,0,U 2,U 3]⟩:R))-32 := by
+  have hr : (64:ℤ) ∣ 8*pairing y U-(32*U 2) := by
     obtain ⟨A,hA⟩ := h0; obtain ⟨B,hB⟩ := h1
     obtain ⟨C,hC⟩ := h2; obtain ⟨D,hD⟩ := h3
-    obtain ⟨E,hE⟩ := hp
     have ha : y 0=8+16*A := by omega
     have hb : y 1=3+16*B := by omega
-    have hc : y 2=6+8*C := by omega
+    have hc : y 2=2+4*C := by omega
     have hd : y 3=0+4*D := by omega
-    have hu : U 2=1+2*E := by omega
-    change (64:ℤ) ∣ 2*(y 0-3)*(y*(⟨![0,0,U 2,U 3]⟩:R)) 0-
-      2*3*y 1*(y*(⟨![0,0,U 2,U 3]⟩:R)) 1-32
-    simp only [mul_apply0,mul_apply1]; norm_num only [Matrix.cons_val_zero,Matrix.cons_val_one,
-      Matrix.cons_val_two,Matrix.cons_val_three,Matrix.head_cons,Matrix.head_fin_const,Matrix.tail_cons,
-      mul_zero,zero_mul,zero_add,add_zero]
-    rw [ha,hb,hc,hd,hu]
+    simp only [pairing]; rw [ha,hb,hc,hd]
     ring_nf; omega
   convert ho.add hr using 1; ring
 
@@ -872,102 +855,67 @@ theorem scalar (y U : R) (q : ℤ) (hq : q≠0)
       ((y*U) 0) ((y*U) 1) (relH U) (relK U) 4
       ((direction U q hq hH hK).1 y).1
       ((direction U q hq hH hK).1 y).2 hN0 hN1
-/-- The base part of a direction is invisible at the derivative precision. -/
-theorem off_derivative (y U : R) (q : ℤ) (hq : q≠0)
+/-- After the norm has removed the base part, the derivative is a
+pairing of the two relative coordinates. -/
+def pairing (y U : R) : ℤ :=
+  (189*(y 0-3)-11*57*y 1)*(y 2*U 2+11*y 3*U 3)+
+  11*(57*(y 0-3)-189*y 1)*(y 2*U 3+y 3*U 2)
+
+theorem derivative_pairing (y U : R) (q : ℤ) (hq : q≠0)
     (hH : relH (1+(4*q) • U)=1) (hK : relK (1+(4*q) • U)=0)
     (hy : f y=0) (hphase : (4:ℤ) ∣ y 0+(1)*y 1-1) :
-    (64*q:ℤ) ∣ Lf y (y*U)-Lf y (y*(⟨![0,0,U 2,U 3]⟩:R)) := by
+    (64*q:ℤ) ∣ Lf y (y*U)-8*pairing y U := by
   obtain ⟨hA,hB,_,_⟩ := trace_norm U q hq hH hK
-  have hu : U=(⟨![0,0,U 2,U 3]⟩:R)-
-      (2*q:ℤ) • (⟨![relH U,relK U,0,0]⟩:R) := by
-    ext j; fin_cases j
-    · change U 0=0-2*q*relH U; linarith only [hA]
-    · change U 1=0-2*q*relK U; linarith only [hB]
-    · change U 2=U 2-2*q*0; ring
-    · change U 3=U 3-2*q*0; ring
-  have he : Lf y (y*U)-Lf y (y*(⟨![0,0,U 2,U 3]⟩:R))=
+  have he : Lf y (y*U)-8*pairing y U=
       -(2*q)*Lf y (y*(⟨![relH U,relK U,0,0]⟩:R)) := by
-    have hm := congrArg (fun z : R => y*z) hu
-    rw [mul_sub,mul_smul_comm] at hm
-    rw [hm,map_sub,map_smul,smul_eq_mul]
-    ring
+    change 2*(y 0-3)*(y*U) 0-2*11*y 1*(y*U) 1-8*pairing y U=
+      -(2*q)*(2*(y 0-3)*(y*(⟨![relH U,relK U,0,0]⟩:R)) 0-
+        2*11*y 1*(y*(⟨![relH U,relK U,0,0]⟩:R)) 1)
+    rw [(base_mul y _ _).1,(base_mul y _ _).2]
+    simp only [mul_apply0,mul_apply1,pairing]
+    rw [hA,hB]; ring
   rw [he]
   obtain ⟨a,ha⟩ := scalar_base y U q hq hH hK hy hphase
   exact ⟨-a,by rw [ha]; ring⟩
 
-/-- A norm-one step 1+4S preserves a small affine lattice.
-Only the third-coordinate modulus needs the even first coordinate. -/
+/-- Width four preserves the base coordinates modulo sixteen;
+the relative coordinates need only the automatic congruence modulo four. -/
 theorem phase_residues (V : Rˣ) (S : R) (hV : (V:R)=1+(4:ℤ) • S)
     (hH : relH (1+(4:ℤ) • S)=1) (hK : relK (1+(4:ℤ) • S)=0)
-    (hS : (2:ℤ) ∣ S 3) (x : R) (hx : (2:ℤ) ∣ x 0) (i : ℤ) :
+    (x : R) (i : ℤ) :
     (16:ℤ) ∣ (x*(↑(V^i):R)) 0-x 0 ∧
     (16:ℤ) ∣ (x*(↑(V^i):R)) 1-x 1 ∧
-    (8:ℤ) ∣ (x*(↑(V^i):R)) 2-x 2 ∧
+    (4:ℤ) ∣ (x*(↑(V^i):R)) 2-x 2 ∧
     (4:ℤ) ∣ (x*(↑(V^i):R)) 3-x 3 := by
-  have hnH : relH (1+(4*1:ℤ) • S)=1 := by simpa using hH
-  have hnK : relK (1+(4*1:ℤ) • S)=0 := by simpa using hK
-  have hwidth := (direction S 1 (by decide) hnH hnK).1
-  have hm (z : R) : z*(V:R)=z+(4:ℤ) • (z*S) := by
-    rw [hV,mul_add,mul_one,mul_smul_comm]
-  have h0 (z : R) : (16:ℤ) ∣ (z*(V:R)) 0-z 0 := by
-    rw [hm,add_apply,zsmul_apply]
-    obtain ⟨a,ha⟩ := (hwidth z).1
-    exact ⟨a,by rw [ha]; ring⟩
-  have h1 (z : R) : (16:ℤ) ∣ (z*(V:R)) 1-z 1 := by
-    rw [hm,add_apply,zsmul_apply]
-    obtain ⟨a,ha⟩ := (hwidth z).2
-    exact ⟨a,by rw [ha]; ring⟩
-  have h3 (z : R) : (4:ℤ) ∣ (z*(V:R)) 3-z 3 := by
-    rw [hm,add_apply,zsmul_apply]
-    exact ⟨(z*S) 3,by ring⟩
-  have hh0 := OrbitCongruence.invariant V (fun z : R => z 0) 16 h0 x
-  have heven (n : ℤ) : (2:ℤ) ∣ (x*(↑(V^n):R)) 0 := by
-    have := hh0 n
-    omega
-  have h2 (z : R) (hz : (2:ℤ) ∣ z 0) :
-      (8:ℤ) ∣ (z*(V:R)) 2-z 2 := by
-    obtain ⟨hA,hB,hN0,hN1⟩ := trace_norm S 1 (by decide) hnH hnK
-    obtain ⟨a,ha⟩ := hN0; obtain ⟨b,hb⟩ := hN1
-    have hu0 : S 0=8*(-a) := by rw [hA,ha]; ring
-    have hu1 : S 1=8*(-b) := by rw [hB,hb]; ring
-    obtain ⟨c,hc⟩ := hz; obtain ⟨t,ht⟩ := hS
-    rw [hm,add_apply,zsmul_apply]
-    simp only [mul_apply2]; rw [hu0,hu1,hc,ht]; ring_nf; omega
-  have hd (n : ℤ) : (8:ℤ) ∣
-      (x*(↑(V^(n+1)):R)) 2-(x*(↑(V^n):R)) 2 := by
-    rw [zpow_add_one,Units.val_mul,←mul_assoc]
-    exact h2 _ (heven n)
-  refine ⟨hh0 i,OrbitCongruence.invariant V (fun z : R => z 1) 16 h1 x i,?_,
-    OrbitCongruence.invariant V (fun z : R => z 3) 4 h3 x i⟩
-  simpa only [zpow_zero,Units.val_one,mul_one] using
-    OrbitCongruence.of_difference (fun n => (x*(↑(V^n):R)) 2) 8 hd i
+  have hw := (direction S 1 (by decide) (by simpa using hH) (by simpa using hK)).1
+  have hm (z : R) (j : Fin 4) : (z*(V:R)) j-z j=4*(z*S) j := by
+    rw [hV,mul_add,mul_one,mul_smul_comm,add_apply,zsmul_apply]; ring
+  have hs (j : Fin 4) (N : ℤ) (h : ∀ z : R, N ∣ 4*(z*S) j) :
+      N ∣ (x*(↑(V^i):R)) j-x j :=
+    OrbitCongruence.invariant V (fun z : R => z j) N (by intro z; rw [hm]; exact h z) x i
+  refine ⟨hs 0 16 ?_,hs 1 16 ?_,hs 2 4 (by intro z; exact dvd_mul_right _ _),
+    hs 3 4 (by intro z; exact dvd_mul_right _ _)⟩
+  · intro z; obtain ⟨a,ha⟩ := (hw z).1; exact ⟨a,by rw [ha]; ring⟩
+  · intro z; obtain ⟨a,ha⟩ := (hw z).2; exact ⟨a,by rw [ha]; ring⟩
 
-/-- Once the orbit phase is fixed, only an off-base primitive residue remains. -/
+/-- The phase determines the derivative as a linear form in the relative direction. -/
 theorem derivative_odd (y U : R)
     (hH : relH (1+(4:ℤ) • U)=1) (hK : relK (1+(4:ℤ) • U)=0)
     (hy : f y=0)
     (h0 : (16:ℤ) ∣ y 0-2) (h1 : (16:ℤ) ∣ y 1-3)
-    (h2 : (8:ℤ) ∣ y 2-0) (h3 : (4:ℤ) ∣ y 3-1)
-    (hp : (4:ℤ) ∣ U 3-2) :
-    (64:ℤ) ∣ Lf y (y*U)-32 := by
-  have hphase : (4:ℤ) ∣ y 0+(1)*y 1-1 := by omega
-  have ho := off_derivative y U 1 (by decide) hH hK hy hphase
+    (h2 : (4:ℤ) ∣ y 2-0) (h3 : (4:ℤ) ∣ y 3-1)
+ :
+    (64:ℤ) ∣ Lf y (y*U)-(-16*U 3) := by
+  have ho := derivative_pairing y U 1 (by decide) hH hK hy (by omega)
   norm_num only [Int.reduceMul] at ho
-  have hr : (64:ℤ) ∣ Lf y (y*(⟨![0,0,U 2,U 3]⟩:R))-32 := by
+  have hr : (64:ℤ) ∣ 8*pairing y U-(-16*U 3) := by
     obtain ⟨A,hA⟩ := h0; obtain ⟨B,hB⟩ := h1
     obtain ⟨C,hC⟩ := h2; obtain ⟨D,hD⟩ := h3
-    obtain ⟨E,hE⟩ := hp
     have ha : y 0=2+16*A := by omega
     have hb : y 1=3+16*B := by omega
-    have hc : y 2=0+8*C := by omega
+    have hc : y 2=0+4*C := by omega
     have hd : y 3=1+4*D := by omega
-    have hu : U 3=2+4*E := by omega
-    change (64:ℤ) ∣ 2*(y 0-3)*(y*(⟨![0,0,U 2,U 3]⟩:R)) 0-
-      2*11*y 1*(y*(⟨![0,0,U 2,U 3]⟩:R)) 1-32
-    simp only [mul_apply0,mul_apply1]; norm_num only [Matrix.cons_val_zero,Matrix.cons_val_one,
-      Matrix.cons_val_two,Matrix.cons_val_three,Matrix.head_cons,Matrix.head_fin_const,Matrix.tail_cons,
-      mul_zero,zero_mul,zero_add,add_zero]
-    rw [ha,hb,hc,hd,hu]
+    simp only [pairing]; rw [ha,hb,hc,hd]
     ring_nf; omega
   convert ho.add hr using 1; ring
 
