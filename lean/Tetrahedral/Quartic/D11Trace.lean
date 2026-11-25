@@ -7,7 +7,7 @@ import Mathlib.Analysis.SpecialFunctions.Pow.Real
 # Relative units from a balanced trace window (d=11)
 
 A centered power interval bounds both real conjugates. The nonconstant
-norm coefficient is a positive quadratic form, so a nontrivial unit has
+norm coefficient is positive by the norm-minus-two identity, so a nontrivial unit has
 positive product of its two base coefficients. Integer trace lower bounds
 contradict the small trace window; no other-place norm bound is used.
 
@@ -113,15 +113,11 @@ theorem rel_unit_trace (u : R) (hH : relH u=1) (hK : relK u=0) :
   have hA := RelativeUnitGap.half_trace_bound (sig v) (sig (tau v))
     ((v 0:ℝ)+(v 1:ℝ)*cR) Lam 66
     hp ht hS hTau (by linarith [Lam_coarse])
+  have hQ := RelativeUnitGap.norm_minus_two_positive 8 1 66 (11*v 2) (v 3)
+    (by norm_num) (by norm_num) (by simpa using hv0)
   have hk := hv.2
   simp only [relK] at hk
-  have hs : 11*(v 0*v 1)=1*((11*v 2+8*v 3)^2+2*(v 3)^2) := by
-    nlinarith only [hk]
-  have hab : 0<v 0*v 1 := by
-    by_contra hn
-    have h3 : v 3=0 := by nlinarith [sq_nonneg (11*v 2+8*v 3)]
-    have h2 : v 2=0 := by rw [h3] at hs; nlinarith
-    exact hv0 ⟨h2,h3⟩
+  have hab : 0<v 0*v 1 := by nlinarith only [hk,hQ]
   have hlo := RelativeUnitGap.integer_trace_lower (v 0) (v 1) cR 66 cR_sq hab
   have hp : (1:ℝ)≤(v 0*v 1:ℤ) := by
     have hh : (1:ℤ)≤v 0*v 1 := hab

@@ -78,6 +78,25 @@ theorem half_trace_bound (S T A L B : ℝ) (hprod : S*T=1) (htrace : 2*A=S+T)
       linarith
   linarith
 
+/-- The norm-minus-two relation completes its coefficient form to squares. -/
+theorem norm_minus_two_form (p q e c t : ℤ) (hn : p^2-e*q^2= -2) :
+    q*(q*c^2+2*p*c*t+e*q*t^2)=(q*c+p*t)^2+2*t^2 := by
+  linear_combination -t^2*hn
+/-- A norm-minus-two element with positive radical coefficient has a positive
+radical coefficient after multiplication by any nonzero integral square. -/
+theorem norm_minus_two_positive (p q e c t : ℤ) (hn : p^2-e*q^2= -2)
+    (hq : 0<q) (hct : ¬(c=0 ∧t=0)) :
+    0<q*c^2+2*p*c*t+e*q*t^2 := by
+  have hf := norm_minus_two_form p q e c t hn
+  by_contra h
+  have hh := mul_nonpos_of_nonneg_of_nonpos hq.le (le_of_not_gt h)
+  have ht : t=0 := by nlinarith [sq_nonneg (q*c+p*t)]
+  have hc : c=0 := by
+    rw [ht] at hf hh
+    have hqc : q*c=0 := by nlinarith
+    exact (mul_eq_zero.mp hqc).resolve_left (ne_of_gt hq)
+  exact hct ⟨hc,ht⟩
+
 /-- A positive product of two nonzero integers gives a lower trace bound. -/
 theorem integer_trace_lower (a b : ℤ) (s e : ℝ) (hs : s^2=e)
     (hab : 0<a*b) :
