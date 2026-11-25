@@ -45,19 +45,27 @@ def point (c : Fin 2) : R := xi0*(↑(rhoU^(centre c)):R)
 def first (c : Fin 2) : R := point c*step
 def tangent (c : Fin 2) : R := point c*step^2
 
-/-- Only the root and its first derivative remain as finite data. -/
-theorem root_and_derivative : ∀ c : Fin 2,
-    f (point c)=0 ∧
-    16 ∣ Lf (point c) (first c)-8 := by decide +kernel
+/-- Primitivity is checked once for the direction, not at every centre. -/
+theorem primitive : (2:ℤ) ∣ step 2-1 := by decide +kernel
+
+/-- Only the displayed roots remain as finite data in width two. -/
+theorem root : ∀ c : Fin 2, f (point c)=0 := by decide +kernel
+
+theorem derivative_at (c : Fin 2) : 16 ∣ Lf (point c) (first c)-8 := by
+  obtain ⟨hH,hK⟩ := orbit_norm (centre c)
+  exact derivative (point c) step 1 (by decide) norm_step.1 norm_step.2
+    hH hK (root c) primitive
+
 
 /-- The scalar bit is a consequence of the norm and the orbit, not a certificate. -/
 theorem scalar_bit (c : Fin 2) : 8 ∣ Lf (point c) (tangent c) :=
   scalar (point c) step 1 (by decide) norm_step.1 norm_step.2
-    (root_and_derivative c).1
+    (root c)
 
 theorem unique (c : Fin 2) (i : ℤ)
     (hi : f ((xi0*(↑(rhoU^(centre c)):R))*(↑((rhoU^2)^i):R))=0) : i=0 := by
-  obtain ⟨hz,hd⟩ := root_and_derivative c
+  have hz := root c
+  have hd := derivative_at c
   exact NormDerivative.unique (coord 0) (coord 1) 6
     (point c) (rhoU^2) 1 4 (by decide) step
     (by simpa only [Nat.reduceAdd,show (2:R)^(1+1)=4 by ring] using step_eq)
@@ -110,14 +118,16 @@ theorem root_and_derivative : ∀ c : Fin 2,
     f (point c)=0 ∧
     128 ∣ Lf (point c) (first c)-64 := by decide +kernel
 
+
 /-- The scalar bit is a consequence of the norm and the orbit, not a certificate. -/
 theorem scalar_bit (c : Fin 2) : 32 ∣ Lf (point c) (tangent c) :=
   scalar (point c) step 2 (by decide) norm_step.1 norm_step.2
-    (root_and_derivative c).1 (by simpa only [point,zpow_mul,zpow_ofNat] using orbit_phase (4*centre c))
+    ((root_and_derivative c).1) (by simpa only [point,zpow_mul,zpow_ofNat] using orbit_phase (4*centre c))
 
 theorem unique (c : Fin 2) (i : ℤ)
     (hi : f ((xi0*(↑((rhoU^4)^(centre c)):R))*(↑((rhoU^8)^i):R))=0) : i=0 := by
-  obtain ⟨hz,hd⟩ := root_and_derivative c
+  have hz := (root_and_derivative c).1
+  have hd := (root_and_derivative c).2
   exact NormDerivative.unique (coord 0) (coord 1) 3
     (point c) (rhoU^8) 2 7 (by decide) step
     (by simpa only [Nat.reduceAdd,show (2:R)^(2+1)=8 by ring] using step_eq)
@@ -159,19 +169,27 @@ def point (c : Fin 2) : R := xi0*(↑(rhoU^(centre c)):R)
 def first (c : Fin 2) : R := point c*step
 def tangent (c : Fin 2) : R := point c*step^2
 
-/-- Only the root and its first derivative remain as finite data. -/
-theorem root_and_derivative : ∀ c : Fin 2,
-    f (point c)=0 ∧
-    16 ∣ Lf (point c) (first c)-8 := by decide +kernel
+/-- Primitivity is checked once for the direction, not at every centre. -/
+theorem primitive : (2:ℤ) ∣ step 2-1 := by decide +kernel
+
+/-- Only the displayed roots remain as finite data in width two. -/
+theorem root : ∀ c : Fin 2, f (point c)=0 := by decide +kernel
+
+theorem derivative_at (c : Fin 2) : 16 ∣ Lf (point c) (first c)-8 := by
+  obtain ⟨hH,hK⟩ := orbit_norm (centre c)
+  exact derivative (point c) step 1 (by decide) norm_step.1 norm_step.2
+    hH hK (root c) primitive
+
 
 /-- The scalar bit is a consequence of the norm and the orbit, not a certificate. -/
 theorem scalar_bit (c : Fin 2) : 8 ∣ Lf (point c) (tangent c) :=
   scalar (point c) step 1 (by decide) norm_step.1 norm_step.2
-    (root_and_derivative c).1
+    (root c)
 
 theorem unique (c : Fin 2) (i : ℤ)
     (hi : f ((xi0*(↑(rhoU^(centre c)):R))*(↑((rhoU^2)^i):R))=0) : i=0 := by
-  obtain ⟨hz,hd⟩ := root_and_derivative c
+  have hz := root c
+  have hd := derivative_at c
   exact NormDerivative.unique (coord 0) (coord 1) 2
     (point c) (rhoU^2) 1 4 (by decide) step
     (by simpa only [Nat.reduceAdd,show (2:R)^(1+1)=4 by ring] using step_eq)
@@ -213,19 +231,27 @@ def point (c : Fin 1) : R := xi0*(↑(rhoU^(centre c)):R)
 def first (c : Fin 1) : R := point c*step
 def tangent (c : Fin 1) : R := point c*step^2
 
-/-- Only the root and its first derivative remain as finite data. -/
-theorem root_and_derivative : ∀ c : Fin 1,
-    f (point c)=0 ∧
-    16 ∣ Lf (point c) (first c)-8 := by decide +kernel
+/-- Primitivity is checked once for the direction, not at every centre. -/
+theorem primitive : (2:ℤ) ∣ step 2-1 := by decide +kernel
+
+/-- Only the displayed roots remain as finite data in width two. -/
+theorem root : ∀ c : Fin 1, f (point c)=0 := by decide +kernel
+
+theorem derivative_at (c : Fin 1) : 16 ∣ Lf (point c) (first c)-8 := by
+  obtain ⟨hH,hK⟩ := orbit_norm (centre c)
+  exact derivative (point c) step 1 (by decide) norm_step.1 norm_step.2
+    hH hK (root c) primitive
+
 
 /-- The scalar bit is a consequence of the norm and the orbit, not a certificate. -/
 theorem scalar_bit (c : Fin 1) : 8 ∣ Lf (point c) (tangent c) :=
   scalar (point c) step 1 (by decide) norm_step.1 norm_step.2
-    (root_and_derivative c).1
+    (root c)
 
 theorem unique (c : Fin 1) (i : ℤ)
     (hi : f ((xi0*(↑(rhoU^(centre c)):R))*(↑((rhoU^2)^i):R))=0) : i=0 := by
-  obtain ⟨hz,hd⟩ := root_and_derivative c
+  have hz := root c
+  have hd := derivative_at c
   exact NormDerivative.unique (coord 0) (coord 1) 66
     (point c) (rhoU^2) 1 4 (by decide) step
     (by simpa only [Nat.reduceAdd,show (2:R)^(1+1)=4 by ring] using step_eq)
@@ -278,14 +304,16 @@ theorem root_and_derivative : ∀ c : Fin 1,
     f (point c)=0 ∧
     64 ∣ Lf (point c) (first c)-32 := by decide +kernel
 
+
 /-- The scalar bit is a consequence of the norm and the orbit, not a certificate. -/
 theorem scalar_bit (c : Fin 1) : 32 ∣ Lf (point c) (tangent c) :=
   scalar (point c) step 1 (by decide) norm_step.1 norm_step.2
-    (root_and_derivative c).1 (by simpa only [point] using orbit_phase (centre c))
+    ((root_and_derivative c).1) (by simpa only [point] using orbit_phase (centre c))
 
 theorem unique (c : Fin 1) (i : ℤ)
     (hi : f ((xi0*(↑(rhoU^(centre c)):R))*(↑((rhoU^4)^i):R))=0) : i=0 := by
-  obtain ⟨hz,hd⟩ := root_and_derivative c
+  have hz := (root_and_derivative c).1
+  have hd := (root_and_derivative c).2
   exact NormDerivative.unique (coord 0) (coord 1) 11
     (point c) (rhoU^4) 1 6 (by decide) step
     (by simpa only [Nat.reduceAdd,show (2:R)^(1+1)=4 by ring] using step_eq)
@@ -338,14 +366,16 @@ theorem root_and_derivative : ∀ c : Fin 1,
     f (point c)=0 ∧
     64 ∣ Lf (point c) (first c)-32 := by decide +kernel
 
+
 /-- The scalar bit is a consequence of the norm and the orbit, not a certificate. -/
 theorem scalar_bit (c : Fin 1) : 32 ∣ Lf (point c) (tangent c) :=
   scalar (point c) step 1 (by decide) norm_step.1 norm_step.2
-    (root_and_derivative c).1 (by simpa only [point] using orbit_phase (centre c))
+    ((root_and_derivative c).1) (by simpa only [point] using orbit_phase (centre c))
 
 theorem unique (c : Fin 1) (i : ℤ)
     (hi : f ((xi0*(↑(rhoU^(centre c)):R))*(↑((rhoU^4)^i):R))=0) : i=0 := by
-  obtain ⟨hz,hd⟩ := root_and_derivative c
+  have hz := (root_and_derivative c).1
+  have hd := (root_and_derivative c).2
   exact NormDerivative.unique (coord 0) (coord 1) 3
     (point c) (rhoU^4) 1 6 (by decide) step
     (by simpa only [Nat.reduceAdd,show (2:R)^(1+1)=4 by ring] using step_eq)

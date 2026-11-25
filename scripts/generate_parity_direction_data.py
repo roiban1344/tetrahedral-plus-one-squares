@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate universal norm-direction proofs and the remaining scalar root data."""
+"""Generate norm-direction proofs, primitive directions and residual root data."""
 from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT/'lean/Tetrahedral/NormEleven/ParityDirectionData.lean'
@@ -148,6 +148,49 @@ SCALAR_FOUR = """    have hchar : (16:ℤ) ∣ relH U-({sign})*relK U := by
     exact RelativeDirection.scalar_four (y 0) (y 1) (relH U) (relK U) {e} ({sign})
       (by decide) (by decide) hphase hN0 hchar"""
 
+COORDINATE_SQUARE = """/-- Two norms at a shifted-norm root give a square of an integral quadratic norm. -/
+theorem coordinate_square (y : R) (hH : relH y=11) (hK : relK y=0) (hy : f y=0) :
+    (y 0)^2=({Pnorm})^2 := by
+  have hid : f y*f (-y)=8*((y 0)^2-({Pnorm})^2)+
+      (relH y-11)*(2*(y 0)^2+2*{e}*(y 1)^2-relH y-11)-
+      {e}*relK y*(4*y 0*y 1-relK y) := by
+    simp only [f,neg_apply,relH,relK]; ring
+  rw [hy,hH,hK] at hid
+  nlinarith only [hid]
+
+"""
+DERIVATIVE_TWO = """/-- The two norm equations and the shifted root force odd off-base
+coordinate; a primitive direction therefore has derivative 8 modulo 16. -/
+theorem derivative (y U : R) (q : ℤ) (hq : q≠0)
+    (hH : relH (1+(4*q) • U)=1) (hK : relK (1+(4*q) • U)=0)
+    (hyH : relH y=11) (hyK : relK y=0) (hy : f y=0)
+    (hprimitive : (2:ℤ) ∣ U 2-1) :
+    (16:ℤ) ∣ Lf y (y*U)-8 := by
+  obtain ⟨ha,hb⟩ := RelativeDirection.root_two (y 0) (y 1) {e} (by decide) hy
+  have hs := coordinate_square y hyH hyK hy
+  have hp0 := IntegerParity.square_sub_self_even (y 0)
+  have hpN := IntegerParity.square_sub_self_even ({Pnorm})
+  have hp2 := IntegerParity.square_sub_self_even (y 2)
+  have hc : (2:ℤ) ∣ y 2-1 := by omega
+  obtain ⟨hA,hB,hN0,hN1⟩ := trace_norm U q hq hH hK
+  obtain ⟨a,haN⟩ := hN0; obtain ⟨b,hbN⟩ := hN1
+  have hu0 : U 0=4*(-q*a) := by rw [hA,haN]; ring
+  have hu1 : U 1=4*(-q*b) := by rw [hB,hbN]; ring
+  have hF0 : (4:ℤ) ∣ (y*U) 0 := by
+    simp only [mul_apply0]; rw [hu0,hu1]; ring_nf; omega
+  have hF1 : (4:ℤ) ∣ (y*U) 1-2*y 2*U 2 := by
+    simp only [mul_apply1]; rw [hu0,hu1]; ring_nf; omega
+  exact RelativeDirection.derivative_two (y 0) (y 1) (y 2) (U 2)
+    ((y*U) 0) ((y*U) 1) {e} (by decide) ha hb hc hprimitive hF0 hF1
+
+theorem orbit_norm (i : ℤ) :
+    relH (xi0*(↑(rhoU^i):R))=11 ∧ relK (xi0*(↑(rhoU^i):R))=0 := by
+  obtain ⟨hH,hK⟩ := relN_rho_zpow i
+  simpa only [relH_mul,relK_mul,hH,hK,mul_zero,zero_mul,mul_one,add_zero,zero_add]
+    using (show relH xi0=11 ∧ relK xi0=0 by decide +kernel)
+
+"""
+
 LOCAL = """
 namespace Differential{label}
 open {quartic} R NormProjection{d}
@@ -183,19 +226,16 @@ def point (c : Fin {count}) : R := xi0*(↑({orbit}^(centre c)):R)
 def first (c : Fin {count}) : R := point c*step
 def tangent (c : Fin {count}) : R := point c*step^2
 
-/-- Only the root and its first derivative remain as finite data. -/
-theorem root_and_derivative : ∀ c : Fin {count},
-    f (point c)=0 ∧
-    {N} ∣ Lf (point c) (first c)-{H} := by decide +kernel
-
+{rootblock}
 /-- The scalar bit is a consequence of the norm and the orbit, not a certificate. -/
 theorem scalar_bit (c : Fin {count}) : {scalar} ∣ Lf (point c) (tangent c) :=
   scalar (point c) step {q} (by decide) norm_step.1 norm_step.2
-    (root_and_derivative c).1{localphase}
+    ({rootproof}){localphase}
 
 theorem unique (c : Fin {count}) (i : ℤ)
     (hi : f ((xi0*(↑({orbit}^(centre c)):R))*(↑((rhoU^{P})^i):R))=0) : i=0 := by
-  obtain ⟨hz,hd⟩ := root_and_derivative c
+  have hz := {rootproof}
+  have hd := {derivproof}
   exact NormDerivative.unique (coord 0) (coord 1) {e}
     (point c) (rhoU^{P}) {t} {v} (by decide) step
     (by simpa only [Nat.reduceAdd,show (2:R)^({t}+1)={delta} by ring] using step_eq)
@@ -203,6 +243,25 @@ theorem unique (c : Fin {count}) (i : ℤ)
     {good} (properties.1 (point c)) (scalar_bit c) hd i hi
 end Differential{label}
 """
+ROOT_TWO = """/-- Primitivity is checked once for the direction, not at every centre. -/
+theorem primitive : (2:ℤ) ∣ step 2-1 := by decide +kernel
+
+/-- Only the displayed roots remain as finite data in width two. -/
+theorem root : ∀ c : Fin {count}, f (point c)=0 := by decide +kernel
+
+theorem derivative_at (c : Fin {count}) : {N} ∣ Lf (point c) (first c)-{H} := by
+  obtain ⟨hH,hK⟩ := orbit_norm (centre c)
+  exact derivative (point c) step {q} (by decide) norm_step.1 norm_step.2
+    hH hK (root c) primitive
+
+"""
+ROOT_FOUR = """/-- Only the root and its first derivative remain as finite data. -/
+theorem root_and_derivative : ∀ c : Fin {count},
+    f (point c)=0 ∧
+    {N} ∣ Lf (point c) (first c)-{H} := by decide +kernel
+
+"""
+
 TRACE = """theorem square_trace : (2:ℤ) ∣ coord 0 squarePart+coord 1 squarePart := by
   have hsum := properties.2.2.resolve_left (by decide : ¬ ({m}:ℤ)=2)
   have h0 := Int.mul_ediv_cancel' (properties.2.1 0)
@@ -229,6 +288,13 @@ def main():
             phase=PHASE.format(sign=sign) if m==4 else '',
             phasearg=f' (hphase : (4:ℤ) ∣ y 0+({sign})*y 1-1)' if m==4 else '',
             scalarproof=(SCALAR_FOUR if m==4 else SCALAR_TWO).format(e=e,sign=sign)))
+        pnorm = {1:'(y 2)^2-6*(y 3)^2',2:'2*((y 2)^2-3*(y 3)^2)',
+            3:'3*((y 2)^2-2*(y 3)^2)',11:'11*(y 2)^2-6*(y 3)^2',
+            66:'6*((y 2)^2-11*(y 3)^2)'}[d]
+        if m==2:
+            directions.append(COORDINATE_SQUARE.format(Pnorm=pnorm,e=e))
+            directions.append(DERIVATIVE_TWO.format(Pnorm=pnorm,e=e))
+        # The two unused norm-square identities are retained in ReflectionDiagnostics.
         directions.append(f'\nend Tetrahedral.NormEleven.NormProjection{d}\n')
     (OUT.parent/'RelativeDirectionData.lean').write_text(''.join(directions))
     parts = [HEADER]
@@ -240,6 +306,9 @@ def main():
             quartic='Quartic66' if d==66 else f'Quartic{d}', count=len(centres),
             centres=','.join(map(str,centres)),orbit='(rhoU^4)' if label==2 else 'rhoU',
             scalar=2*m*m,N=2**v,H=2**(v-1),twom=2*m,q=delta//4,trace=TRACE.format(m=m) if m==4 else '',
+            rootblock=(ROOT_TWO if m==2 else ROOT_FOUR).format(count=len(centres),N=2**v,H=2**(v-1),q=delta//4),
+            rootproof='root c' if m==2 else '(root_and_derivative c).1',
+            derivproof='derivative_at c' if m==2 else '(root_and_derivative c).2',
             localphase=(' (by simpa only [point,zpow_mul,zpow_ofNat] using orbit_phase (4*centre c))'
               if label==2 else ' (by simpa only [point] using orbit_phase (centre c))') if m==4 else '',
             good='(Or.inl rfl)' if m==2 else '(Or.inr ⟨rfl,parity_mul,square_trace⟩)'))

@@ -1,4 +1,5 @@
 import Mathlib.Tactic
+import Tetrahedral.IntegerParity
 
 namespace Tetrahedral.RelativeDirection
 
@@ -87,6 +88,41 @@ theorem scalar_of_norm {R : Type*} [CommRing R] (L : R →ₗ[ℤ] ℤ)
     rw [hs]; simp only [zsmul_eq_mul]; ring
   rw [hr,map_sub,map_neg,map_smul,smul_eq_mul]
   exact (dvd_neg.mpr hN).sub (herror.mul_left c)
+
+
+/-- For e=2 modulo four, the shifted norm root has two odd base coordinates. -/
+theorem root_two (a b e : ℤ) (he : 4 ∣ e-2) (hy : (a-3)^2-e*b^2+2=0) :
+    2 ∣ a-1 ∧ 2 ∣ b-1 := by
+  obtain ⟨k,hk⟩ := he
+  have hee : e=2+4*k := by omega
+  have hs : (2:ℤ) ∣ (a-3)^2 := ⟨(1+2*k)*b^2-1,by rw [hee] at hy; nlinarith only [hy]⟩
+  have hpa := IntegerParity.square_sub_self_even (a-3)
+  have ha : (2:ℤ) ∣ a-1 := by omega
+  obtain ⟨u,hu⟩ := ha
+  have haa : a=1+2*u := by omega
+  have hb : (2:ℤ) ∣ b^2-1 :=
+    ⟨(u-1)^2-k*b^2,by rw [hee,haa] at hy; nlinarith only [hy]⟩
+  have hpb := IntegerParity.square_sub_self_even b
+  exact ⟨⟨u,hu⟩,by omega⟩
+
+/-- Primitive off-base direction and odd root coordinates force the
+normalized derivative to be odd. -/
+theorem derivative_two (a b c u p q e : ℤ)
+    (he : 4 ∣ e-2) (ha : 2 ∣ a-1) (hb : 2 ∣ b-1)
+    (hc : 2 ∣ c-1) (hu : 2 ∣ u-1) (hp : 4 ∣ p)
+    (hq : 4 ∣ q-2*c*u) :
+    16 ∣ 2*(a-3)*p-2*e*b*q-8 := by
+  obtain ⟨E,hE⟩ := he; obtain ⟨A,hA⟩ := ha; obtain ⟨B,hB⟩ := hb
+  obtain ⟨C,hC⟩ := hc; obtain ⟨U,hU⟩ := hu; obtain ⟨P,hP⟩ := hp
+  obtain ⟨Q,hQ⟩ := hq
+  have hee : e=2+4*E := by omega
+  have haa : a=1+2*A := by omega
+  have hbb : b=1+2*B := by omega
+  have hcc : c=1+2*C := by omega
+  have huu : u=1+2*U := by omega
+  have hqq : q=2*c*u+4*Q := by omega
+  rw [hee,haa,hbb,hP,hqq,hcc,huu]
+  ring_nf; omega
 
 
 end Tetrahedral.RelativeDirection
