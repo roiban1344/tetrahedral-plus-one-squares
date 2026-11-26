@@ -1,5 +1,4 @@
 name = "Tetrahedral"
-version = "0.1.0"
 defaultTargets = ["Tetrahedral"]
 
 [leanOptions]
