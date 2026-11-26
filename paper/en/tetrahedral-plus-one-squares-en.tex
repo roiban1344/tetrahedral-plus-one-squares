@@ -51,13 +51,11 @@
 \maketitle
 
 \begin{abstract}
-For a nonnegative integer $n$, the tetrahedral number $n(n+1)(n+2)/6$ plus $1$ is a square only for $n=0,5,8,22,24,63,13775$.
-This equation defines an elliptic curve. Therefore, the integral points are usually determined by a computation based on lower bounds for linear forms in elliptic logarithms.
-This paper gives a proof that does not use the theory of elliptic curves.
-The central step of the proof combines the two equations into a single equation: the relative norm of an element $\xi$ of a quartic field is $11$.
-We multiply $\xi$ by a power of a known relative unit to move it to a small element, and determine that element by integer computations. We determine the remaining exponent by the $2$-adic uniqueness lemma.
-The only numerical computations are products of particular elements, congruences modulo small numbers, and checks of a few pairs of integers singled out by inequalities; no search for candidate solutions is made.
-The whole proof is formalized in Lean~4 and Mathlib.
+We prove that $n(n+1)(n+2)/6+1$ is a square for precisely seven nonnegative integers $n$, namely $0,5,8,22,24,63,13775$.
+A factorization reduces the equation to five systems involving a square condition and a Pell-type equation. Each system gives an element of relative norm $11$ in a quartic field.
+Powers of one explicit unit in each field bring the element into a bounded real interval. Parity and a discriminant then give a short list of representatives.
+A uniqueness argument based on divisibility by powers of $2$ determines the allowable exponents in each orbit.
+The proof uses explicit ring arithmetic, real inequalities, and integer congruences, and is formalized in Lean~4 with Mathlib.
 \end{abstract}
 
 \tableofcontents
@@ -68,7 +66,11 @@ The whole proof is formalized in Lean~4 and Mathlib.
 
 \subsection{Main theorem}
 
-Throughout, $\N=\{0,1,2,\dots\}$, and $T(n)=n(n+1)(n+2)/6$ is the tetrahedral number (OEIS A000292).
+Write $\N=\{0,1,2,\dots\}$. The tetrahedral number $T(n)$ counts the points in a stack of $n$ triangular layers, with $\binom{j+1}{2}$ points in layer $j$. Thus
+\[
+T(n)=\sum_{j=1}^n\binom{j+1}{2}=\binom{n+2}{3}=\frac{n(n+1)(n+2)}6.
+\]
+These numbers form OEIS sequence A000292~\cite{OEIS}. We ask when one additional point brings the total to a square.
 
 \begin{theorem}\label{thm:main}
 For $n\in\N$, there is $m\in\N$ with $T(n)+1=m^2$ if and only if
@@ -78,47 +80,30 @@ n\in\{0,\ 5,\ 8,\ 22,\ 24,\ 63,\ 13775\}.
 The corresponding values of $m$ are $1,6,11,45,51,209,660099$, in this order.
 \end{theorem}
 
-The sequence of the $m$ is registered in the OEIS as A216269, ``$k$ such that $k^2-1$ is a tetrahedral number'', with these seven terms.
+The sequence of the $m$ is registered in the OEIS as A216269, ``$k$ such that $k^2-1$ is a tetrahedral number'', with these seven terms~\cite{OEIS}.
 For comparison, Meyl showed that for positive $n$ the number $T(n)$ itself is a square only for $n=1,2,48$~\cite{Meyl1878}.
 
 \subsection{Relation to elliptic curves}
 
-Multiplying the equation $T(n)+1=m^2$ by $6$ gives $6m^2=n(n+1)(n+2)+6$.
-With $X=6n$ and $Y=36m$, this becomes
+With $X=6n$ and $Y=36m$, the equation $T(n)+1=m^2$ becomes
 \[
 Y^2=X^3+18X^2+72X+1296.
 \]
-This is a problem about the integral points of an elliptic curve.
-Hence the finiteness of the set of solutions follows from Siegel's theorem.
-However, Siegel's theorem gives no upper bound for the size of the solutions.
-Therefore, to find all the integral points, one usually uses the elliptic logarithm method~\cite{ST94,GPZ94}.
-In this method, one finds a basis of the Mordell--Weil group, obtains an upper bound for the coefficients from a lower bound for linear forms in elliptic logarithms, and finally examines the remaining range by lattice reduction.
-
-The proof in this paper uses none of these.
-It uses only the following.
-\begin{itemize}
-\item Computations in five rings, each a free $\Z$-module of rank $4$ with an explicit multiplication.
-\item Inequalities between real numbers.
-\item Congruences and divisibility of integers.
-\end{itemize}
-We do not use class numbers, the unit theorem, unique factorization of ideals, or $p$-adic analysis.
-For the units, we do not determine the group of all relative units. We multiply $\xi$ by a power of one known relative unit to move it into a small range, and determine the elements left there by parity and a discriminant (Sections~\ref{sec:window} and~\ref{sec:small}).
-To determine the exponent, we use an argument by repeated divisibility by powers of $2$ instead of the theory of $p$-adic zeros (Section~\ref{sec:dyadic}). This carries out the idea of Skolem's $p$-adic method~\cite{Skolem1935} for $p=2$ without power series.
+The solutions in Theorem~\ref{thm:main} correspond to integral points on this elliptic curve with $X,Y\ge0$, $6\mid X$, and $36\mid Y$.
+Siegel's theorem gives finiteness. The elliptic logarithm method gives a way to compute all integral points. It uses a Mordell--Weil basis and lower bounds for linear forms in elliptic logarithms, followed by lattice reduction~\cite{ST94,GPZ94}.
 
 \subsection{Structure of the proof}
 
-The proof proceeds in the following order.
+The factorization $6m^2=(n+3)(n^2+2)$ introduces the number $11$ twice. First, it bounds the common divisor of the two factors because $(n^2+2)-(n-3)(n+3)=11$. Second, it is the relative norm of the element built from the two square conditions.
+
 \begin{enumerate}
-\item Split the equation into five systems $n+3=dr^2$, $n^2+2=ey^2$ (Section~\ref{sec:branches}).
-\item Write the solutions of the second equation in the form of a square in two integers (Section~\ref{sec:parameters}).
-\item Combine the two equations into an element $\xi$ of relative norm $11$ (Section~\ref{sec:norm11}).
-\item Multiply $\xi$ by a power of a known relative unit $\rho$ to move it to a small element (Section~\ref{sec:window}).
-\item Determine that small element by parity and a discriminant (Section~\ref{sec:small}).
-\item Remove relative conjugates and the unneeded element for $d=2$ (Section~\ref{sec:reps}).
-\item Determine the exponent of $\rho$ by the $2$-adic uniqueness lemma (Sections~\ref{sec:dyadic} and~\ref{sec:exponents}).
-\item Read off $n$ from the coordinates of the resulting element (Section~\ref{sec:conclusion}).
+\item \textbf{From the cubic to a norm equation.}
+The factorization leaves five pairs of squarefree parts $(d,e)$. A descent gives a square representation of $n+y\sqrt e$, which can then be combined with $n+3=dr^2$ to construct an element $\xi$ of relative norm $11$ (Sections~\ref{sec:branches}--\ref{sec:norm11}).
+\item \textbf{From the norm equation to unit orbits.}
+Multiplication by powers of one explicit relative unit $\rho$ preserves the relative norm. A real bound, parity and a discriminant give a short list of possible representatives. Relative conjugation and two small moduli leave a single representative $\xi_0$ in each case (Sections~\ref{sec:window}--\ref{sec:reps}).
+\item \textbf{From unit orbits to solutions.}
+For an orbit element $x=\xi_0\rho^m$ to come from a solution, its first two coordinates must still satisfy the Pell-type equation. We express this as $f(x)=0$ and apply a uniqueness lemma based on divisibility by powers of $2$. In the case $d=66$ we also use the square condition on the first coordinate. Since that coordinate is $n+3$, it yields $n$ directly (Sections~\ref{sec:dyadic}--\ref{sec:conclusion}).
 \end{enumerate}
-In the last step, the $0$th coordinate of $\xi$ equals $n+3$ from the start. Therefore we can read off $n$ without passing through other quantities.
 
 \subsection{Formalization}
 
@@ -215,8 +200,12 @@ We show the inequalities in the following order. Note that $e=c_0+1$.
 
 This descent stops at $y=1$, and then $n=a_0$.
 
+Put $Q_A(a,b)=a^2-2b^2+2Aab$. The following identity relates the two quadratic forms in the parametrization.
+\begin{equation}\label{eq:paramidentity}
+\bigl(A(a^2-2b^2)-4ab\bigr)^2+2Q_A(a,b)^2=(A^2+2)(a^2+2b^2)^2.
+\end{equation}
+
 \begin{proposition}\label{prop:parameters}
-Let $e=A^2+2$, and put $Q_A(a,b)=a^2-2b^2+2Aab$.
 If $n\ge0$ and $y>0$ satisfy $n^2+2=ey^2$, then there are $A=a_0$ or $A=-a_0$ and integers $a,b$ such that
 \begin{equation}\label{eq:param}
 Q_A(a,b)=1,\qquad n=A(a^2-2b^2)-4ab.
@@ -225,11 +214,11 @@ Q_A(a,b)=1,\qquad n=A(a^2-2b^2)-4ab.
 
 \begin{proof}
 We use induction on $n$. If $y=1$, then $n=a_0$, and $(A,a,b)=(a_0,1,0)$ works.
-If $y>1$, the pair $(N,Z)$ of Lemma~\ref{lem:descent} satisfies $0\le N<n$, so it has a representation by the induction hypothesis. From it, the following update gives a representation of $(n,y)$:
+If $y>1$, the pair $(N,Z)$ of Lemma~\ref{lem:descent} satisfies $0\le N<n$, so it has a representation by the induction hypothesis. Equation~\eqref{eq:paramidentity} applied to that representation gives $Z=a^2+2b^2$. Apply the update
 \[
 (a_0,a,b)\mapsto(-a_0,\ a,\ b-a_0a),\qquad(-a_0,a,b)\mapsto(a_0,\ a-2a_0b,\ b).
 \]
-One checks by expansion that \eqref{eq:param} is preserved.
+according to the sign of $A$. Direct expansion shows that each update preserves the value $1$ of the quadratic form and makes the second expression in \eqref{eq:param} equal to $c_0N+a_0eZ=n$.
 \end{proof}
 
 \subsection{Choice of sign}
@@ -251,12 +240,14 @@ Therefore $A=-2,\,-1,\,8,\,-3$ (for $d=1,2,11,66$).
 
 For $d=3$, $e=2$, the equation $n+3=3r^2$ gives $3\mid n$. Moreover, $n$ is even (by $n^2+2=2y^2$).
 Write $n=2N$. Then $y^2-2N^2=1$.
-Modulo $4$, $y$ is odd and $N$ is even.
-The product of the coprime consecutive integers $(y-1)/2$ and $(y+1)/2$ equals $N^2/2$. Hence each factor is a square or twice a square.
-From this we get an element $a+b\sqrt2$ of norm $\pm1$ with $y+N\sqrt2=(a+b\sqrt2)^2$.
-Then $n=2N=4ab$.
-If the norm were $-1$, then $a^2+b^2\equiv2\pmod3$ would give $3\nmid ab$, contrary to $3\mid n$.
-Therefore the norm is $1$, and changing the sign of $b$ gives the representation \eqref{eq:param} with $A=0$.
+Modulo $4$, $y$ is odd and $N$ is even. When $y=1$, we have $n=0$ and can take $(A,a,b)=(0,1,0)$.
+For $y>1$, the consecutive positive integers $(y-1)/2$ and $(y+1)/2$ are coprime and their product is $2(N/2)^2$.
+The odd factor is therefore a square $a^2$ and the even one is twice a square $2b^2$, with $a,b>0$. Their sum is $y$ and their product gives $N=2ab$, so that
+\[
+y+N\sqrt2=(a+b\sqrt2)^2,\qquad a^2-2b^2=\pm1.
+\]
+If the norm were $-1$, then $a^2+b^2\equiv2\pmod3$ would give $3\nmid ab$, contrary to $3\mid n=4ab$.
+Thus the norm is $1$. Replacing $b$ by $-b$ gives \eqref{eq:param} with $A=0$.
 
 \subsection{Square representation}
 
@@ -268,11 +259,7 @@ n+y\omega=(A+\omega)\bigl(a+(A-\omega)b\bigr)^2.
 \end{proposition}
 
 \begin{proof}
-Substituting \eqref{eq:param} into the identity
-\[
-\bigl(A(a^2-2b^2)-4ab\bigr)^2+2Q_A(a,b)^2=(A^2+2)(a^2+2b^2)^2,
-\]
-we get $n^2+2=e(a^2+2b^2)^2$. Comparing with $y>0$, we get $y=a^2+2b^2$. The second part follows by expansion.
+By \eqref{eq:paramidentity} we have $n^2+2=e(a^2+2b^2)^2$. Since $y>0$, comparison gives $y=a^2+2b^2$. The factorization follows by expansion.
 \end{proof}
 
 To match the rings used later, we change the fixed element using an element $\varepsilon$ of norm $1$.
@@ -306,7 +293,7 @@ $66$ & $-3$ & $63+19\omega$ & $10a+3b$ & $-3a-b$\\
 \subsection{The idea}
 
 Let $F=\Q(\omega)$ and consider a quadratic extension $L=F(\theta)$ with $\theta^2\in F$.
-The two equations \eqref{eq:pair} become one equation: the relative norm $\Nm_{L/F}(\xi)$ of an element $\xi\in L$ is $11$ (Proposition~\ref{prop:xi}).
+From a solution of \eqref{eq:pair} we construct an element $\xi\in L$ of relative norm $11$ (Proposition~\ref{prop:xi}). The norm equation will be used first, and the two coordinate conditions in \eqref{eq:f} will be used to recover the solutions.
 Multiplying an element of relative norm $11$ by an element of relative norm $1$ gives again an element of relative norm $11$.
 Sections~\ref{sec:window} and~\ref{sec:small} use this to reduce $\xi$ to a small element.
 
@@ -334,7 +321,7 @@ $66$ & $11$ & $(x_0+x_1\omega)+(x_2+x_3\omega)\theta$ & $756+228\omega$\\
 \end{table}
 
 For $d=1,2,3,11$ we have $\Delta=2d\beta$. For $d=66$ we have $2d\beta=11\Delta=(\omega\theta)^2$.
-In what follows, put $s=\theta$ ($d\ne66$) and $s=\omega\theta$ ($d=66$). In every case $s^2=2d\beta$.
+In what follows, put $s=\theta$ ($d\ne66$) and $s=\omega\theta$ ($d=66$). In every case $s^2=2d\beta$. Since $\NF(\beta)=A^2-e=-2$ and $\Delta$ is a positive rational multiple of $\beta$, we have $\NF(\Delta)<0$. Hence $\Delta$ is not a square in $F$, and $L/\Q$ has degree $4$.
 
 \begin{definition}
 \begin{enumerate}
@@ -380,7 +367,7 @@ Moreover, $w+w'=2n$ and $ww'=-2$, so $w^2-2nw=-ww'=2$. Hence $\Nm(\xi)=11$.
 Since $\pi(\xi)=w+3$, we have $P(\xi)=n+3$ and $Q(\xi)=y$, and $f(\xi)=n^2-ey^2+2=0$.
 \end{proof}
 
-Here $11=3^2+2$. The two equations \eqref{eq:pair} combine into one small relative norm.
+Here $11=3^2+2$. The constant $3$ comes from the factor $n+3$, and the term $2$ comes from $\NF(w)=-2$.
 The coordinates of $\xi$ are $(n+3,y,r\eta_0,r\eta_1)$ for $d=1,2,3$, $(n+3,y,r\eta_0,11r\eta_1)$ for $d=11$, and $(n+3,y,11r\eta_1,r\eta_0)$ for $d=66$.
 
 The function $f$ depends only on the first two coordinates. Therefore $f(\tau(x))=f(x)$ and $P(\tau(x))=P(x)$.
@@ -389,9 +376,8 @@ The function $f$ depends only on the first two coordinates. Therefore $f(\tau(x)
 \section{Reduction to a small element}\label{sec:window}
 %======================================================================
 
-In this section and the next, we determine the elements of relative norm $11$.
-We do not determine the group of all relative units. We use only that the element $\rho$ of Table~\ref{tab:rho} is a relative unit, which is checked directly from \eqref{eq:mult}. We found $\rho$ by searching elements with small coordinates for one with $\Nm(x)=1$.
-Multiplying by a power of $\rho$ does not change the relative norm $11$. We choose the power so that $\xi$ moves to a small element, and in the next section we determine that small element by integer computations.
+In each case we use the explicit relative unit $\rho$ in Table~\ref{tab:rho}. Its norm is $1$ by \eqref{eq:mult}.
+All elements $x\rho^j$ with $j\in\Z$ have the same relative norm as $x$ and form its orbit under multiplication by $\rho$. We choose one element in the orbit whose real value is in a bounded interval. In the next section we use this bound to enumerate the possible representatives for $x=\xi$.
 
 \begin{table}[htbp]
 \centering
@@ -421,6 +407,13 @@ For the element $\xi$ of Proposition~\ref{prop:xi}, the product is $11$ and the 
 Therefore $\sigma(\xi)>0$ and $\sigma(\tau(\xi))>0$.
 
 \subsection{Moving into an interval}
+
+Multiplication by $\rho$ scales the real value by $\Lambda$. We choose a power to put $v$ in the interval
+
+\[
+\sqrt{N/\Lambda}\le\sigma(v)<\sqrt{N\Lambda}.
+\]
+The endpoints differ by a factor of $\Lambda$ and have geometric mean $\sqrt N$. Relative conjugation sends a real value $S$ to $N/S$, which exchanges the two endpoints.
 
 \begin{lemma}\label{lem:window}
 Let $N$ be a positive integer, and let $x\in R$ satisfy $\Nm(x)=N$ and $\sigma(x)>0$.
@@ -593,7 +586,7 @@ $66$ & $(0,1,0,0)$ & --- ($\tau(\xi_0)=\xi_0$)\\
 For the element $\xi$ of Proposition~\ref{prop:xi}, there is $i\in\Z$ such that $\xi\rho^{-i}$ is one of the elements of Table~\ref{tab:reps}.
 \end{proposition}
 
-Every element in the table has first coordinate $1$ and satisfies $f=0$.
+Each representative and its relative conjugate have $Q=1$ and satisfy $f=0$.
 However, multiplication by $\rho$ does not preserve $f$. The exponents $m$ with $f(\xi_0\rho^m)=0$ are determined from Section~\ref{sec:dyadic} on.
 
 \paragraph{Example.}
@@ -602,6 +595,31 @@ The representation of Section~\ref{sec:parameters} is given by $(A,a,b)=(-2,-1,2
 Hence $\xi=(25,9,-5,0)$, with $\sigma(\xi)\approx0.117$ and $\sigma(\tau(\xi))\approx94.0$.
 The exponent in Lemma~\ref{lem:window} is $i=-1$, and $v=\xi\rho=(1,1,5,-2)=\xi_0$ (here $4\mu^2=4(1+\sqrt6)^2<48$).
 Thus $\xi=\xi_0\rho^{-1}$, and in Section~\ref{sec:exponents} this exponent $-1$ is determined by the condition $f=0$.
+Figure~\ref{fig:window} shows this step on a logarithmic scale.
+
+\begin{figure}[htbp]
+\centering
+\setlength{\unitlength}{0.8mm}
+\begin{picture}(151,39)
+  \put(5,12){\vector(1,0){141}}
+  \put(54,12){\raisebox{-0.7pt}{\rule{76\unitlength}{1.4pt}}}
+  \put(54,10){\line(0,1){4}}
+  \put(92,10){\line(0,1){4}}
+  \put(130,10){\line(0,1){4}}
+  \put(54,6){\makebox(0,0){$-1/2$}}
+  \put(92,6){\makebox(0,0){$0$}}
+  \put(130,6){\makebox(0,0){$1/2$}}
+  \put(22,12){\circle*{2}}
+  \put(98,12){\circle*{2}}
+  \put(22,14){\line(0,1){12}}
+  \put(98,14){\line(0,1){12}}
+  \put(22,26){\vector(1,0){76}}
+  \put(60,32){\makebox(0,0){$\xi\mapsto\xi\rho$}}
+  \put(18,20){\makebox(0,0)[r]{$\xi$}}
+  \put(102,20){\makebox(0,0)[l]{$v$}}
+\end{picture}
+\caption{The reduction for $n=22$. The horizontal coordinate of $x$ is $\log_\Lambda(\sigma(x)/\sqrt{11})$, so multiplying by $\rho$ translates by one. The thick segment marks the reduction interval $[-1/2,1/2)$.}\label{fig:window}
+\end{figure}
 
 %======================================================================
 \section{Relative conjugates and the second element}\label{sec:reps}
@@ -629,10 +647,8 @@ Thus the only elements left to examine are $\xi_0\rho^m$ ($m\in\Z$).
 \section{The \tsec{$2$}{2}-adic uniqueness lemma}\label{sec:dyadic}
 %======================================================================
 
-In this section we prove a general lemma that derives $i=0$ from $f(y\,W^i)=0$.
-Here $y$ is a zero of $f$, and $W$ is an invertible element that is $2$-adically close to $1$.
-The map $i\mapsto f(yW^i)$ can be viewed $2$-adically as a power series in $i$. The lemma shows that its only zero is $i=0$, because the $2$-adic valuation of the linear term is smaller than that of the other terms.
-This is the key point of Skolem's method~\cite{Skolem1935}, but here we use no power series, only binomial expansion and divisibility by powers of $2$.
+Fix a known zero $y$ of $f$ and an invertible element $W$ congruent to $1$ modulo a power of $2$. The lemma below gives conditions that make $i=0$ the unique integer with $f(yW^i)=0$.
+The proof starts with $i=2^k\ell$. A binomial expansion and a congruence reduce $f(yW^i)=0$ to the parity condition $2\mid\ell$. Repeating this step forces $i$ to be divisible by every power of $2$. This is the divisibility argument behind the application of Skolem's method~\cite{Skolem1935} here.
 
 In what follows, a zero $y$ of $f$ to which we apply this lemma is called a \textbf{base point}.
 When we write $W=1+2qU$, we call $U$ the \textbf{direction} of $W$.
@@ -944,7 +960,7 @@ Replacing $m$ by $-m$, we may assume $m\equiv1\pmod4$.
 Using Lemma~\ref{lem:unique} at the base point $\xi_0\rho$, we get $m=1$.
 
 \paragraph{$d=2$.}
-This case has two close roots $0$ and $-4$, so one preparatory step is needed.
+The two known zeros at $m=0,-4$ lie in the same class modulo $4$. To apply the uniqueness lemma, we first restrict $m$ modulo $4$, then treat these two zeros in separate classes modulo $8$.
 Every element $x=\xi_0\rho^m$ of the orbit satisfies $2\mid x_0$ and $x_1+2x_3\equiv3\pmod4$.
 For every $x$ satisfying this condition, expanding the multiplication gives
 \[
@@ -1001,7 +1017,7 @@ The formalization is in the directory \texttt{lean/} of the following repository
 \url{https://github.com/roiban1344/tetrahedral-plus-one-squares}
 \end{center}
 It was checked with Lean~4 v4.34.1 and Mathlib v4.34.1; the versions are fixed by the files \texttt{lean/lean-toolchain} and \texttt{lean/lake-manifest.json}.
-Running \texttt{lake build} in \texttt{lean/} checks the whole proof, and \texttt{lake env lean Check.lean} prints the statement of the final theorem and the axioms it depends on.
+Running \texttt{lake build} in \texttt{lean/} checks the whole proof, and \texttt{lake env lean Check.lean} checks the restated theorem and prints the axioms it depends on.
 
 The final theorem has the following form. The division is carried out in the rationals $\Q$.
 {\small
@@ -1071,9 +1087,9 @@ The scripts do not search for proofs; they are kept so that one can check that t
 \begin{thebibliography}{9}
 \bibitem{Meyl1878} A.-J.-J.~Meyl, Solution de question 1194, \emph{Nouv. Ann. Math.} (2) \textbf{17} (1878), 464--467.
 \bibitem{Skolem1935} Th.~Skolem, Einige S\"atze \"uber $p$-adische Potenzreihen mit Anwendung auf gewisse exponentielle Gleichungen, \emph{Math. Ann.} \textbf{111} (1935), 399--424.
-\bibitem{GPZ94} J.~Gebel, A.~Peth\H{o}, H.~G.~Zimmer, Computing integral points on elliptic curves, \emph{Acta Arith.} \textbf{68} (1994), 171--192.
-\bibitem{ST94} R.~J.~Stroeker, N.~Tzanakis, Solving elliptic diophantine equations by estimating linear forms in elliptic logarithms, \emph{Acta Arith.} \textbf{67} (1994), 177--196.
-\bibitem{OEIS} The On-Line Encyclopedia of Integer Sequences, A000292 and A216269, \url{https://oeis.org}.
+\bibitem{GPZ94} J.~Gebel, A.~Peth\H{o}, H.~G.~Zimmer, Computing integral points on elliptic curves, \emph{Acta Arith.} \textbf{68} (1994), 171--192. \href{https://doi.org/10.4064/aa-68-2-171-192}{DOI}.
+\bibitem{ST94} R.~J.~Stroeker, N.~Tzanakis, Solving elliptic diophantine equations by estimating linear forms in elliptic logarithms, \emph{Acta Arith.} \textbf{67} (1994), 177--196. \href{https://doi.org/10.4064/aa-67-2-177-196}{DOI}.
+\bibitem{OEIS} The On-Line Encyclopedia of Integer Sequences, \href{https://oeis.org/A000292}{A000292} and \href{https://oeis.org/A216269}{A216269}.
 \end{thebibliography}
 
 \end{document}

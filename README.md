@@ -2,6 +2,8 @@
 
 [日本語](README.ja.md)
 
+**Paper** · [English PDF](paper/en/tetrahedral-plus-one-squares-en.pdf) · [日本語 PDF](paper/ja/tetrahedral-plus-one-squares-ja.pdf) · [Released versions](../../releases)
+
 **Theorem.** For a natural number $n$, the number $T(n)+1=\dfrac{n(n+1)(n+2)}{6}+1$ is a perfect square if and only if
 
 $$n\in\{0,\ 5,\ 8,\ 22,\ 24,\ 63,\ 13775\}.$$
@@ -35,15 +37,12 @@ With $X=6n$ and $Y=36m$, the equation becomes the elliptic curve
 
 $$Y^2=X^3+18X^2+72X+1296.$$
 
-By Siegel's theorem it has only finitely many integral points, but the theorem gives no bound on their size.
-All integral points are therefore usually found by the elliptic logarithm method.
-That method needs a basis of the Mordell–Weil group and a lower bound for linear forms in elliptic logarithms.
+The solutions correspond to integral points with $X,Y\ge0$, $6\mid X$ and $36\mid Y$.
+Siegel's theorem gives finiteness, and the elliptic logarithm method offers a way to compute all integral points.
 
-**The proof here uses no theory of elliptic curves.**
-It uses arithmetic in five explicit rings of rank 4 over $\mathbb Z$, real inequalities, and integer congruences.
-It needs no class numbers, no unit theorem, no unique factorization of ideals and no $p$-adic analysis.
+The paper gives a proof using arithmetic in five explicit rings of rank 4 over $\mathbb Z$, real inequalities, and integer congruences.
 
-## Outline of the proof
+## Reading the paper
 
 1. Split the equation into five systems $n+3=dr^2,\ n^2+2=ey^2$, where $(d,e)$ is $(1,6)$, $(2,3)$, $(3,2)$, $(11,66)$ or $(66,11)$.
 2. Write $n+y\sqrt e$ as a fixed element times a square, by a descent (an argument that repeatedly produces a smaller solution from a given one) instead of the general theory of Pell equations.
@@ -53,7 +52,7 @@ It needs no class numbers, no unit theorem, no unique factorization of ideals an
 6. Determine the exponent $m$ by a 2-adic uniqueness lemma, proved by repeated divisibility by powers of 2.
 7. Read $n$ from the first coordinate of the remaining nine elements; two give negative $n$.
 
-The paper gives the full argument.
+The introduction connects these steps, §6 follows $n=22$ through the reduction to a small element, and Appendix A maps each stage of the proof to its Lean files.
 
 ## Checking the proof
 
@@ -78,10 +77,10 @@ CI also reruns the scripts and checks that the generated files are unchanged.
 | `lean/Tetrahedral/` | The Lean proof |
 | `lean/Check.lean` | Statement and axiom check |
 | `scripts/` | Generators of some Lean proofs |
-| `paper/en/`, `paper/ja/` | The paper in English and in Japanese (LaTeX) |
+| `paper/` | LaTeX sources for the [English](paper/en/tetrahedral-plus-one-squares-en.tex) and [Japanese](paper/ja/tetrahedral-plus-one-squares-ja.tex) editions |
 | `docs/HISTORY.md` | How the proof changed, commit by commit |
 
-The PDFs of the paper are attached to each [release](../../releases) and committed with it.
+The PDFs in the repository are release snapshots. To build the current sources, run LuaLaTeX three times on each TeX file from its directory. The Japanese edition also requires LuaTeX-ja and Japanese fonts, as provided by the TeX Live image used in [CI](.github/workflows/ci.yml).
 
 ## License
 
