@@ -55,8 +55,8 @@ For a nonnegative integer $n$, the tetrahedral number $n(n+1)(n+2)/6$ plus $1$ i
 This equation defines an elliptic curve. Therefore, the integral points are usually determined by a computation based on lower bounds for linear forms in elliptic logarithms.
 This paper gives a proof that does not use the theory of elliptic curves.
 The central step of the proof combines the two equations into a single equation: the relative norm of an element $\xi$ of a quartic field is $11$.
-We divide $\xi$ by $11$ and reduce it to a power of a unit. We determine the exponent by the $2$-adic uniqueness lemma.
-The only numerical computations are products of particular elements and congruences modulo small numbers; no search for candidate solutions is made.
+We multiply $\xi$ by a power of a known relative unit to move it to a small element, and determine that element by integer computations. We determine the remaining exponent by the $2$-adic uniqueness lemma.
+The only numerical computations are products of particular elements, congruences modulo small numbers, and checks of a few pairs of integers singled out by inequalities; no search for candidate solutions is made.
 The whole proof is formalized in Lean~4 and Mathlib.
 \end{abstract}
 
@@ -101,7 +101,7 @@ It uses only the following.
 \item Congruences and divisibility of integers.
 \end{itemize}
 We do not use class numbers, the unit theorem, unique factorization of ideals, or $p$-adic analysis.
-For the units, we show directly by real inequalities that one explicit element generates all relative units (Section~\ref{sec:units}).
+For the units, we do not determine the group of all relative units. We multiply $\xi$ by a power of one known relative unit to move it into a small range, and determine the elements left there by parity and a discriminant (Sections~\ref{sec:window} and~\ref{sec:small}).
 To determine the exponent, we use an argument by repeated divisibility by powers of $2$ instead of the theory of $p$-adic zeros (Section~\ref{sec:dyadic}).
 
 \subsection{Structure of the proof}
@@ -111,9 +111,9 @@ The proof proceeds in the following order.
 \item Split the equation into five systems $n+3=dr^2$, $n^2+2=ey^2$ (Section~\ref{sec:branches}).
 \item Write the solutions of the second equation in the form of a square in two integers (Section~\ref{sec:parameters}).
 \item Combine the two equations into an element $\xi$ of relative norm $11$ (Section~\ref{sec:norm11}).
-\item By division by $11$, write $\xi$ as the product of one of finitely many initial elements and a relative unit (Section~\ref{sec:division}).
-\item Show that the relative units are exhausted by the powers of one element $\rho$ and signs (Section~\ref{sec:units}).
-\item Remove the negative sign and the unneeded initial element (Section~\ref{sec:signs}).
+\item Multiply $\xi$ by a power of a known relative unit $\rho$ to move it to a small element (Section~\ref{sec:window}).
+\item Determine that small element by parity and a discriminant (Section~\ref{sec:small}).
+\item Remove relative conjugates and the unneeded element for $d=2$ (Section~\ref{sec:reps}).
 \item Determine the exponent of $\rho$ by the $2$-adic uniqueness lemma (Sections~\ref{sec:dyadic} and~\ref{sec:exponents}).
 \item Read off $n$ from the coordinates of the resulting element (Section~\ref{sec:conclusion}).
 \end{enumerate}
@@ -302,8 +302,8 @@ $66$ & $-3$ & $63+19\omega$ & $10a+3b$ & $-3a-b$\\
 
 Let $F=\Q(\omega)$ and consider a quadratic extension $L=F(\theta)$ with $\theta^2\in F$.
 The two equations \eqref{eq:pair} become one equation: the relative norm $\Nm_{L/F}(\xi)$ of an element $\xi\in L$ is $11$ (Proposition~\ref{prop:xi}).
-An element of a fixed relative norm is a product of one of a few elements and a unit of relative norm $1$.
-Sections~\ref{sec:division} and~\ref{sec:units} carry out this decomposition explicitly, as a division by $11$ and a determination of the units.
+Multiplying an element of relative norm $11$ by an element of relative norm $1$ gives again an element of relative norm $11$.
+Sections~\ref{sec:window} and~\ref{sec:small} use this to reduce $\xi$ to a small element.
 
 \subsection{Five rings}
 
@@ -374,178 +374,228 @@ The coordinates of $\xi$ are $(n+3,y,r\eta_0,r\eta_1)$ for $d=1,2,3$, $(n+3,y,r\
 The function $f$ depends only on the first two coordinates. Therefore $f(\tau(x))=f(x)$ and $P(\tau(x))=P(x)$.
 
 %======================================================================
-\section{Division by \tsec{$11$}{11}}\label{sec:division}
+\section{Reduction to a small element}\label{sec:window}
 %======================================================================
 
-We call the elements in Table~\ref{tab:initial} the \textbf{initial elements}. Each of them has relative norm $11$.
+In this section and the next, we determine the elements of relative norm $11$.
+We do not determine the group of all relative units. We use only that the element $\rho$ of Table~\ref{tab:rho} is a relative unit, which is checked by direct computation.
+Multiplying by a power of $\rho$ does not change the relative norm $11$. We choose the power so that $\xi$ moves to a small element, and in the next section we determine that small element by integer computations.
 
 \begin{table}[htbp]
 \centering
-\caption{The initial elements and the relative unit $\rho$}\label{tab:initial}
-\begin{tabular}{cccc}
-\toprule
-$d$ & $\xi_0$ & $\xi_1$ & $\rho$\\
-\midrule
-$1$ & $(1,1,5,-2)$ & --- & $(9,4,2,0)$\\
-$2$ & $(2,1,2,-1)$ & $(2,3,1,0)$ & $(3,2,1,0)$\\
-$3$ & $(3,1,1,0)$ & --- & $(17,12,6,4)$\\
-$11$ & $(11,1,1,0)$ & --- & $(33,4,2,2)$\\
-$66$ & $(0,1,0,0)$ & --- & $(19,6,1,0)$\\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\begin{proposition}\label{prop:division}
-If $\Nm(\xi)=11$, then there are an initial element $p$ and a relative unit $u$ such that $\xi=u\,p$ or $\xi=u\,\tau(p)$.
-\end{proposition}
-
-\begin{proof}
-In each case it suffices to show that all four coordinates of $\xi\,\tau(p)$ or of $\xi\,p$ are divisible by $11$.
-In fact, if so, put $u=\xi\tau(p)/11$. Then $\Nm(u)=\Nm(\xi)\Nm(p)/121=1$, and $\xi\,\tau(p)\,p=11\xi$ gives $\xi=up$.
-
-For $d=1,3$, $e=6,2$ is not a quadratic residue modulo $11$.
-Therefore $\Z[\omega]/(11)$ is the field $\F_{121}$ with $121$ elements.
-Write $\xi_0=\alpha_0+\beta_0\theta$. Then $\Nm(\xi_0)=\alpha_0^2-\Delta\beta_0^2=11$, and $\beta_0$ is coprime to $11$.
-Therefore $\Delta$ has square roots $\pm\delta$ in $\F_{121}$ ($\delta=\alpha_0/\beta_0$).
-Then $\theta\mapsto\pm\delta$ defines two ring homomorphisms $\chi_\pm:R\to\F_{121}$, and $\chi_-=\chi_+\circ\tau$.
-Since $\chi_+(\xi)\chi_-(\xi)=\chi_+(\Nm(\xi))=0$, $\xi$ vanishes under one of them.
-The elements $\xi_0$ and $\tau(\xi_0)$ vanish on different sides. Let $p$ be the one that vanishes on the same side as $\xi$. Then $\xi\tau(p)$ vanishes on both sides.
-The intersection of the two kernels is $11R$.
-
-For $d=2$, $e=3$ is a quadratic residue modulo $11$, and $\Z[\omega]/(11)\cong\F_{11}\times\F_{11}$.
-In each of the two components there are two choices for the value of $\theta$ (the existence of square roots of $\Delta$ follows from $\xi_0$ as above).
-We call the pair recording, in each component, the value at which $\xi$ vanishes the \textbf{type} of $\xi$. There are four types.
-The elements $\xi_0,\xi_1,\tau(\xi_0),\tau(\xi_1)$ realize these four types, one each. Hence, by the same argument as above, $\xi\tau(p)\in11R$ for the $p$ with the same type as $\xi$.
-
-For $d=11$, reading the relative norm modulo $11$ gives $x_0^2-96x_3^2\equiv0$.
-Since $96\equiv8$ is not a quadratic residue modulo $11$, we get $11\mid x_0$ and $11\mid x_3$.
-From this, $\xi\tau(\xi_0)\in11R$ follows.
-
-For $d=66$, similarly, $x_0^2-756x_2^2\equiv0\pmod{11}$ and $756\equiv8$ give $11\mid x_0$ and $11\mid x_2$.
-From this, $\xi\xi_0\in11R$ follows. Note that $\tau(\xi_0)=\xi_0$.
-\end{proof}
-
-%======================================================================
-\section{Relative units}\label{sec:units}
-%======================================================================
-
-\begin{proposition}\label{prop:units}
-In each case, every relative unit has the form $\pm\rho^m$ ($m\in\Z$), where $\rho$ is the element in Table~\ref{tab:initial}.
-\end{proposition}
-
-A direct computation shows that $\rho$ is a relative unit. What we must show is that there are no other relative units.
-
-\subsection{Two real embeddings}
-
-For $\Delta=\Delta_0+\Delta_1\omega$, we have $\sigma(\Delta)=\Delta_0+\Delta_1\sqrt e>0$ and $\sigma'(\Delta)=\Delta_0-\Delta_1\sqrt e<0$.
-Put $D_+=\sigma(\Delta)$ and $D_-=-\sigma'(\Delta)$.
-Define $\sigma:R\to\Rr$ by $\omega\mapsto\sqrt e$, $\theta\mapsto\sqrt{D_+}$.
-We write $\alpha\mapsto\alpha'$ for the conjugation of $\Z[\omega]$ defined by $\omega\mapsto-\sqrt e$.
-
-Write a relative unit as $v=\alpha+\gamma\theta$, where $\alpha\in\Z[\omega]$ and $\gamma\in\Z[\omega]$ ($\gamma\in\Z+\Z\,\omega/11$ for $d=11$).
-Taking the conjugate of $\Nm(v)=\alpha^2-\Delta\gamma^2=1$, we get $\alpha'^2+D_-\gamma'^2=1$. Therefore $|\gamma'|\le D_-^{-1/2}$.
-
-\begin{lemma}\label{lem:gap}
-If $\gamma\ne0$, then
-\begin{equation}\label{eq:gap}
-\bigl(|\sigma(v)|-|\sigma(v)|^{-1}\bigr)^2\ge4M,\qquad M=\nu^2D_+D_-,
-\end{equation}
-where $\nu=1$ ($d\ne11$) and $\nu=3/11$ ($d=11$).
-\end{lemma}
-
-\begin{proof}
-Since $\sigma(\tau(v))=\sigma(v)^{-1}$, we have $\sigma(v)-\sigma(v)^{-1}=2\sigma(\gamma)\sqrt{D_+}$.
-If $\gamma\ne0$, then $|\sigma(\gamma)\gamma'|=|\NF(\gamma)|\ge\nu$.
-In fact, for $d\ne11$, $\NF(\gamma)$ is a nonzero integer.
-For $d=11$, write $\gamma=c+k\omega/11$. Then $\NF(\gamma)=(11c^2-6k^2)/11$, and the cases where the numerator has absolute value $1$ or $2$ are excluded modulo $3$ and modulo $11$.
-Therefore
-\begin{equation}\label{eq:gamma}
-\sigma(\gamma)^2\ge\nu^2/\gamma'^2\ge\nu^2D_-,
-\end{equation}
-and we get \eqref{eq:gap}.
-\end{proof}
-
-The lemma says that the real value $|\sigma(v)|$ of a relative unit $v\ne\pm1$ stays a fixed distance away from $1$.
-The values of $4M$ and of $\Lambda=\sigma(\rho)$ are given in Table~\ref{tab:gap}. For $\Lambda$, we use only the upper bound in the table and $\Lambda>1$.
-
-\begin{table}[htbp]
-\centering
-\caption{The constant $4M$ of Lemma~\ref{lem:gap} and upper bounds for $\Lambda=\sigma(\rho)$}\label{tab:gap}
+\caption{The relative unit $\rho$ and upper bounds for $\Lambda=\sigma(\rho)$}\label{tab:rho}
 \begin{tabular}{cccccc}
 \toprule
 $d$ & $1$ & $2$ & $3$ & $11$ & $66$\\
 \midrule
-$4M$ & $32$ & $128$ & $288$ & $288$ & $1152$\\
-$\Lambda<$ & $40$ & $14$ & $100$ & $142$ & $84$\\
+$\rho$ & $(9,4,2,0)$ & $(3,2,1,0)$ & $(17,12,6,4)$ & $(33,4,2,2)$ & $(19,6,1,0)$\\
+$\Lambda<$ & $40$ & $14$ & $72$ & $142$ & $78$\\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\subsection{Proof}
+\subsection{Real values}
 
-In the proof we multiply by a power of $\rho$ to move $|\sigma(v)|$ into the interval $[1,\Lambda)$, and show that this interval contains no relative unit other than $\pm1$.
+For $\alpha=a+b\omega\in\Z[\omega]$ put $\sigma(\alpha)=a+b\sqrt e$.
+In every case $\sigma(\Delta)>0$, so $\theta\mapsto\sqrt{\sigma(\Delta)}$ defines a ring homomorphism $\sigma:R\to\Rr$.
+Put $\Lambda=\sigma(\rho)$. Then $\Lambda>1$, and the upper bounds in Table~\ref{tab:rho} follow from crude rational bounds for the square roots (for example, for $d=66$ the bounds $\sqrt{11}<10/3$ and $\sqrt{756+228\sqrt{11}}<39$ suffice).
+Since $\tau(\rho)=\rho^{-1}$, we have $\sigma(\tau(\rho))=\Lambda^{-1}$.
 
-\begin{proof}[Proof of Proposition~\ref{prop:units}]
-Since $\Lambda>1$, we can multiply any relative unit $v$ by an integer power of $\rho$ so that $1\le a=|\sigma(v)|<\Lambda$.
-If $\gamma=0$, then $\alpha^2=1$, and $\alpha\in\Z[\omega]$ gives $v=\pm1$.
-Assume $\gamma\ne0$. We derive a contradiction.
-
-Put $v'=\rho\,\tau(v)$. Then $b=|\sigma(v')|=\Lambda/a$, so $b>1$ and $ab=\Lambda$.
-The $\theta$-component of $v'$ is also nonzero (if it were zero, then $v=\pm\rho$, contrary to $a<\Lambda$).
-Apply Lemma~\ref{lem:gap} to $v$ and $v'$. Combined with $(a-a^{-1})^2\le a^2$, which holds for $a,b\ge1$, this gives $a^2\ge4M$ and $b^2\ge4M$.
-Therefore $\Lambda=ab\ge4M$.
-For $d=2,3,11,66$, Table~\ref{tab:gap} gives $\Lambda<4M$, a contradiction.
-
-For $d=1$, $\Lambda>32$, so one more step is needed.
-From $b^2\ge32$ we get $a^2=\Lambda^2/b^2<50$.
-For the $\Z[\omega]$-component $\alpha$ of $v$, we have $\sigma(\alpha)=(\sigma(v)+\sigma(v)^{-1})/2$, so $\sigma(\alpha)^2<14$.
-Also $\alpha'^2\le1$.
-From $(\sigma(\alpha)+2\alpha')^2\ge0$ we get
+For every $x\in R$,
 \[
-(\sigma(\alpha)-\alpha')^2\le\tfrac32\sigma(\alpha)^2+3\alpha'^2<24.
+\sigma(x)\,\sigma(\tau(x))=\sigma(\Nm(x)),\qquad\sigma(x)+\sigma(\tau(x))=2\sigma(\pi(x)).
 \]
-On the other hand, writing $\alpha=h+c\sqrt6$, the left-hand side is $24c^2$. Therefore $c=0$.
-Then $\sigma(\alpha)^2=\alpha'^2\le1$. On the other hand, $\sigma(\alpha)^2=1+D_+\sigma(\gamma)^2$ and \eqref{eq:gamma} give $\sigma(\alpha)^2\ge1+D_+D_-=9$, a contradiction.
-\end{proof}
+For the element $\xi$ of Proposition~\ref{prop:xi}, the product is $11$ and the sum is $2(n+3+y\sqrt e)$. Both are positive.
+Therefore $\sigma(\xi)>0$ and $\sigma(\tau(\xi))>0$.
 
-This argument does not use the general unit theorem. It needs only the reduction in the real numbers and the rational upper bounds in Table~\ref{tab:gap}.
+\subsection{Moving into an interval}
 
-%======================================================================
-\section{Signs and the second initial element}\label{sec:signs}
-%======================================================================
-
-By the previous two sections, we can write $\xi=\pm p\rho^m$, where $p$ is an initial element or its relative conjugate and $m\in\Z$.
-The map $\tau$ preserves $f$ and the $0$th coordinate, and satisfies $\tau(\rho)=\rho^{-1}$.
-Therefore an element of the form $\tau(\xi_i)\rho^m=\tau(\xi_i\rho^{-m})$ may be replaced by $\xi_i\rho^{-m}$.
-In what follows we examine $\xi=\pm\xi_i\rho^m$.
-
-\subsection{Nonnegativity}
-
-\begin{lemma}\label{lem:positive}
-For each initial element $\xi_i$ and every $m\in\Z$, $P(\xi_i\rho^m)\ge0$.
+\begin{lemma}\label{lem:window}
+Let $N$ be a positive integer, and let $x\in R$ satisfy $\Nm(x)=N$ and $\sigma(x)>0$.
+Then for some $i\in\Z$ the element $v=x\rho^{-i}$ satisfies $\Nm(v)=N$ and $\sigma(v)>0$, and, writing $\pi(v)=a+b\omega$ and $A=a+b\sqrt e$,
+\begin{equation}\label{eq:window}
+A>0,\qquad 4A^2\le N(\Lambda+3).
+\end{equation}
 \end{lemma}
 
 \begin{proof}
-All coefficients of the multiplication tables of the five rings are nonnegative. Therefore the set $C$ of elements whose coordinates are all nonnegative is closed under multiplication. The element $\rho$ also belongs to $C$.
-
-For each initial element, we check directly that $\xi_i\rho^2$ and $\tau(\xi_i)\rho^2$ belong to $C$.
-Then for $m\ge2$, $\xi_i\rho^m=(\xi_i\rho^2)\rho^{m-2}\in C$.
-For $m\le-2$, $\tau(\xi_i\rho^m)=\tau(\xi_i)\rho^{-m}\in C$, and $\tau$ preserves the $0$th coordinate.
-The remaining cases $m=-1,0,1$ are checked directly.
+Since $\Lambda^2>1$, there is an integer $i$ with $(\Lambda^2)^i\le\sigma(x)^2\Lambda/N<(\Lambda^2)^{i+1}$.
+Put $v=x\rho^{-i}$. Then $\Nm(v)=N$, and $S=\sigma(v)=\sigma(x)\Lambda^{-i}>0$ satisfies
+\[
+N\le S^2\Lambda,\qquad S^2<N\Lambda.
+\]
+Put $T=\sigma(\tau(v))$. Since $ST=N$, we have $T>0$. Multiplying the first inequality by $T^2$ gives $T^2\le N\Lambda$.
+Moreover $S^2T^2=N^2$, so at least one of $S^2$ and $T^2$ is at most $N$.
+Since $2A=S+T>0$,
+\[
+4A^2=S^2+T^2+2N\le N\Lambda+N+2N=N(\Lambda+3).
+\]
 \end{proof}
 
-Since $P(\xi)=n+3>0$, the form $\xi=-\xi_i\rho^m$ does not occur.
+\subsection{Signs of the coefficients of \tsec{$\pi(v)$}{pi(v)}}
 
-\subsection{The second initial element for \tsec{$d=2$}{d=2}}
+Let $\gamma$ be the coefficient of $\theta$ in $v$. The $\omega$-coefficient of $\Nm(v)=\pi(v)^2-\Delta\gamma^2$ is $0$, and this determines the signs of $a$ and $b$.
+Here we use $\beta=p+q\omega$ from Section~\ref{sec:parameters}. From $n+y\omega=\beta\eta^2$ and $\NF(n+y\omega)=-2$ we get $\NF(\beta)=-2$, that is, $p^2-eq^2=-2$. By Table~\ref{tab:beta}, $q>0$.
+Put
+\[
+Q_\beta(c,t)=qc^2+2pct+eqt^2.
+\]
+Then $p^2-eq^2=-2$ gives
+\begin{equation}\label{eq:qbeta}
+q\,Q_\beta(c,t)=(qc+pt)^2+2t^2.
+\end{equation}
+Therefore $Q_\beta(c,t)\ge0$, with equality only for $c=t=0$.
+
+\begin{lemma}\label{lem:signs}
+Let $v$ satisfy \eqref{eq:window}, and suppose $\Nm(v)$ is an integer. Then $a\ge0$ and $b\ge0$.
+\end{lemma}
+
+\begin{proof}
+For $\gamma=c+t\omega$, the $\omega$-coefficient of $\beta\gamma^2$ is $Q_\beta(c,t)$.
+The element $\Delta$ is a positive multiple of $\beta$ ($2d\beta$ for $d\ne66$, and $12\beta$ for $d=66$). Hence the condition that the $\omega$-coefficient of $\Nm(v)$ vanishes reads
+\[
+\begin{array}{rl}
+d=1: & ab=Q_{22,9}(c,t),\\
+d=2: & ab=2Q_{5,3}(c,t),\\
+d=3: & ab=3(c^2+2t^2),\\
+d=11: & 11ab=Q_{8,1}(11c,t),\\
+d=66: & ab=6Q_{63,19}(c,t).
+\end{array}
+\]
+Here $Q_{p,q}$ is $Q_\beta$ for $\beta=p+q\omega$, and for $d=11$ we write $\gamma=c+t\omega/11$.
+Therefore $ab\ge0$. If $a$ and $b$ were both at most $0$, then $A=a+b\sqrt e\le0$, contrary to \eqref{eq:window}.
+\end{proof}
+
+%======================================================================
+\section{Determining the small element}\label{sec:small}
+%======================================================================
+
+We apply Lemma~\ref{lem:window} with $N=11$ and $x=\xi$, and determine the resulting $v$.
+We write the coordinates of $v$ as $(a,b,c,t)$; thus $\gamma=c+t\omega$, except $\gamma=c+t\omega/11$ for $d=11$.
+
+\subsection{Ranges and parity}
+
+By \eqref{eq:window} and Table~\ref{tab:rho}, $4A^2$ is less than $473$, $187$, $825$, $1595$, $891$ for $d=1,2,3,11,66$ respectively.
+
+Next we read the constant coefficient $11$ of $\Nm(v)$ modulo $4$. In every ring the contribution of the $\theta$-coefficient is $0$ modulo $4$; this is checked from the multiplication table.
+Hence $a^2+eb^2\equiv3\pmod4$. Since a square is $0$ or $1$ modulo $4$, $a$ and $b$ are both odd when $e\equiv2\pmod4$ ($d=1,3,11$), and $a$ is even and $b$ is odd when $e\equiv3\pmod4$ ($d=2,66$).
+
+Bounding $\sqrt e$ from below by a small rational number and using $a,b\ge0$, we obtain the ranges in Table~\ref{tab:ranges}.
+The condition for $d=3$ follows from reading the constant coefficient modulo $3$: $a^2+2b^2\equiv2$.
+For $d=11$ and $66$, reading the constant coefficient modulo $11$ gives $a^2-96t^2\equiv0$ and $a^2-756c^2\equiv0$ respectively.
+Since $96\equiv756\equiv8$ is not a square modulo $11$, we get $11\mid a$.
+
+\begin{table}[htbp]
+\centering
+\caption{Ranges for the first two coordinates of $v$}\label{tab:ranges}
+\begin{tabular}{ccc}
+\toprule
+$d$ & from size & parity and divisibility\\
+\midrule
+$1$ & $a+2b<11$ & $a,b$ odd\\
+$2$ & $2a+3b<14$ & $a$ even, $b$ odd\\
+$3$ & $3a+4b<45$ & $a,b$ odd, $3\mid a$, $3\nmid b$\\
+$11$ & $a+8b<20$ & $a,b$ odd, $11\mid a$\\
+$66$ & $a<15$ & $a$ even, $b$ odd, $11\mid a$\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{The discriminant}
+
+The remaining coordinates $c,t$ are determined by the identity
+\begin{equation}\label{eq:disc}
+C=c^2+et^2,\quad P=ct\quad\Longrightarrow\quad(c^2-et^2)^2=C^2-4eP^2.
+\end{equation}
+If the right-hand side is negative, no $c,t$ exist. If it is $k^2$ with $k\ge0$, then $2et^2=C\pm k$, so $t^2$ has only two candidates, and only those that are squares of integers remain.
+For $d=1,2,3$, once $(a,b)$ is fixed, the two coefficient equations of $\Nm(v)$ are linear equations in $C$ and $P$.
+
+\paragraph{$d=1$.}
+Six pairs $(a,b)$ lie in the range of Table~\ref{tab:ranges}. Solving for $C$ and $P$ gives the following.
+\begin{center}
+\begin{tabular}{cccl}
+\toprule
+$(a,b)$ & $P$ & $C$ & candidates for $t^2$\\
+\midrule
+$(1,1)$ & $-10$ & $49$ & $4,\ 25/6$\\
+$(3,1)$ & $-12$ & $59$ & $9/2,\ 16/3$\\
+$(5,1)$ & $-5$ & $25$ & $5/2,\ 5/3$\\
+$(7,1)$, $(1,3)$, $(3,3)$ & & negative & ---\\
+\bottomrule
+\end{tabular}
+\end{center}
+A negative $C$ contradicts $C=c^2+6t^2$. Hence $t^2=4$ and $ct=-10$, so $(c,t)=\pm(5,-2)$.
+
+\paragraph{$d=2$.}
+If $a=0$, then the equation $ab=2Q_{5,3}(c,t)$ from the proof of Lemma~\ref{lem:signs} gives $Q_{5,3}(c,t)=0$, that is, $c=t=0$. The constant coefficient then reads $3b^2=11$, which is impossible.
+The remaining pairs are $(2,1)$, $(4,1)$, $(2,3)$. The pair $(2,3)$ is excluded because $A^2=31+12\sqrt3>49>187/4$.
+\begin{center}
+\begin{tabular}{cccl}
+\toprule
+$(a,b)$ & $P$ & $C$ & candidates for $t^2$\\
+\midrule
+$(2,1)$ & $-2$ & $7$ & $1,\ 4/3$\\
+$(4,1)$ & $-1$ & $4$ & $1,\ 1/3$\\
+\bottomrule
+\end{tabular}
+\end{center}
+Hence $(c,t)=\pm(2,-1)$ or $\pm(1,-1)$.
+
+\paragraph{$d=3$.}
+The pairs in the range are $(3,1)$, $(3,5)$, $(3,7)$, $(9,1)$, and $C^2-8P^2$ is $1$, $-7$, $-79$, $-63$ respectively.
+Hence $(a,b)=(3,1)$, and $C=c^2+2t^2=1$ gives $t=0$ and $c=\pm1$.
+
+\paragraph{$d=11$.}
+The range gives $a=11$ and $b=1$. Eliminating the quadratic terms in $c,t$ from the two coefficient equations of $\Nm(v)$ gives $ct=0$.
+If $c=0$, the constant coefficient reads $12t^2=22$, which is impossible. Hence $t=0$ and $c=\pm1$.
+
+\paragraph{$d=66$.}
+The range gives $a=0$. Then $ab=6Q_{63,19}(c,t)$ gives $c=t=0$, and the constant coefficient $11b^2=11$ with $b\ge0$ gives $b=1$.
+
+\subsection{The result}
+
+Let $\xi_0$ be the element in Table~\ref{tab:reps}, and for $d=2$ consider also $w_0=(4,1,1,-1)$.
+
+\begin{table}[htbp]
+\centering
+\caption{The small elements}\label{tab:reps}
+\begin{tabular}{ccc}
+\toprule
+$d$ & $\xi_0$ & other elements\\
+\midrule
+$1$ & $(1,1,5,-2)$ & $\tau(\xi_0)$\\
+$2$ & $(2,1,2,-1)$ & $\tau(\xi_0)$, $w_0=(4,1,1,-1)$, $\tau(w_0)$\\
+$3$ & $(3,1,1,0)$ & $\tau(\xi_0)$\\
+$11$ & $(11,1,1,0)$ & $\tau(\xi_0)$\\
+$66$ & $(0,1,0,0)$ & --- ($\tau(\xi_0)=\xi_0$)\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{proposition}\label{prop:small}
+For the element $\xi$ of Proposition~\ref{prop:xi}, there is $i\in\Z$ such that $\xi\rho^{-i}$ is one of the elements of Table~\ref{tab:reps}.
+\end{proposition}
+
+Every element in the table has first coordinate $1$ and satisfies $f=0$.
+However, multiplication by $\rho$ does not preserve $f$. The exponents $m$ with $f(\xi_0\rho^m)=0$ are determined from Section~\ref{sec:dyadic} on.
+
+%======================================================================
+\section{Relative conjugates and the second element}\label{sec:reps}
+%======================================================================
+
+The map $\tau$ preserves $f$ and the $0$th coordinate, and satisfies $\tau(\rho)=\rho^{-1}$.
+Therefore, if $\xi=\tau(p)\rho^i$, we may replace $\xi$ by $\tau(\xi)=p\rho^{-i}$ without changing $P(\xi)=n+3$ and $f(\xi)=0$.
+In what follows we examine $\xi=\xi_0\rho^m$, and, for $d=2$, $\xi=w_0\rho^m$.
 
 \begin{lemma}\label{lem:extra}
-For $d=2$, $\xi=\xi_1\rho^m$ does not occur.
+For $d=2$, $\xi=w_0\rho^m$ does not occur.
 \end{lemma}
 
 \begin{proof}
 Multiplication by $\rho^2=(41,24,6,4)$ does not change the first two coordinates modulo $8$. This can be checked for an arbitrary element from the multiplication table.
-If $m$ is even, the first two coordinates of $\xi_1\rho^m$ are $(2,3)$ modulo $8$. Then $f\equiv8\pmod{16}$, contrary to $f(\xi)=0$.
-If $m$ is odd, the $0$th coordinate is $4$ modulo $8$. But $P(\xi)=2r^2$, and a square is never $2$ modulo $4$. This is a contradiction.
+The first two coordinates of $w_0$ and $w_0\rho=(2,3,1,0)$ are $(4,1)$ and $(2,3)$.
+If $m$ is even, the $0$th coordinate is $4$ modulo $8$. But $P(\xi)=2r^2$ is $0$ or $2$ modulo $8$. This is a contradiction.
+If $m$ is odd, the first two coordinates are $(2,3)$ modulo $8$. Then $f\equiv8\pmod{16}$, contrary to $f(\xi)=0$.
 \end{proof}
 
 Thus the only elements left to examine are $\xi_0\rho^m$ ($m\in\Z$).
@@ -936,9 +986,9 @@ Section & Files\\
 \ref{sec:branches} & \texttt{Basic}, \texttt{Squarefree}, \texttt{IntegerParity}, \texttt{IntegerSquareObstructions}, \texttt{Branches}\\
 \ref{sec:parameters} & \texttt{SpecialPell}, \texttt{QuadraticParameters}, \texttt{SelectedParameters}, \texttt{SquareFactor}, \texttt{D3Parameters}, \texttt{NormEleven/Parameters}\\
 \ref{sec:norm11} & \texttt{Quartic/D*Ring}, \texttt{Quartic/D1}, \texttt{D2}, \texttt{D3}, \texttt{D11}, \texttt{D66}, \texttt{NormEleven/Certificates}\\
-\ref{sec:division} & \texttt{Quartic/D1Division}, \texttt{Quartic/D2Division}, \texttt{Quartic/D3Division}, \texttt{Quartic/D11}, \texttt{Quartic/D66}\\
-\ref{sec:units} & \texttt{Quartic/UnitGap}, \texttt{Quartic/RelativeUnitGap}, \texttt{Quartic/D*Trace}\\
-\ref{sec:signs} & \texttt{PositiveOrbit}, \texttt{OrbitCongruence}, \texttt{NormEleven/PositiveOrbitData}, \texttt{NormEleven/D2Congruences}\\
+\ref{sec:window} & \texttt{NormWindow}, \texttt{Quartic/D*Trace}, \texttt{NormEleven/PositiveOrbitData}\\
+\ref{sec:small} & \texttt{NormEleven/SmallNorm}, \texttt{NormEleven/Reduction}\\
+\ref{sec:reps} & \texttt{OrbitCongruence}, \texttt{NormEleven/D2Congruences}\\
 \ref{sec:dyadic} & \texttt{Binomial}, \texttt{QuadraticPolynomial}, \texttt{FactoredExponent}, \texttt{NormDerivative}, \texttt{RelativeDirection}, \texttt{NormEleven/RelativeDirectionData}, \texttt{NormEleven/ParityDirectionData}\\
 \ref{sec:exponents} & \texttt{OrbitReflection}, \texttt{FiniteDifference}, \texttt{NormEleven/DyadicSimple}, \texttt{NormEleven/DyadicCertificates}, \texttt{NormEleven/D2Entrance}, \texttt{NormEleven/D2Dyadic}, \texttt{NormEleven/D11Dyadic}, \texttt{NormEleven/D66Square}, \texttt{NormEleven/D66Dyadic}\\
 \ref{sec:conclusion} & \texttt{NormEleven/D1}, \texttt{D2}, \texttt{D3}, \texttt{D11}, \texttt{D66}, \texttt{Classification}\\

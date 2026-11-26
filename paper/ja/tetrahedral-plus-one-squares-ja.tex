@@ -53,8 +53,8 @@
 この方程式は楕円曲線を定めるので、整点の決定には通常、楕円対数の1次形式の下界に基づく計算が使われる。
 本稿は、楕円曲線の理論を使わない証明を与える。
 証明の中心は、2つの方程式を、4次体の元 $\xi$ の相対ノルムが $11$ であるという1つの式にまとめることにある。
-この $\xi$ を $11$ で割って単数の冪に帰着し、指数は $2$ 進の一意性補題により決める。
-数値計算に頼るのは、特定の元どうしの積と、小さな数を法とする合同式の確認だけであり、解の候補を探索することはしない。
+この $\xi$ に既知の相対単数の冪を掛けて小さい元に移し、その元を整数の計算で決める。残る指数は $2$ 進の一意性補題により決める。
+数値計算に頼るのは、特定の元どうしの積と、小さな数を法とする合同式と、不等式で絞った少数の整数の組の確認だけであり、解の候補を探索することはしない。
 証明の全体は Lean~4 と Mathlib で形式化されている。
 \end{abstract}
 
@@ -99,7 +99,7 @@ Y^2=X^3+18X^2+72X+1296
 \item 整数の合同式と整除。
 \end{itemize}
 一方で、類数、単数定理、イデアルの一意分解、$p$ 進解析は使わない。
-単数については、1つの元がすべての相対単数を生成することを、実数の不等式で直接示す（第~\ref{sec:units} 節）。
+単数については、相対単数の全体を決定しない。既知の1つの相対単数の冪を掛けて $\xi$ を小さい範囲に移し、そこに残る元を偶奇と判別式で決める（第~\ref{sec:window} 節と第~\ref{sec:small} 節）。
 また指数の決定には、$p$ 進の零点の理論の代わりに、$2$ の冪による整除を繰り返す議論を用いる（第~\ref{sec:dyadic} 節）。
 
 \subsection{証明の構成}
@@ -109,9 +109,9 @@ Y^2=X^3+18X^2+72X+1296
 \item 方程式を5つの連立方程式 $n+3=dr^2$, $n^2+2=ey^2$ に分ける（第~\ref{sec:branches} 節）。
 \item 第2式の解を、2つの整数による平方の形で表す（第~\ref{sec:parameters} 節）。
 \item 2つの式をまとめて、相対ノルムが $11$ の元 $\xi$ を作る（第~\ref{sec:norm11} 節）。
-\item $11$ による割り算で、$\xi$ を有限個の初期元と相対単数の積に書く（第~\ref{sec:division} 節）。
-\item 相対単数が1つの元 $\rho$ の冪と符号で尽きることを示す（第~\ref{sec:units} 節）。
-\item 負の符号と、不要な初期元を除く（第~\ref{sec:signs} 節）。
+\item 既知の相対単数 $\rho$ の冪を掛けて、$\xi$ を小さい元に移す（第~\ref{sec:window} 節）。
+\item その小さい元を、偶奇と判別式で決める（第~\ref{sec:small} 節）。
+\item 相対共役と、$d=2$ の不要な元を除く（第~\ref{sec:reps} 節）。
 \item $2$ 進の一意性補題で、$\rho$ の指数を決める（第~\ref{sec:dyadic} 節と第~\ref{sec:exponents} 節）。
 \item 決まった元の座標から $n$ を読む（第~\ref{sec:conclusion} 節）。
 \end{enumerate}
@@ -304,8 +304,8 @@ $66$ & $-3$ & $63+19\omega$ & $10a+3b$ & $-3a-b$\\
 
 $F=\Q(\omega)$ とし、その2次拡大 $L=F(\theta)$（$\theta^2\in F$）を考える。
 2つの式 \eqref{eq:pair} は、ある元 $\xi\in L$ の相対ノルム $\Nm_{L/F}(\xi)$ が $11$ であるという1つの式にまとまる（命題~\ref{prop:xi}）。
-相対ノルムが一定値の元は、少数の元と、相対ノルムが $1$ の単数との積に書ける。
-第~\ref{sec:division} 節と第~\ref{sec:units} 節では、この分解を、$11$ による割り算と単数の決定として具体的に行う。
+相対ノルムが $11$ の元に相対ノルムが $1$ の元を掛けても、相対ノルムは $11$ のままである。
+第~\ref{sec:window} 節と第~\ref{sec:small} 節では、この性質を使って $\xi$ を小さい元に帰着する。
 
 \subsection{5つの環}
 
@@ -376,179 +376,229 @@ $\xi$ の座標は、$d=1,2,3$ で $(n+3,y,r\eta_0,r\eta_1)$、$d=11$ で $(n+3,
 関数 $f$ は最初の2つの座標だけで決まる。したがって $f(\tau(x))=f(x)$, $P(\tau(x))=P(x)$ である。
 
 %======================================================================
-\section{\tsec{$11$}{11} による割り算}\label{sec:division}
+\section{小さい元への帰着}\label{sec:window}
 %======================================================================
 
-表~\ref{tab:initial} の元を\textbf{初期元}と呼ぶ。どれも相対ノルムは $11$ である。
+この節と次の節では、相対ノルムが $11$ の元を決める。
+相対単数の全体を決定することはしない。使うのは、表~\ref{tab:rho} の元 $\rho$ が相対単数であること（直接の計算で確かめられる）だけである。
+$\rho$ の冪を掛けても相対ノルムは $11$ のままなので、冪をうまく選んで $\xi$ を小さい元に移し、その小さい元を次の節で整数の計算により決める。
 
 \begin{table}[htbp]
 \centering
-\caption{初期元と相対単数 $\rho$}\label{tab:initial}
-\begin{tabular}{cccc}
-\toprule
-$d$ & $\xi_0$ & $\xi_1$ & $\rho$\\
-\midrule
-$1$ & $(1,1,5,-2)$ & — & $(9,4,2,0)$\\
-$2$ & $(2,1,2,-1)$ & $(2,3,1,0)$ & $(3,2,1,0)$\\
-$3$ & $(3,1,1,0)$ & — & $(17,12,6,4)$\\
-$11$ & $(11,1,1,0)$ & — & $(33,4,2,2)$\\
-$66$ & $(0,1,0,0)$ & — & $(19,6,1,0)$\\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\begin{proposition}\label{prop:division}
-$\Nm(\xi)=11$ ならば、ある初期元 $p$ と相対単数 $u$ があって、$\xi=u\,p$ または $\xi=u\,\tau(p)$ となる。
-\end{proposition}
-
-\begin{proof}
-いずれのケースでも、$\xi\,\tau(p)$ または $\xi\,p$ の4つの座標がすべて $11$ で割れることを示せばよい。
-実際、そのとき $u=\xi\tau(p)/11$ と置けば $\Nm(u)=\Nm(\xi)\Nm(p)/121=1$ であり、$\xi\,\tau(p)\,p=11\xi$ から $\xi=up$ となる。
-
-$d=1,3$ のケースでは、$e=6,2$ は法 $11$ で平方剰余でない。
-したがって $\Z[\omega]/(11)$ は $121$ 元の体 $\F_{121}$ である。
-$\xi_0=\alpha_0+\beta_0\theta$ と書くと、$\Nm(\xi_0)=\alpha_0^2-\Delta\beta_0^2=11$ であり、$\beta_0$ は $11$ と互いに素である。
-したがって $\Delta$ は $\F_{121}$ で平方根 $\pm\delta$（$\delta=\alpha_0/\beta_0$）を持つ。
-$\theta\mapsto\pm\delta$ で2つの環準同型 $\chi_\pm:R\to\F_{121}$ が定まり、$\chi_-=\chi_+\circ\tau$ である。
-$\chi_+(\xi)\chi_-(\xi)=\chi_+(\Nm(\xi))=0$ なので、$\xi$ はどちらかで $0$ になる。
-$\xi_0$ と $\tau(\xi_0)$ はそれぞれ別の側で $0$ になるので、$\xi$ と同じ側で $0$ になる方を $p$ とすれば、$\xi\tau(p)$ は両方で $0$ になる。
-両方の核の共通部分は $11R$ である。
-
-$d=2$ のケースでは、$e=3$ は法 $11$ で平方剰余であり、$\Z[\omega]/(11)\cong\F_{11}\times\F_{11}$ となる。
-2つの成分のそれぞれで、$\theta$ の値の選び方が2通りある（$\Delta$ の平方根の存在は上と同様に $\xi_0$ から分かる）。
-そこで、$\xi$ が各成分でどちらの値で $0$ になるかの組を、$\xi$ の「型」と呼ぶ。型は4通りある。
-$\xi_0,\xi_1,\tau(\xi_0),\tau(\xi_1)$ がこの4つの型を1つずつ実現するので、上と同じ議論で、$\xi$ と同じ型を持つ $p$ について $\xi\tau(p)\in11R$ となる。
-
-$d=11$ のケースでは、相対ノルムを法 $11$ で読むと $x_0^2-96x_3^2\equiv0$ となる。
-$96\equiv8$ は法 $11$ で平方剰余でないので、$11\mid x_0$, $11\mid x_3$ である。
-ここから $\xi\tau(\xi_0)\in11R$ が従う。
-
-$d=66$ のケースでも同様に、$x_0^2-756x_2^2\equiv0\pmod{11}$ と $756\equiv8$ から $11\mid x_0$, $11\mid x_2$ である。
-ここから $\xi\xi_0\in11R$ が従う。$\tau(\xi_0)=\xi_0$ に注意する。
-\end{proof}
-
-%======================================================================
-\section{相対単数}\label{sec:units}
-%======================================================================
-
-\begin{proposition}\label{prop:units}
-各ケースで、相対単数はすべて $\pm\rho^m$（$m\in\Z$）の形をしている。ここで $\rho$ は表~\ref{tab:initial} の元である。
-\end{proposition}
-
-$\rho$ が相対単数であることは直接の計算で確かめられる。示すべきは、他に相対単数がないことである。
-
-\subsection{2つの実埋め込み}
-
-$\Delta=\Delta_0+\Delta_1\omega$ について、$\sigma(\Delta)=\Delta_0+\Delta_1\sqrt e>0$, $\sigma'(\Delta)=\Delta_0-\Delta_1\sqrt e<0$ である。
-$D_+=\sigma(\Delta)$, $D_-=-\sigma'(\Delta)$ と置く。
-$\sigma:R\to\Rr$ を $\omega\mapsto\sqrt e$, $\theta\mapsto\sqrt{D_+}$ で定める。
-また $\omega\mapsto-\sqrt e$ で定まる $\Z[\omega]$ の共役を $\alpha\mapsto\alpha'$ と書く。
-
-相対単数を $v=\alpha+\gamma\theta$ と書く。ここで $\alpha\in\Z[\omega]$ であり、$\gamma\in\Z[\omega]$（$d=11$ では $\gamma\in\Z+\Z\,\omega/11$）である。
-$\Nm(v)=\alpha^2-\Delta\gamma^2=1$ に共役を取ると、$\alpha'^2+D_-\gamma'^2=1$ を得る。したがって $|\gamma'|\le D_-^{-1/2}$ である。
-
-\begin{lemma}\label{lem:gap}
-$\gamma\ne0$ ならば
-\begin{equation}\label{eq:gap}
-\bigl(|\sigma(v)|-|\sigma(v)|^{-1}\bigr)^2\ge4M,\qquad M=\nu^2D_+D_-
-\end{equation}
-が成り立つ。ここで $\nu=1$（$d\ne11$）、$\nu=3/11$（$d=11$）である。
-\end{lemma}
-
-\begin{proof}
-$\sigma(\tau(v))=\sigma(v)^{-1}$ なので、$\sigma(v)-\sigma(v)^{-1}=2\sigma(\gamma)\sqrt{D_+}$ である。
-$\gamma\ne0$ なら $|\sigma(\gamma)\gamma'|=|\NF(\gamma)|\ge\nu$ である。
-実際、$d\ne11$ では $\NF(\gamma)$ は零でない整数である。
-$d=11$ では $\gamma=c+k\omega/11$ と書くと $\NF(\gamma)=(11c^2-6k^2)/11$ であり、分子の絶対値が $1,2$ になることは法 $3$ と法 $11$ で除かれる。
-したがって
-\begin{equation}\label{eq:gamma}
-\sigma(\gamma)^2\ge\nu^2/\gamma'^2\ge\nu^2D_-
-\end{equation}
-であり、\eqref{eq:gap} を得る。
-\end{proof}
-
-この補題は、相対単数 $v\ne\pm1$ の実数値 $|\sigma(v)|$ が $1$ から一定以上離れていることを述べている。
-$4M$ と $\Lambda=\sigma(\rho)$ の値は表~\ref{tab:gap} のとおりである。$\Lambda$ については、表の上界と $\Lambda>1$ だけを使う。
-
-\begin{table}[htbp]
-\centering
-\caption{補題~\ref{lem:gap} の定数 $4M$ と $\Lambda=\sigma(\rho)$ の上界}\label{tab:gap}
+\caption{相対単数 $\rho$ と $\Lambda=\sigma(\rho)$ の上界}\label{tab:rho}
 \begin{tabular}{cccccc}
 \toprule
 $d$ & $1$ & $2$ & $3$ & $11$ & $66$\\
 \midrule
-$4M$ & $32$ & $128$ & $288$ & $288$ & $1152$\\
-$\Lambda<$ & $40$ & $14$ & $100$ & $142$ & $84$\\
+$\rho$ & $(9,4,2,0)$ & $(3,2,1,0)$ & $(17,12,6,4)$ & $(33,4,2,2)$ & $(19,6,1,0)$\\
+$\Lambda<$ & $40$ & $14$ & $72$ & $142$ & $78$\\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\subsection{証明}
+\subsection{実数値}
 
-証明では、$\rho$ の冪を掛けて $|\sigma(v)|$ を区間 $[1,\Lambda)$ に移し、その区間に $\pm1$ 以外の相対単数がないことを示す。
+$\Z[\omega]$ の元 $\alpha=a+b\omega$ に対して $\sigma(\alpha)=a+b\sqrt e$ と置く。
+どのケースでも $\sigma(\Delta)>0$ なので、$\theta\mapsto\sqrt{\sigma(\Delta)}$ により環準同型 $\sigma:R\to\Rr$ が定まる。
+$\Lambda=\sigma(\rho)$ と置くと $\Lambda>1$ であり、表~\ref{tab:rho} の上界は平方根の粗い有理数の評価から得られる（たとえば $d=66$ では $\sqrt{11}<10/3$ と $\sqrt{756+228\sqrt{11}}<39$ で足りる）。
+$\tau(\rho)=\rho^{-1}$ なので $\sigma(\tau(\rho))=\Lambda^{-1}$ である。
 
-\begin{proof}[命題~\ref{prop:units} の証明]
-$\Lambda>1$ なので、任意の相対単数 $v$ に $\rho$ の整数冪を掛けて、$1\le a=|\sigma(v)|<\Lambda$ とできる。
-$\gamma=0$ なら $\alpha^2=1$ であり、$\alpha\in\Z[\omega]$ から $v=\pm1$ となる。
-$\gamma\ne0$ と仮定して矛盾を導く。
-
-$v'=\rho\,\tau(v)$ と置くと、$b=|\sigma(v')|=\Lambda/a$ であり、$b>1$, $ab=\Lambda$ である。
-$v'$ の $\theta$ 成分も零でない（零なら $v=\pm\rho$ となり $a=\Lambda$ に反する）。
-補題~\ref{lem:gap} を $v$ と $v'$ に使い、$a,b\ge1$ で成り立つ $(a-a^{-1})^2\le a^2$ と合わせると、$a^2\ge4M$, $b^2\ge4M$ を得る。
-したがって $\Lambda=ab\ge4M$ である。
-$d=2,3,11,66$ では、表~\ref{tab:gap} から $\Lambda<4M$ なので矛盾する。
-
-$d=1$ では $\Lambda>32$ なので、もう1ステップの議論が要る。
-$b^2\ge32$ から $a^2=\Lambda^2/b^2<50$ である。
-$v$ の $\Z[\omega]$ 成分 $\alpha$ について、$\sigma(\alpha)=(\sigma(v)+\sigma(v)^{-1})/2$ なので $\sigma(\alpha)^2<14$ である。
-また $\alpha'^2\le1$ である。
-$(\sigma(\alpha)+2\alpha')^2\ge0$ から
+任意の $x\in R$ について
 \[
-(\sigma(\alpha)-\alpha')^2\le\tfrac32\sigma(\alpha)^2+3\alpha'^2<24
+\sigma(x)\,\sigma(\tau(x))=\sigma(\Nm(x)),\qquad\sigma(x)+\sigma(\tau(x))=2\sigma(\pi(x))
 \]
-を得る。
-ところが $\alpha=h+c\sqrt6$ と書けば、左辺は $24c^2$ である。したがって $c=0$ である。
-このとき $\sigma(\alpha)^2=\alpha'^2\le1$ となる。一方、$\sigma(\alpha)^2=1+D_+\sigma(\gamma)^2$ と \eqref{eq:gamma} から $\sigma(\alpha)^2\ge1+D_+D_-=9$ が従い、矛盾する。
-\end{proof}
+が成り立つ。命題~\ref{prop:xi} の $\xi$ では、積は $11$、和は $2(n+3+y\sqrt e)$ であり、どちらも正である。
+したがって $\sigma(\xi)>0$, $\sigma(\tau(\xi))>0$ である。
 
-この議論は一般の単数定理を使わない。使うのは、実数の不等式と、表~\ref{tab:gap} の有理数による上界だけである。
+\subsection{区間への移動}
 
-%======================================================================
-\section{符号と第2の初期元}\label{sec:signs}
-%======================================================================
-
-前の2つの節から、$\xi=\pm p\rho^m$（$p$ は初期元またはその相対共役、$m\in\Z$）と書ける。
-$\tau$ は $f$ と第 $0$ 座標を保ち、$\tau(\rho)=\rho^{-1}$ を満たす。
-したがって $\tau(\xi_i)\rho^m=\tau(\xi_i\rho^{-m})$ の形の元は、$\xi_i\rho^{-m}$ に置き換えてよい。
-以下、$\xi=\pm\xi_i\rho^m$ を調べる。
-
-\subsection{非負性}
-
-\begin{lemma}\label{lem:positive}
-各初期元 $\xi_i$ とすべての $m\in\Z$ について、$P(\xi_i\rho^m)\ge0$ である。
+\begin{lemma}\label{lem:window}
+$N$ を正の整数とし、$x\in R$ は $\Nm(x)=N$, $\sigma(x)>0$ を満たすとする。
+このとき、ある $i\in\Z$ について $v=x\rho^{-i}$ は $\Nm(v)=N$, $\sigma(v)>0$ を満たし、$\pi(v)=a+b\omega$, $A=a+b\sqrt e$ と書くと
+\begin{equation}\label{eq:window}
+A>0,\qquad 4A^2\le N(\Lambda+3)
+\end{equation}
+が成り立つ。
 \end{lemma}
 
 \begin{proof}
-5つの環の乗法表の係数はすべて非負である。したがって、座標がすべて非負の元の全体 $C$ は積について閉じている。$\rho$ も $C$ に属する。
-
-各初期元について、$\xi_i\rho^2$ と $\tau(\xi_i)\rho^2$ が $C$ に属することを直接確かめる。
-すると $m\ge2$ では $\xi_i\rho^m=(\xi_i\rho^2)\rho^{m-2}\in C$ である。
-$m\le-2$ では $\tau(\xi_i\rho^m)=\tau(\xi_i)\rho^{-m}\in C$ であり、$\tau$ は第 $0$ 座標を保つ。
-残る $m=-1,0,1$ は直接確かめる。
+$\Lambda^2>1$ なので、$(\Lambda^2)^i\le\sigma(x)^2\Lambda/N<(\Lambda^2)^{i+1}$ となる整数 $i$ がある。
+$v=x\rho^{-i}$ と置くと、$\Nm(v)=N$ であり、$S=\sigma(v)=\sigma(x)\Lambda^{-i}>0$ は
+\[
+N\le S^2\Lambda,\qquad S^2<N\Lambda
+\]
+を満たす。$T=\sigma(\tau(v))$ と置くと $ST=N$ なので $T>0$ であり、第1の不等式に $T^2$ を掛けると $T^2\le N\Lambda$ を得る。
+また $S^2T^2=N^2$ なので、$S^2$ と $T^2$ の少なくとも一方は $N$ 以下である。
+$2A=S+T>0$ であり、
+\[
+4A^2=S^2+T^2+2N\le N\Lambda+N+2N=N(\Lambda+3)
+\]
+となる。
 \end{proof}
 
-$P(\xi)=n+3>0$ なので、$\xi=-\xi_i\rho^m$ の形は起こらない。
+\subsection{\tsec{$\pi(v)$}{pi(v)} の係数の符号}
 
-\subsection{\tsec{$d=2$}{d=2} の第2の初期元}
+$v$ の $\theta$ の係数を $\gamma$ と書く。$\Nm(v)=\pi(v)^2-\Delta\gamma^2$ の $\omega$ の係数が $0$ であることから、$a,b$ の符号が分かる。
+ここで、第~\ref{sec:parameters} 節の $\beta=p+q\omega$ を使う。$n+y\omega=\beta\eta^2$ と $\NF(n+y\omega)=-2$ から $\NF(\beta)=-2$、すなわち $p^2-eq^2=-2$ であり、表~\ref{tab:beta} から $q>0$ である。
+\[
+Q_\beta(c,t)=qc^2+2pct+eqt^2
+\]
+と置くと、$p^2-eq^2=-2$ から
+\begin{equation}\label{eq:qbeta}
+q\,Q_\beta(c,t)=(qc+pt)^2+2t^2
+\end{equation}
+が成り立つ。したがって $Q_\beta(c,t)\ge0$ であり、等号は $c=t=0$ のときに限る。
+
+\begin{lemma}\label{lem:signs}
+\eqref{eq:window} を満たし、$\Nm(v)$ が整数である $v$ について、$a\ge0$, $b\ge0$ である。
+\end{lemma}
+
+\begin{proof}
+$\beta\gamma^2$ の $\omega$ の係数は、$\gamma=c+t\omega$ のとき $Q_\beta(c,t)$ である。
+$\Delta$ は $\beta$ の正の倍数（$d\ne66$ では $2d\beta$、$d=66$ では $12\beta$）なので、$\Nm(v)$ の $\omega$ の係数が $0$ であるという式は、次のようになる。
+\[
+\begin{array}{rl}
+d=1: & ab=Q_{22,9}(c,t),\\
+d=2: & ab=2Q_{5,3}(c,t),\\
+d=3: & ab=3(c^2+2t^2),\\
+d=11: & 11ab=Q_{8,1}(11c,t),\\
+d=66: & ab=6Q_{63,19}(c,t).
+\end{array}
+\]
+ここで $Q_{p,q}$ は $\beta=p+q\omega$ に対する $Q_\beta$ であり、$d=11$ では $\gamma=c+t\omega/11$ と書いた。
+したがって $ab\ge0$ である。$a,b$ がともに $0$ 以下なら $A=a+b\sqrt e\le0$ となり、\eqref{eq:window} に反する。
+\end{proof}
+
+%======================================================================
+\section{小さい元の決定}\label{sec:small}
+%======================================================================
+
+補題~\ref{lem:window} を $N=11$, $x=\xi$ に使って得た $v=(a,b,c,t)$ を決める。
+以下、$v$ の座標を $(a,b,c,t)$ と書く（$d=11$ では $\gamma=c+t\omega/11$、それ以外では $\gamma=c+t\omega$）。
+
+\subsection{範囲と偶奇}
+
+\eqref{eq:window} と表~\ref{tab:rho} から、$4A^2$ は順に $473$, $187$, $825$, $1595$, $891$ より小さい（$d=1,2,3,11,66$）。
+
+次に、$\Nm(v)$ の定数係数 $11$ を法 $4$ で読む。$\theta$ の係数からの寄与は、どの環でも法 $4$ で $0$ である（乗法表から確かめられる）。
+したがって $a^2+eb^2\equiv3\pmod4$ であり、平方数が法 $4$ で $0$ か $1$ であることから、$e\equiv2\pmod4$（$d=1,3,11$）では $a,b$ はともに奇数、$e\equiv3\pmod4$（$d=2,66$）では $a$ は偶数、$b$ は奇数である。
+
+$\sqrt e$ を小さい有理数で下から評価し、$a,b\ge0$ と合わせると、表~\ref{tab:ranges} の範囲を得る。
+$d=3$ の条件は、定数係数を法 $3$ で読むと $a^2+2b^2\equiv2$ となることから従う。
+$d=11,66$ では、定数係数を法 $11$ で読むと、それぞれ $a^2-96t^2\equiv0$, $a^2-756c^2\equiv0$ となる。
+$96\equiv756\equiv8$ は法 $11$ で平方剰余でないので、$11\mid a$ である。
+
+\begin{table}[htbp]
+\centering
+\caption{$v$ の最初の2つの座標の範囲}\label{tab:ranges}
+\begin{tabular}{ccc}
+\toprule
+$d$ & 大小から & 偶奇と整除\\
+\midrule
+$1$ & $a+2b<11$ & $a,b$ は奇数\\
+$2$ & $2a+3b<14$ & $a$ は偶数、$b$ は奇数\\
+$3$ & $3a+4b<45$ & $a,b$ は奇数、$3\mid a$, $3\nmid b$\\
+$11$ & $a+8b<20$ & $a,b$ は奇数、$11\mid a$\\
+$66$ & $a<15$ & $a$ は偶数、$b$ は奇数、$11\mid a$\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{判別式}
+
+残る2つの座標 $c,t$ は、次の恒等式で決める。
+\begin{equation}\label{eq:disc}
+C=c^2+et^2,\quad P=ct\quad\Longrightarrow\quad(c^2-et^2)^2=C^2-4eP^2.
+\end{equation}
+右辺が負なら $c,t$ は存在しない。右辺が $k^2$（$k\ge0$）なら $2et^2=C\pm k$ なので、$t^2$ の候補は2つに限られ、整数の平方になるものだけが残る。
+$d=1,2,3$ では、$(a,b)$ を固定すると、$\Nm(v)$ の2つの係数の式は $C,P$ についての連立1次方程式になる。
+
+\paragraph{$d=1$。}
+表~\ref{tab:ranges} の範囲にある $(a,b)$ は6組である。それぞれについて $C,P$ を解くと、次のようになる。
+\begin{center}
+\begin{tabular}{cccl}
+\toprule
+$(a,b)$ & $P$ & $C$ & $t^2$ の候補\\
+\midrule
+$(1,1)$ & $-10$ & $49$ & $4,\ 25/6$\\
+$(3,1)$ & $-12$ & $59$ & $9/2,\ 16/3$\\
+$(5,1)$ & $-5$ & $25$ & $5/2,\ 5/3$\\
+$(7,1)$, $(1,3)$, $(3,3)$ & & 負 & —\\
+\bottomrule
+\end{tabular}
+\end{center}
+$C<0$ は $C=c^2+6t^2$ に反する。したがって $t^2=4$, $ct=-10$ であり、$(c,t)=\pm(5,-2)$ である。
+
+\paragraph{$d=2$。}
+$a=0$ なら、補題~\ref{lem:signs} の証明の式 $ab=2Q_{5,3}(c,t)$ から $Q_{5,3}(c,t)=0$、すなわち $c=t=0$ であり、定数係数は $3b^2=11$ となって不可能である。
+残る $(a,b)$ は $(2,1)$, $(4,1)$, $(2,3)$ である。$(2,3)$ は $A^2=31+12\sqrt3>49>187/4$ となって外れる。
+\begin{center}
+\begin{tabular}{cccl}
+\toprule
+$(a,b)$ & $P$ & $C$ & $t^2$ の候補\\
+\midrule
+$(2,1)$ & $-2$ & $7$ & $1,\ 4/3$\\
+$(4,1)$ & $-1$ & $4$ & $1,\ 1/3$\\
+\bottomrule
+\end{tabular}
+\end{center}
+したがって $(c,t)=\pm(2,-1)$ または $\pm(1,-1)$ である。
+
+\paragraph{$d=3$。}
+範囲にある $(a,b)$ は $(3,1)$, $(3,5)$, $(3,7)$, $(9,1)$ であり、$C^2-8P^2$ は順に $1$, $-7$, $-79$, $-63$ である。
+したがって $(a,b)=(3,1)$ であり、$C=c^2+2t^2=1$ から $t=0$, $c=\pm1$ である。
+
+\paragraph{$d=11$。}
+範囲から $a=11$, $b=1$ である。$\Nm(v)$ の2つの係数の式から $c$, $t$ の2次の項を消すと $ct=0$ を得る。
+$c=0$ なら定数係数の式は $12t^2=22$ となり不可能である。したがって $t=0$, $c=\pm1$ である。
+
+\paragraph{$d=66$。}
+範囲から $a=0$ である。$ab=6Q_{63,19}(c,t)$ から $c=t=0$ であり、定数係数 $11b^2=11$ と $b\ge0$ から $b=1$ である。
+
+\subsection{結果}
+
+以上をまとめる。$\xi_0$ を表~\ref{tab:reps} の元とし、$d=2$ では $w_0=(4,1,1,-1)$ も考える。
+
+\begin{table}[htbp]
+\centering
+\caption{小さい元}\label{tab:reps}
+\begin{tabular}{ccc}
+\toprule
+$d$ & $\xi_0$ & 他の元\\
+\midrule
+$1$ & $(1,1,5,-2)$ & $\tau(\xi_0)$\\
+$2$ & $(2,1,2,-1)$ & $\tau(\xi_0)$, $w_0=(4,1,1,-1)$, $\tau(w_0)$\\
+$3$ & $(3,1,1,0)$ & $\tau(\xi_0)$\\
+$11$ & $(11,1,1,0)$ & $\tau(\xi_0)$\\
+$66$ & $(0,1,0,0)$ & —（$\tau(\xi_0)=\xi_0$）\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{proposition}\label{prop:small}
+命題~\ref{prop:xi} の $\xi$ について、ある $i\in\Z$ があって、$\xi\rho^{-i}$ は表~\ref{tab:reps} の元のいずれかである。
+\end{proposition}
+
+表の元はどれも第1座標が $1$ で、$f=0$ を満たす。
+しかし $\rho$ を掛ける操作は $f$ を保たないので、$f(\xi_0\rho^m)=0$ となる指数 $m$ は第~\ref{sec:dyadic} 節以降で決める。
+
+%======================================================================
+\section{相対共役と第2の元}\label{sec:reps}
+%======================================================================
+
+$\tau$ は $f$ と第 $0$ 座標を保ち、$\tau(\rho)=\rho^{-1}$ を満たす。
+したがって $\xi=\tau(p)\rho^i$ のときは、$\xi$ を $\tau(\xi)=p\rho^{-i}$ に取り替えても、$P(\xi)=n+3$ と $f(\xi)=0$ は変わらない。
+以下、$\xi=\xi_0\rho^m$ または（$d=2$ で）$\xi=w_0\rho^m$ を調べる。
 
 \begin{lemma}\label{lem:extra}
-$d=2$ で $\xi=\xi_1\rho^m$ となることはない。
+$d=2$ で $\xi=w_0\rho^m$ となることはない。
 \end{lemma}
 
 \begin{proof}
 $\rho^2=(41,24,6,4)$ を掛けても、最初の2つの座標は法 $8$ で変わらない。このことは任意の元について乗法表から確かめられる。
-$m$ が偶数なら、$\xi_1\rho^m$ の最初の2つの座標は法 $8$ で $(2,3)$ であり、$f\equiv8\pmod{16}$ となって $f(\xi)=0$ に反する。
-$m$ が奇数なら、第 $0$ 座標は法 $8$ で $4$ である。ところが $P(\xi)=2r^2$ であり、平方数は法 $4$ で $2$ にならないので、矛盾する。
+$w_0$ と $w_0\rho=(2,3,1,0)$ の最初の2つの座標は $(4,1)$, $(2,3)$ である。
+$m$ が偶数なら、第 $0$ 座標は法 $8$ で $4$ である。ところが $P(\xi)=2r^2$ は法 $8$ で $0$ か $2$ なので、矛盾する。
+$m$ が奇数なら、最初の2つの座標は法 $8$ で $(2,3)$ であり、$f\equiv8\pmod{16}$ となって $f(\xi)=0$ に反する。
 \end{proof}
 
 以上で、調べるべき元は $\xi_0\rho^m$（$m\in\Z$）だけになった。
@@ -944,9 +994,9 @@ theorem Tetrahedral.tetrahedral_add_one_eq_sq_iff (n : ℕ) :
 \ref{sec:branches} & \texttt{Basic}, \texttt{Squarefree}, \texttt{IntegerParity}, \texttt{IntegerSquareObstructions}, \texttt{Branches}\\
 \ref{sec:parameters} & \texttt{SpecialPell}, \texttt{QuadraticParameters}, \texttt{SelectedParameters}, \texttt{SquareFactor}, \texttt{D3Parameters}, \texttt{NormEleven/Parameters}\\
 \ref{sec:norm11} & \texttt{Quartic/D*Ring}, \texttt{Quartic/D1}, \texttt{D2}, \texttt{D3}, \texttt{D11}, \texttt{D66}, \texttt{NormEleven/Certificates}\\
-\ref{sec:division} & \texttt{Quartic/D1Division}, \texttt{Quartic/D2Division}, \texttt{Quartic/D3Division}, \texttt{Quartic/D11}, \texttt{Quartic/D66}\\
-\ref{sec:units} & \texttt{Quartic/UnitGap}, \texttt{Quartic/RelativeUnitGap}, \texttt{Quartic/D*Trace}\\
-\ref{sec:signs} & \texttt{PositiveOrbit}, \texttt{OrbitCongruence}, \texttt{NormEleven/PositiveOrbitData}, \texttt{NormEleven/D2Congruences}\\
+\ref{sec:window} & \texttt{NormWindow}, \texttt{Quartic/D*Trace}, \texttt{NormEleven/PositiveOrbitData}\\
+\ref{sec:small} & \texttt{NormEleven/SmallNorm}, \texttt{NormEleven/Reduction}\\
+\ref{sec:reps} & \texttt{OrbitCongruence}, \texttt{NormEleven/D2Congruences}\\
 \ref{sec:dyadic} & \texttt{Binomial}, \texttt{QuadraticPolynomial}, \texttt{FactoredExponent}, \texttt{NormDerivative}, \texttt{RelativeDirection}, \texttt{NormEleven/RelativeDirectionData}, \texttt{NormEleven/ParityDirectionData}\\
 \ref{sec:exponents} & \texttt{OrbitReflection}, \texttt{FiniteDifference}, \texttt{NormEleven/DyadicSimple}, \texttt{NormEleven/DyadicCertificates}, \texttt{NormEleven/D2Entrance}, \texttt{NormEleven/D2Dyadic}, \texttt{NormEleven/D11Dyadic}, \texttt{NormEleven/D66Square}, \texttt{NormEleven/D66Dyadic}\\
 \ref{sec:conclusion} & \texttt{NormEleven/D1}, \texttt{D2}, \texttt{D3}, \texttt{D11}, \texttt{D66}, \texttt{Classification}\\

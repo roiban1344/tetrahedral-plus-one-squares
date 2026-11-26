@@ -48,11 +48,10 @@ It needs no class numbers, no unit theorem, no unique factorization of ideals an
 1. Split the equation into five systems $n+3=dr^2,\ n^2+2=ey^2$, where $(d,e)$ is $(1,6)$, $(2,3)$, $(3,2)$, $(11,66)$ or $(66,11)$.
 2. Write $n+y\sqrt e$ as a fixed element times a square, by a descent (an argument that repeatedly produces a smaller solution from a given one) instead of the general theory of Pell equations.
 3. Combine the two equations into an element $\xi$ of a quartic field $L=\mathbb Q(\sqrt e,\theta)$ whose relative norm to $\mathbb Q(\sqrt e)$ is $11=3^2+2$. The first coordinate of $\xi$ is $n+3$.
-4. Divide by 11: $\xi$ is an initial element times a relative unit.
-5. Show by real inequalities that every relative unit (an element of relative norm 1) is $\pm\rho^m$ for one explicit unit $\rho$.
-6. Exclude the negative sign by the nonnegativity of coordinates, and exclude a second initial element for $d=2$.
-7. Determine the exponent $m$ by a 2-adic uniqueness lemma, proved by repeated divisibility by powers of 2.
-8. Read $n$ from the first coordinate of the remaining nine elements; two give negative $n$.
+4. Multiply $\xi$ by a power of a known relative unit $\rho$ (an element of relative norm 1) to move its real value into a fixed interval. The group of all relative units is not determined.
+5. Determine the small element in that interval by parity and a discriminant. Then $\xi=\xi_0\rho^m$ for a small element $\xi_0$ (one more element that appears for $d=2$ is excluded by congruences modulo 8 and 16).
+6. Determine the exponent $m$ by a 2-adic uniqueness lemma, proved by repeated divisibility by powers of 2.
+7. Read $n$ from the first coordinate of the remaining nine elements; two give negative $n$.
 
 The paper gives the full argument.
 

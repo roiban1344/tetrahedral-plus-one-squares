@@ -34,3 +34,12 @@ Commits that do not change the Lean proof are not listed.
 | 24 | 2026-11-26 | `157f936` | For h = 2, the norm-square identities are replaced by the parity of one coefficient of the relative norm. | 58 | 5,650 |
 | 25 | 2026-11-26 | `e48755b` | The congruences f ≡ K ≡ 0 mod 4 are proved for the whole orbit, so the estimates no longer assume exact roots. | 58 | 5,717 |
 | 26 | 2026-11-26 | `07d608d` | The higher error terms are controlled by values modulo 2 only. | 58 | 5,714 |
+| 27 | 2026-11-26 | `ed9cf54` | In the proof that ρ generates the relative units, the gap between units is replaced by an upper bound for the trace and a positive definite quadratic form. | 57 | 5,518 |
+| 28 | 2026-11-26 | `d7e9af6` | A unit is moved directly into an interval centred at the square root of Λ; the second unit used for comparison is no longer needed. | 57 | 5,532 |
+| 29 | 2026-11-26 | `abb3397` | Bounds at the other embedding of the base field are replaced by the positivity of a coefficient of the norm. | 57 | 5,510 |
+| 30 | 2026-11-26 | `bdb966f` | This positivity is derived in all five cases from the norm −2 of β. | 57 | 5,512 |
+| 31 | 2026-11-26 | `4429cb1` | Auxiliary bounds are removed; the inequality 4A² ≤ Λ + 3 is used directly. | 57 | 5,507 |
+| 32 | 2026-11-26 | `c5ed512` | For d = 2, the division by 11 uses only that one of two substitutions vanishes at each place modulo 11. | 57 | 5,509 |
+| 33 | 2026-11-26 | `49d9ff7` | Negative signs are excluded by keeping the real values positive from the construction on, instead of by the nonnegativity of the orbit coordinates. | 56 | 5,452 |
+| 34 | 2026-11-26 | `582a767` | Elements of relative norm 11 are moved directly into a small interval by powers of ρ and determined by integer arithmetic. Neither the division by 11 nor the generation of all relative units is used. | 55 | 5,049 |
+| 35 | 2026-11-26 | `0f186aa` | The small elements are determined by one discriminant identity. For d = 2 the second small element is replaced by one with y = 1. | 55 | 5,033 |
