@@ -79,6 +79,7 @@ The corresponding values of $m$ are $1,6,11,45,51,209,660099$, in this order.
 \end{theorem}
 
 The sequence of the $m$ is registered in the OEIS as A216269, ``$k$ such that $k^2-1$ is a tetrahedral number'', with these seven terms.
+For comparison, Meyl showed that for positive $n$ the number $T(n)$ itself is a square only for $n=1,2,48$~\cite{Meyl1878}.
 
 \subsection{Relation to elliptic curves}
 
@@ -102,7 +103,7 @@ It uses only the following.
 \end{itemize}
 We do not use class numbers, the unit theorem, unique factorization of ideals, or $p$-adic analysis.
 For the units, we do not determine the group of all relative units. We multiply $\xi$ by a power of one known relative unit to move it into a small range, and determine the elements left there by parity and a discriminant (Sections~\ref{sec:window} and~\ref{sec:small}).
-To determine the exponent, we use an argument by repeated divisibility by powers of $2$ instead of the theory of $p$-adic zeros (Section~\ref{sec:dyadic}).
+To determine the exponent, we use an argument by repeated divisibility by powers of $2$ instead of the theory of $p$-adic zeros (Section~\ref{sec:dyadic}). This carries out the idea of Skolem's $p$-adic method~\cite{Skolem1935} for $p=2$ without power series.
 
 \subsection{Structure of the proof}
 
@@ -274,9 +275,13 @@ Substituting \eqref{eq:param} into the identity
 we get $n^2+2=e(a^2+2b^2)^2$. Comparing with $y>0$, we get $y=a^2+2b^2$. The second part follows by expansion.
 \end{proof}
 
-To match the rings used later, we multiply once by a known unit and replace the fixed element.
-The result has the form $w=n+y\omega=\beta\eta^2$ with $\eta=\eta_0+\eta_1\omega$. The values of $\beta,\eta_0,\eta_1$ in each case are given in Table~\ref{tab:beta}.
-Each row of the table is a quadratic identity in $a,b$ and can be checked by expansion.
+To match the rings used later, we change the fixed element using an element $\varepsilon$ of norm $1$.
+Let $\varepsilon=5+2\omega,\ 2+\omega,\ 1,\ 1,\ 10+3\omega$ for $d=1,2,3,11,66$, and put
+\[
+\beta=(A+\omega)\varepsilon^2,\qquad\eta=\varepsilon'\bigl(a+(A-\omega)b\bigr).
+\]
+Since $\varepsilon\varepsilon'=1$, we have $w=n+y\omega=\beta\eta^2$.
+Writing $\eta=\eta_0+\eta_1\omega$, the values of $\beta,\eta_0,\eta_1$ in each case are given in Table~\ref{tab:beta}.
 
 \begin{table}[htbp]
 \centering
@@ -336,11 +341,18 @@ In what follows, put $s=\theta$ ($d\ne66$) and $s=\omega\theta$ ($d=66$). In eve
 \item Let $\tau$, the \textbf{relative conjugation}, be the restriction to $R$ of the conjugation of $L/F$ ($\theta\mapsto-\theta$). In coordinates, $\tau(x)=(x_0,x_1,-x_2,-x_3)$.
 \item We write $\Nm(x)=x\,\tau(x)$. This is the relative norm $\Nm_{L/F}(x)$; for $x\in R$ it lies in $\Z[\omega]$.
 \item An element $x$ with $\Nm(x)=1$ is called a \textbf{relative unit}. A relative unit $x$ is invertible, and $x^{-1}=\tau(x)$.
-\item We write the first two coordinates of $x$ as $P(x)=x_0$, $Q(x)=x_1$, and put $\pi(x)=x_0+x_1\omega\in\Z[\omega]$.
+\item We write the first two coordinates of $x$ as $P(x)=x_0$, $Q(x)=x_1$, and put $\pi(x)=x_0+x_1\omega\in\Z[\omega]$. We write $\gamma(x)$ for the coefficient of $\theta$, so that $x=\pi(x)+\gamma(x)\theta$.
 \end{enumerate}
 \end{definition}
 
-The multiplication table of each ring is determined by the relations in Table~\ref{tab:rings}.
+The multiplication is determined by $\theta^2=\Delta$:
+\begin{equation}\label{eq:mult}
+\begin{aligned}
+xy&=\bigl(\pi(x)\pi(y)+\Delta\gamma(x)\gamma(y)\bigr)+\bigl(\pi(x)\gamma(y)+\gamma(x)\pi(y)\bigr)\theta,\\
+\Nm(x)&=\pi(x)^2-\Delta\gamma(x)^2.
+\end{aligned}
+\end{equation}
+When we say below that something is ``checked from the multiplication table'', we mean that it follows by expanding this formula in coordinates.
 In Lean, these are defined as multiplications on $\Z^4$, and the axioms of a commutative ring are checked.
 (Whether $R$ is the full ring of integers does not matter for the argument.)
 
@@ -378,7 +390,7 @@ The function $f$ depends only on the first two coordinates. Therefore $f(\tau(x)
 %======================================================================
 
 In this section and the next, we determine the elements of relative norm $11$.
-We do not determine the group of all relative units. We use only that the element $\rho$ of Table~\ref{tab:rho} is a relative unit, which is checked by direct computation.
+We do not determine the group of all relative units. We use only that the element $\rho$ of Table~\ref{tab:rho} is a relative unit, which is checked directly from \eqref{eq:mult}. We found $\rho$ by searching elements with small coordinates for one with $\Nm(x)=1$.
 Multiplying by a power of $\rho$ does not change the relative norm $11$. We choose the power so that $\xi$ moves to a small element, and in the next section we determine that small element by integer computations.
 
 \begin{table}[htbp]
@@ -412,9 +424,9 @@ Therefore $\sigma(\xi)>0$ and $\sigma(\tau(\xi))>0$.
 
 \begin{lemma}\label{lem:window}
 Let $N$ be a positive integer, and let $x\in R$ satisfy $\Nm(x)=N$ and $\sigma(x)>0$.
-Then for some $i\in\Z$ the element $v=x\rho^{-i}$ satisfies $\Nm(v)=N$ and $\sigma(v)>0$, and, writing $\pi(v)=a+b\omega$ and $A=a+b\sqrt e$,
+Then for some $i\in\Z$ the element $v=x\rho^{-i}$ satisfies $\Nm(v)=N$ and $\sigma(v)>0$, and, writing $\pi(v)=a+b\omega$ and $\mu=a+b\sqrt e$,
 \begin{equation}\label{eq:window}
-A>0,\qquad 4A^2\le N(\Lambda+3).
+\mu>0,\qquad 4\mu^2\le N(\Lambda+3).
 \end{equation}
 \end{lemma}
 
@@ -424,17 +436,17 @@ Put $v=x\rho^{-i}$. Then $\Nm(v)=N$, and $S=\sigma(v)=\sigma(x)\Lambda^{-i}>0$ s
 \[
 N\le S^2\Lambda,\qquad S^2<N\Lambda.
 \]
-Put $T=\sigma(\tau(v))$. Since $ST=N$, we have $T>0$. Multiplying the first inequality by $T^2$ gives $T^2\le N\Lambda$.
-Moreover $S^2T^2=N^2$, so at least one of $S^2$ and $T^2$ is at most $N$.
-Since $2A=S+T>0$,
+Put $S'=\sigma(\tau(v))$. Since $SS'=N$, we have $S'>0$. Multiplying the first inequality by $S'^2$ gives $S'^2\le N\Lambda$.
+Moreover $S^2S'^2=N^2$, so at least one of $S^2$ and $S'^2$ is at most $N$.
+Since $2\mu=S+S'>0$,
 \[
-4A^2=S^2+T^2+2N\le N\Lambda+N+2N=N(\Lambda+3).
+4\mu^2=S^2+S'^2+2N\le N\Lambda+N+2N=N(\Lambda+3).
 \]
 \end{proof}
 
 \subsection{Signs of the coefficients of \tsec{$\pi(v)$}{pi(v)}}
 
-Let $\gamma$ be the coefficient of $\theta$ in $v$. The $\omega$-coefficient of $\Nm(v)=\pi(v)^2-\Delta\gamma^2$ is $0$, and this determines the signs of $a$ and $b$.
+Write $\gamma=\gamma(v)$. The $\omega$-coefficient of $\Nm(v)=\pi(v)^2-\Delta\gamma^2$ is $0$, and this determines the signs of $a$ and $b$.
 Here we use $\beta=p+q\omega$ from Section~\ref{sec:parameters}. From $n+y\omega=\beta\eta^2$ and $\NF(n+y\omega)=-2$ we get $\NF(\beta)=-2$, that is, $p^2-eq^2=-2$. By Table~\ref{tab:beta}, $q>0$.
 Put
 \[
@@ -463,7 +475,7 @@ d=66: & ab=6Q_{63,19}(c,t).
 \end{array}
 \]
 Here $Q_{p,q}$ is $Q_\beta$ for $\beta=p+q\omega$, and for $d=11$ we write $\gamma=c+t\omega/11$.
-Therefore $ab\ge0$. If $a$ and $b$ were both at most $0$, then $A=a+b\sqrt e\le0$, contrary to \eqref{eq:window}.
+Therefore $ab\ge0$. If $a$ and $b$ were both at most $0$, then $\mu=a+b\sqrt e\le0$, contrary to \eqref{eq:window}.
 \end{proof}
 
 %======================================================================
@@ -475,12 +487,12 @@ We write the coordinates of $v$ as $(a,b,c,t)$; thus $\gamma=c+t\omega$, except 
 
 \subsection{Ranges and parity}
 
-By \eqref{eq:window} and Table~\ref{tab:rho}, $4A^2$ is less than $473$, $187$, $825$, $1595$, $891$ for $d=1,2,3,11,66$ respectively.
+By \eqref{eq:window} and Table~\ref{tab:rho}, $4\mu^2$ is less than $473$, $187$, $825$, $1595$, $891$ for $d=1,2,3,11,66$ respectively.
 
 Next we read the constant coefficient $11$ of $\Nm(v)$ modulo $4$. In every ring the contribution of the $\theta$-coefficient is $0$ modulo $4$; this is checked from the multiplication table.
 Hence $a^2+eb^2\equiv3\pmod4$. Since a square is $0$ or $1$ modulo $4$, $a$ and $b$ are both odd when $e\equiv2\pmod4$ ($d=1,3,11$), and $a$ is even and $b$ is odd when $e\equiv3\pmod4$ ($d=2,66$).
 
-Bounding $\sqrt e$ from below by a small rational number and using $a,b\ge0$, we obtain the ranges in Table~\ref{tab:ranges}.
+Bounding $\sqrt e$ from below by a small rational number and using $a,b\ge0$, we obtain the ranges in Table~\ref{tab:ranges}. For example, for $d=1$ we have $\mu<11$ since $\sqrt{473}<22$, and $\sqrt6>2$ and $b\ge0$ give $a+2b\le\mu<11$.
 The condition for $d=3$ follows from reading the constant coefficient modulo $3$: $a^2+2b^2\equiv2$.
 For $d=11$ and $66$, reading the constant coefficient modulo $11$ gives $a^2-96t^2\equiv0$ and $a^2-756c^2\equiv0$ respectively.
 Since $96\equiv756\equiv8$ is not a square modulo $11$, we get $11\mid a$.
@@ -505,17 +517,22 @@ $66$ & $a<15$ & $a$ even, $b$ odd, $11\mid a$\\
 
 The remaining coordinates $c,t$ are determined by the identity
 \begin{equation}\label{eq:disc}
-C=c^2+et^2,\quad P=ct\quad\Longrightarrow\quad(c^2-et^2)^2=C^2-4eP^2.
+C=c^2+et^2,\quad B=ct\quad\Longrightarrow\quad(c^2-et^2)^2=C^2-4eB^2.
 \end{equation}
 If the right-hand side is negative, no $c,t$ exist. If it is $k^2$ with $k\ge0$, then $2et^2=C\pm k$, so $t^2$ has only two candidates, and only those that are squares of integers remain.
-For $d=1,2,3$, once $(a,b)$ is fixed, the two coefficient equations of $\Nm(v)$ are linear equations in $C$ and $P$.
+For $d=1,2,3$, writing $\Delta=\delta_0+\delta_1\omega$, we have $\Delta\gamma^2=(\delta_0C+2e\delta_1B)+(\delta_1C+2\delta_0B)\omega$.
+Hence, by \eqref{eq:mult}, the two coefficient equations of $\Nm(v)=11$ are
+\[
+a^2+eb^2-\delta_0C-2e\delta_1B=11,\qquad2ab-\delta_1C-2\delta_0B=0,
+\]
+and once $(a,b)$ is fixed they are linear equations in $C$ and $B$.
 
 \paragraph{$d=1$.}
-Six pairs $(a,b)$ lie in the range of Table~\ref{tab:ranges}. Solving for $C$ and $P$ gives the following.
+Six pairs $(a,b)$ lie in the range of Table~\ref{tab:ranges}. Solving for $C$ and $B$ gives the following.
 \begin{center}
 \begin{tabular}{cccl}
 \toprule
-$(a,b)$ & $P$ & $C$ & candidates for $t^2$\\
+$(a,b)$ & $B$ & $C$ & candidates for $t^2$\\
 \midrule
 $(1,1)$ & $-10$ & $49$ & $4,\ 25/6$\\
 $(3,1)$ & $-12$ & $59$ & $9/2,\ 16/3$\\
@@ -528,11 +545,11 @@ A negative $C$ contradicts $C=c^2+6t^2$. Hence $t^2=4$ and $ct=-10$, so $(c,t)=\
 
 \paragraph{$d=2$.}
 If $a=0$, then the equation $ab=2Q_{5,3}(c,t)$ from the proof of Lemma~\ref{lem:signs} gives $Q_{5,3}(c,t)=0$, that is, $c=t=0$. The constant coefficient then reads $3b^2=11$, which is impossible.
-The remaining pairs are $(2,1)$, $(4,1)$, $(2,3)$. The pair $(2,3)$ is excluded because $A^2=31+12\sqrt3>49>187/4$.
+The remaining pairs are $(2,1)$, $(4,1)$, $(2,3)$. The pair $(2,3)$ is excluded because $\mu^2=31+12\sqrt3>49>187/4$.
 \begin{center}
 \begin{tabular}{cccl}
 \toprule
-$(a,b)$ & $P$ & $C$ & candidates for $t^2$\\
+$(a,b)$ & $B$ & $C$ & candidates for $t^2$\\
 \midrule
 $(2,1)$ & $-2$ & $7$ & $1,\ 4/3$\\
 $(4,1)$ & $-1$ & $4$ & $1,\ 1/3$\\
@@ -542,7 +559,7 @@ $(4,1)$ & $-1$ & $4$ & $1,\ 1/3$\\
 Hence $(c,t)=\pm(2,-1)$ or $\pm(1,-1)$.
 
 \paragraph{$d=3$.}
-The pairs in the range are $(3,1)$, $(3,5)$, $(3,7)$, $(9,1)$, and $C^2-8P^2$ is $1$, $-7$, $-79$, $-63$ respectively.
+The pairs in the range are $(3,1)$, $(3,5)$, $(3,7)$, $(9,1)$, and $C^2-8B^2$ is $1$, $-7$, $-79$, $-63$ respectively.
 Hence $(a,b)=(3,1)$, and $C=c^2+2t^2=1$ gives $t=0$ and $c=\pm1$.
 
 \paragraph{$d=11$.}
@@ -579,6 +596,13 @@ For the element $\xi$ of Proposition~\ref{prop:xi}, there is $i\in\Z$ such that 
 Every element in the table has first coordinate $1$ and satisfies $f=0$.
 However, multiplication by $\rho$ does not preserve $f$. The exponents $m$ with $f(\xi_0\rho^m)=0$ are determined from Section~\ref{sec:dyadic} on.
 
+\paragraph{Example.}
+The value $n=22$ belongs to the case $d=1$, with $r=5$ and $y=9$.
+The representation of Section~\ref{sec:parameters} is given by $(A,a,b)=(-2,-1,2)$, so $\eta=-1$ and $w=22+9\omega=\beta$.
+Hence $\xi=(25,9,-5,0)$, with $\sigma(\xi)\approx0.117$ and $\sigma(\tau(\xi))\approx94.0$.
+The exponent in Lemma~\ref{lem:window} is $i=-1$, and $v=\xi\rho=(1,1,5,-2)=\xi_0$ (here $4\mu^2=4(1+\sqrt6)^2<48$).
+Thus $\xi=\xi_0\rho^{-1}$, and in Section~\ref{sec:exponents} this exponent $-1$ is determined by the condition $f=0$.
+
 %======================================================================
 \section{Relative conjugates and the second element}\label{sec:reps}
 %======================================================================
@@ -586,6 +610,7 @@ However, multiplication by $\rho$ does not preserve $f$. The exponents $m$ with 
 The map $\tau$ preserves $f$ and the $0$th coordinate, and satisfies $\tau(\rho)=\rho^{-1}$.
 Therefore, if $\xi=\tau(p)\rho^i$, we may replace $\xi$ by $\tau(\xi)=p\rho^{-i}$ without changing $P(\xi)=n+3$ and $f(\xi)=0$.
 In what follows we examine $\xi=\xi_0\rho^m$, and, for $d=2$, $\xi=w_0\rho^m$.
+For $d=11,66$ in Section~\ref{sec:exponents}, the same replacement moves the exponent $m$ to $-1-m$ or $-m$, which halves the classes of $m$ to be examined.
 
 \begin{lemma}\label{lem:extra}
 For $d=2$, $\xi=w_0\rho^m$ does not occur.
@@ -606,7 +631,8 @@ Thus the only elements left to examine are $\xi_0\rho^m$ ($m\in\Z$).
 
 In this section we prove a general lemma that derives $i=0$ from $f(y\,W^i)=0$.
 Here $y$ is a zero of $f$, and $W$ is an invertible element that is $2$-adically close to $1$.
-We do not use the zero theorems of $p$-adic analysis. We prove the lemma by repeated divisibility by powers of $2$.
+The map $i\mapsto f(yW^i)$ can be viewed $2$-adically as a power series in $i$. The lemma shows that its only zero is $i=0$, because the $2$-adic valuation of the linear term is smaller than that of the other terms.
+This is the key point of Skolem's method~\cite{Skolem1935}, but here we use no power series, only binomial expansion and divisibility by powers of $2$.
 
 In what follows, a zero $y$ of $f$ to which we apply this lemma is called a \textbf{base point}.
 When we write $W=1+2qU$, we call $U$ the \textbf{direction} of $W$.
@@ -615,11 +641,11 @@ When we write $W=1+2qU$, we call $U$ the \textbf{direction} of $W$.
 
 For $y,z\in R$ and $c\in\Z$,
 \begin{equation}\label{eq:expand}
-f(y+cz)=f(y)+c\lambda_y(z)+c^2H(z),
+f(y+cz)=f(y)+c\lambda_y(z)+c^2g(z),
 \end{equation}
 where
 \[
-\lambda_y(z)=2\bigl\{(P(y)-3)P(z)-eQ(y)Q(z)\bigr\},\qquad H(z)=P(z)^2-eQ(z)^2.
+\lambda_y(z)=2\bigl\{(P(y)-3)P(z)-eQ(y)Q(z)\bigr\},\qquad g(z)=P(z)^2-eQ(z)^2.
 \]
 The map $\lambda_y$ is $\Z$-linear in $z$ and depends only on $P(z),Q(z)$.
 
@@ -675,18 +701,25 @@ Next, we show for $k\ge0$ that $2^k\mid i$ implies $2^{k+1}\mid i$.
 Once this is shown, $i$ is divisible by every power of $2$, so $i=0$.
 
 Write $i=2^k\ell$. By Lemma~\ref{lem:power}~(2), $yW^i=y+cZ$ with $c=2^{k+1}q$ and $Z=y\{\ell U+qU^2(b+2E)\}$.
-By \eqref{eq:expand} and $f(y)=0$, we have $0=f(yW^i)=c\{\lambda_y(Z)+cH(Z)\}$, and so $\lambda_y(Z)+cH(Z)=0$.
+By \eqref{eq:expand} and $f(y)=0$, we have $0=f(yW^i)=c\{\lambda_y(Z)+cg(Z)\}$, and so $\lambda_y(Z)+cg(Z)=0$.
 
 Here $\lambda_y(Z)=\ell\lambda_y(yU)+qb\,\lambda_y(yU^2)+2q\lambda_y(yU^2E)$.
 By \eqref{eq:anyerror} and (4), (5),
 \[
 \lambda_y(Z)\equiv\ell qh^2\pmod{2qh^2}.
 \]
-On the other hand, by (2) and $U^2=hG$, $P(Z)$ and $Q(Z)$ are multiples of $h$, and $H(Z)$ is a multiple of $h^2$. Since $c$ is a multiple of $2q$, $cH(Z)\equiv0\pmod{2qh^2}$.
+On the other hand, by (2) and $U^2=hG$, $P(Z)$ and $Q(Z)$ are multiples of $h$, and $g(Z)$ is a multiple of $h^2$. Since $c$ is a multiple of $2q$, $cg(Z)\equiv0\pmod{2qh^2}$.
 Hence $\ell qh^2\equiv0\pmod{2qh^2}$, that is, $\ell$ is even, and $2^{k+1}\mid i$.
 \end{proof}
 
 In what follows, we show that hypotheses (2)--(5) follow in general from the arithmetic of the relative norm of the direction $U$ and from congruences along the orbit.
+The hypotheses are shown in the following places.
+\begin{itemize}
+\item (2): Corollary~\ref{cor:width}.
+\item (3): Section~\ref{sec:hyp3}.
+\item (4): Lemma~\ref{lem:orbit4} and Section~\ref{sec:hyp4}.
+\item (5): Section~\ref{sec:hyp5a} ($h=2$) and Section~\ref{sec:hyp5b} ($h=4$).
+\end{itemize}
 At individual base points we check only (1).
 
 \subsection{The relative norm of the direction}
@@ -725,7 +758,7 @@ Finally, $\pi(yU)$ is the sum of $\pi(y)\pi(U)$ and the contribution of the prod
 
 This gives (2) of Lemma~\ref{lem:unique}, and determines $G=U^2/h$.
 
-\subsection{Hypothesis (3)}
+\subsection{Hypothesis (3)}\label{sec:hyp3}
 
 In the two cases with $h=4$ ($d=2,66$), $e=3,11$ is odd and $\Delta$ has even coefficients.
 Then $\chi(x)=x_0+x_1\bmod2$ is nothing but the substitution $\omega\mapsto1$, $\theta\mapsto0$.
@@ -756,7 +789,7 @@ because $y_0$ and $y_0-3$ have different parities.
 Every element of the orbit satisfies $\Nm(y)=\Nm(\xi_0)\Nm(\rho)^i=11$, so $H(y)=11$ and $K(y)=0$, and the claim follows.
 \end{proof}
 
-\subsection{Hypothesis (4)}
+\subsection{Hypothesis (4)}\label{sec:hyp4}
 
 Put $\Nm(U)=u+v\omega$. Corollary~\ref{cor:width} gives $h\mid u$ and $h\mid v$; in fact $4\mid u$ in every ring,
 because the products of the $\theta$-coefficients contribute a multiple of $4$ to the constant term.
@@ -787,7 +820,7 @@ Since $e\equiv-1\pmod4$, we have $(3y_0-11)-3e\varsigma y_1=3(y_0+\varsigma y_1-
 Together with $v\equiv\varsigma u\pmod{16}$ and $4\mid u$, the braces are a multiple of $16$.
 Hence $32\mid\lambda_y(y\Nm(U))$ when $h=4$, and hypothesis (4) holds.
 
-\subsection{Hypothesis (5): the case \tsec{$h=2$}{h=2}}
+\subsection{Hypothesis (5): the case \tsec{$h=2$}{h=2}}\label{sec:hyp5a}
 
 In the three cases with $h=2$ ($d=1,3,11$), the multiplication tables give
 \begin{equation}\label{eq:Kmod4}
@@ -810,7 +843,7 @@ Hence, if $U_2$ is odd,
 which is hypothesis (5) for $q=2$, $h=2$.
 For the three directions used, $U_2=9,99,57$, all odd.
 
-\subsection{Hypothesis (5): the case \tsec{$h=4$}{h=4}}
+\subsection{Hypothesis (5): the case \tsec{$h=4$}{h=4}}\label{sec:hyp5b}
 
 In the two cases with $h=4$, write $\Delta=4(k+\ell\omega)$; then $(e,k,\ell)$ is $(3,5,3)$ for $d=2$ and $(11,189,57)$ for $d=66$.
 Let $W=1+4jU$, and write the product of the $\theta$-coefficients $U_2+U_3\omega$ of $U$ and $y_2+y_3\omega$ of $y$ as $X+Y\omega$, that is,
@@ -954,7 +987,7 @@ $66$ & $1$ & $66$ & $63$\\
 \end{table}
 
 The negative values $n=-2,-1$ contradict $n\in\N$. The remaining seven are the values in the theorem. The largest solution $13775$ comes from $m=-4$ in the case $d=2$.
-Conversely, substitution shows that the seven values are solutions with $m=1,6,11,45,51,209,660099$, respectively.
+Conversely, substituting the seven values gives $T(n)+1=1^2,6^2,11^2,45^2,51^2,209^2,660099^2$, respectively.
 \end{proof}
 
 
@@ -962,6 +995,13 @@ Conversely, substitution shows that the seven values are solutions with $m=1,6,1
 \appendix
 \section{Formalization in Lean}\label{app:lean}
 %======================================================================
+
+The formalization is in the directory \texttt{lean/} of the following repository:
+\begin{center}
+\url{https://github.com/roiban1344/tetrahedral-plus-one-squares}
+\end{center}
+It was checked with Lean~4 v4.34.1 and Mathlib v4.34.1; the versions are fixed by the files \texttt{lean/lean-toolchain} and \texttt{lean/lake-manifest.json}.
+Running \texttt{lake build} in \texttt{lean/} checks the whole proof, and \texttt{lake env lean Check.lean} prints the statement of the final theorem and the axioms it depends on.
 
 The final theorem has the following form. The division is carried out in the rationals $\Q$.
 {\small
@@ -1019,16 +1059,18 @@ $\chi$ & parity character\\
 \end{tabular}
 \end{table}
 
-The following three files are proofs generated by the Python scripts in \texttt{scripts/}.
+The following three files repeat the same argument in each of the five rings. The Python scripts in \texttt{scripts/} write out the proof for each ring from a single template.
 \begin{itemize}
 \item \texttt{NormEleven/PositiveOrbitData}
 \item \texttt{NormEleven/RelativeDirectionData}
 \item \texttt{NormEleven/ParityDirectionData}
 \end{itemize}
 The generated files are also ordinary Lean proofs, and the kernel checks them.
-The scripts are kept so that one can check that the same files are regenerated.
+The scripts do not search for proofs; they are kept so that one can check that the same files are regenerated.
 
 \begin{thebibliography}{9}
+\bibitem{Meyl1878} A.-J.-J.~Meyl, Solution de question 1194, \emph{Nouv. Ann. Math.} (2) \textbf{17} (1878), 464--467.
+\bibitem{Skolem1935} Th.~Skolem, Einige S\"atze \"uber $p$-adische Potenzreihen mit Anwendung auf gewisse exponentielle Gleichungen, \emph{Math. Ann.} \textbf{111} (1935), 399--424.
 \bibitem{GPZ94} J.~Gebel, A.~Peth\H{o}, H.~G.~Zimmer, Computing integral points on elliptic curves, \emph{Acta Arith.} \textbf{68} (1994), 171--192.
 \bibitem{ST94} R.~J.~Stroeker, N.~Tzanakis, Solving elliptic diophantine equations by estimating linear forms in elliptic logarithms, \emph{Acta Arith.} \textbf{67} (1994), 177--196.
 \bibitem{OEIS} The On-Line Encyclopedia of Integer Sequences, A000292 and A216269, \url{https://oeis.org}.
